@@ -1,0 +1,122 @@
+version: '3'
+services:
+  web:
+    image: backend:0.1.0
+    volumes:
+      - web-logs:/app/logs
+      - /var/log/backend:/app/backend/tmp
+      - ${LOCAL_STORAGE_PATH}:${LOCAL_STORAGE_PATH}
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - "5000:5000"
+    restart: always
+    command: gunicorn
+      autoapp:app
+      --bind 0.0.0.0:5000
+      -w 8
+      -t 0
+      -k eventlet
+      --access-logfile -
+      --error-logfile -
+  celery_worker:
+    image: backend:0.1.0
+    volumes:
+      - web-logs:/app/logs
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Shanghai
+      - C_FORCE_ROOT=true
+    restart: always
+    command: celery -A celery_worker.celery worker -l info -P eventlet
+  flower:
+    image: backend:0.1.0
+    volumes:
+      - web-logs:/app/logs
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Shanghai
+    restart: always
+    command: celery -A celery_worker.celery flower -l info
+    ports:
+      - "5555:5555"
+  equipment-mock:
+    image: backend:0.1.0
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Shanghai
+      - PYTHONPATH=/app
+    restart: always
+    command: python backend/equipment/provider/mock.py
+    depends_on:
+      - equipment-sio
+  equipment-sio:
+    image: backend:0.1.0
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Shanghai
+      - PYTHONPATH=/app
+    restart: always
+    command: gunicorn -k eventlet -w 1 backend.equipment.provider.sio_server:app --bind 0.0.0.0:5050
+    stop_signal: SIGQUIT
+    ports:
+      - "5050:5050"
+
+  eap-listener:
+    image: backend:0.1.0
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Shanghai
+      - PYTHONPATH=/app
+    restart: always
+    command: python task/listener/eap_listener.py
+  ama-listener:
+    image: backend:0.1.0
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Shanghai
+      - PYTHONPATH=/app
+    restart: always
+    command: python task/ama/log_consumer.py
+  strategy_naalysis_listener:
+      image: backend:0.1.0
+      env_file:
+        - .env
+      environment:
+        - TZ=Asia/Shanghai
+        - PYTHONPATH=/app
+      restart: always
+      command: python task/strategy_analysis/analysis.py
+  backend_xyn_mq:
+    image: backend:0.1.0
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Shanghai
+      - PYTHONPATH=/app
+    restart: always
+    command: python task/xyn_poc/flow_task_producer.py
+  backend_lot_history:
+    image: backend:0.1.0
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Shanghai
+      - PYTHONPATH=/app
+    restart: always
+    command: python task/xyn_poc/flow_task_producer.py
+volumes:
+  web-logs:
+networks:
+  default:
+    external:
+      name: backend-backend
+

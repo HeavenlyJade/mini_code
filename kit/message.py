@@ -1,0 +1,21 @@
+class GlobalMessage:
+    SERVER_LOG_ERROR = 'SERVER ERROR'
+    SERVER_UI_ERROR = 'SERVER ERROR, PLEASE CONTACT THE MANAGER'
+    NOT_FOUND_ERROR = '404 NOT FOUND'
+    RECORD_NOT_FOUND_ERROR = 'RECORD NOT FOUND'
+    RECORD_EXISTED_ERROR = 'RECORD EXISTED'
+    DELETE_NO_CONDITIONS = 'DELETE NO CONDITIONS'
+    INTEGRITY_ERROR = '唯一标识冲突，请检查输入数据'
+
+
+class ExtensionMessage:
+    SQLALCHEMY_DATABASE_URI_ERROR = '未配置数据库连接'
+    REDIS_CONNECT_ERROR = 'Redis连接异常，程序退出'
+    RABBITMQ_URL_ERROR = 'RabbitMQ链接未配置'
+    CASBIN_MODEL_PATH_ERROR = 'Casbin model未配置'
+
+
+class RequestMessage:
+    REQUEST_METHOD_NOT_SUPPORT = '该请求方式暂不支持'
+    CONNECT_ERROR = '连接异常,请检查链接是否可用'
+    CONNECT_TIMEOUT_ERROR = '连接或请求超时异常'
