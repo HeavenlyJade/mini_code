@@ -13,8 +13,8 @@ class Distribution(EntityInt):
     mobile: str = field(default=None, metadata=dict(description='手机号'))
     identity: int = field(default=None, metadata=dict(description='身份'))
     reason: int = field(default=None, metadata=dict(description='原因'))
-    user_id: int = field(default=None, metadata=dict(description='用户ID'))
-    upper_father_id: int = field(default=None, metadata=dict(description='上级ID'))
+    user_id: str = field(default=None, metadata=dict(description='用户ID'))
+    user_father_id: int = field(default=None, metadata=dict(description='上级ID'))
     grade_id: int = field(default=None, metadata=dict(description='等级ID'))
     remark: str = field(default=None, metadata=dict(description='备注'))
     status: int = field(default=None, metadata=dict(description='状态 (0-未审核, 1-已审核)'))
@@ -49,10 +49,11 @@ class DistributionGradeUpdate(EntityInt):
 
 @dataclass
 class DistributionIncome(EntityInt):
-    user_id: int = field(default=None, metadata=dict(description='用户ID'))
+    user_id: str = field(default=None, metadata=dict(description='用户ID'))
     order_id: str = field(default=None, metadata=dict(description='订单ID'))
     order_product_id: str = field(default=None, metadata=dict(description='产品订单ID'))
     product_id: str = field(default=None, metadata=dict(description='产品ID'))
+    product_name: str = field(default=None, metadata=dict(description='产品名称'))
     item_id: str = field(default=None, metadata=dict(description='商品ID'))
     money: float = field(default=None, metadata=dict(description='金额'))
     grade_id: int = field(default=None, metadata=dict(description='分销等级ID'))
@@ -73,3 +74,4 @@ class DistributionLog(EntityInt):
     source_sn: str = field(default=None, metadata=dict(description='来源单号'))
     extra: str = field(default=None, metadata=dict(description='额外信息'))
     admin_id: int = field(default=None, metadata=dict(description='管理员ID'))
+    user_id:str= field(default=None, metadata=dict(description='管理员ID'))

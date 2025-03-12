@@ -5,7 +5,7 @@ from webargs import fields
 from backend.mini_core.domain.distribution import (Distribution, DistributionConfig,
                                                    DistributionGrade, DistributionGradeUpdate,
                                                    DistributionIncome, DistributionLog)
-from kit.schema.base import EntitySchema,EntityIntSchema
+from kit.schema.base import EntitySchema,EntityIntSchema,ListResultSchema
 
 # 基本 Schema 类
 DistributionSchema = class_schema(Distribution, base_schema=EntitySchema)
@@ -21,7 +21,7 @@ class DistributionQueryArgSchema(EntityIntSchema):
     sn = fields.Str(description='编号')
     real_name = fields.Str(description='真实姓名')
     mobile = fields.Str(description='手机号')
-    user_id = fields.Int(description='用户ID')
+    user_id = fields.Str(description='用户ID')
     grade_id = fields.Int(description='等级ID')
     status = fields.Int(description='状态', validate=validate.OneOf([0, 1]))
 
@@ -44,11 +44,14 @@ class DistributionGradeUpdateQueryArgSchema(EntityIntSchema):
 
 # 分销收入查询参数 Schema
 class DistributionIncomeQueryArgSchema(EntityIntSchema):
-    user_id = fields.Int(description='用户ID')
+    user_id = fields.Str(description='用户ID')
     order_id = fields.Str(description='订单ID')
     product_id = fields.Str(description='产品ID')
     grade_id = fields.Int(description='分销等级ID')
-    status = fields.Int(description='状态', validate=validate.OneOf([0, 2, 3]))
+    start_date = fields.Str(description='开始时间')
+    end_date = fields.Str(description='结束时间')
+    status = fields.Int(description='状态', validate=validate.OneOf([-1,0, 1, 2,3]))
+
 
 
 # 分销日志查询参数 Schema
@@ -58,6 +61,9 @@ class DistributionLogQueryArgSchema(EntityIntSchema):
     change_type = fields.Str(description='变更类型')
     source_id = fields.Int(description='来源ID')
     admin_id = fields.Int(description='管理员ID')
+    user_id = fields.Str(description='变更类型')
+    start_date = fields.Str(description='开始时间')
+    end_date = fields.Str(description='结束时间')
 
 
 # 分销用户视图 Schema
@@ -66,8 +72,8 @@ class DistributionUserSchema(EntityIntSchema):
     real_name = fields.Str(description='真实姓名')
     mobile = fields.Str(description='手机号')
     identity = fields.Int(description='身份')
-    user_id = fields.Int(description='用户ID')
-    upper_father_id = fields.Int(description='上级ID')
+    user_id = fields.Str(description='用户ID')
+    user_father_id = fields.Int(description='上级ID')
     grade_id = fields.Int(description='等级ID')
     grade_name = fields.Str(description='等级名称')
     status = fields.Int(description='状态')
@@ -86,7 +92,7 @@ class DistributionGradeDetailSchema(EntityIntSchema):
 
 # 分销收入汇总 Schema
 class DistributionIncomeSummarySchema(EntityIntSchema):
-    user_id = fields.Int(description='用户ID')
+    user_id = fields.Str(description='用户ID')
     total_money = fields.Decimal(description='总收入')
     pending_money = fields.Decimal(description='待结算金额')
     settled_money = fields.Decimal(description='已结算金额')
@@ -109,6 +115,6 @@ class ReDistributionGradeSchema(EntityIntSchema):
     code = fields.Int(description='状态')
 
 
-class ReDistributionIncomeSchema(EntityIntSchema):
-    data = fields.Nested(DistributionIncomeSummarySchema())
+class ReDistributionIncomeSchema(ListResultSchema):
+    data = fields.List(fields.Nested(DistributionIncomeSchema()))
     code = fields.Int(description='状态')

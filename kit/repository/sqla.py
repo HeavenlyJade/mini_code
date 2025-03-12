@@ -1,12 +1,11 @@
 from abc import abstractmethod
 from dataclasses import asdict
-from typing import Any, Dict, List, NoReturn, Optional, Sequence, Tuple, Type
-
+from typing import Any, Dict, List, NoReturn, Optional, Sequence, Tuple, Type,Union
 from flask import g
 from sqlalchemy import asc, desc, or_
 from sqlalchemy.orm import Session
 
-from kit.domain.entity import Entity
+from kit.domain.entity import Entity,EntityInt
 from kit.exceptions import ServiceBadRequest
 from kit.message import GlobalMessage
 from kit.repository.generic import GenericRepository
@@ -123,7 +122,7 @@ class SQLARepository(GenericRepository[Entity]):
         if commit:
             self.session.commit()
 
-    def find(self, row_locked: bool = False, **kwargs) -> Optional[Entity]:
+    def find(self, row_locked: bool = False, **kwargs) -> Union[Type[Entity], Type[EntityInt]]:
         query = self.session.query(self.model).filter_by(**kwargs)
         if row_locked:
             query = query.with_for_update()
@@ -167,6 +166,7 @@ class SQLARepository(GenericRepository[Entity]):
                 conditions.append(getattr(self.model, param).like(f'%{value}%'))
             elif param in self.in_query_params:
                 conditions.append(getattr(self.model, param).in_(value))
+
             elif param in self.range_query_params:
                 start, end = value
                 if start:

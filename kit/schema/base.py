@@ -37,7 +37,7 @@ class EntitySchema(ArgSchema):
 
 class EntityIntSchema(ArgSchema):
     id = fields.Int(dump_only=True)
-    create_time = fields.DateTime(dump_only=True,description='创建时间')
+    create_time = DateTime(dump_only=True,description='创建时间')
     update_time = DateTime(dump_only=True,description='更新时间')
     delete_time = DateTime(dump_only=True,description='删除世界')
 
