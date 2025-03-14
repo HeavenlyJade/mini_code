@@ -11,6 +11,7 @@ from backend.mini_core.repository.distribution.distribution_sqla import (Distrib
                                                                          DistributionIncomeSQLARepository,
                                                                          DistributionLogSQLARepository)
 from kit.util.datetime import datetime_str_to_ts,convert_timestamps_to_datetime
+from anytree import Node, RenderTree
 
 __all__ = ['DistributionService', 'DistributionConfigService', 'DistributionGradeService',
            'DistributionGradeUpdateService', 'DistributionIncomeService', 'DistributionLogService']
@@ -37,6 +38,53 @@ class DistributionService(CRUDService[Distribution]):
 
         return {"data": data, "code": 200}
 
+    def get_summary_build_tree(self, args) -> Dict[str, Any]:
+        # 获取数据
+        user_id = args['user_id']
+        sql_data = self._repo.get_summary_tree(args)
+
+        # 确保数据是字典格式
+        if sql_data and not isinstance(sql_data[0], dict):
+            columns = ['id', 'sn', 'real_name', 'mobile', 'identity', 'reason', 'user_id',
+                       'user_father_id', 'grade_id', 'remark', 'status', 'audit_time',
+                       'create_time', 'update_time', 'delete_time']
+            sql_data = [dict(zip(columns, row)) for row in sql_data]
+
+        # 转换为树状结构数据格式 (适合前端渲染)
+        def convert_to_tree_format(data, parent_id):
+            tree_nodes = []
+            children = [item for item in data if str(item['user_father_id']) == str(parent_id)]
+
+            for child in children:
+                user_id = str(child['user_id'])
+                node = {
+                    'id': user_id,
+                    'name': child['real_name'],
+                    'mobile': child['mobile'],
+                    'remark': child['remark'],
+                    'status': child['status'],
+                    'isLeaf': True,  # 默认为叶子节点，后续会更新
+                    'data': child,  # 保留原始数据
+                    'children': convert_to_tree_format(data, user_id)
+                }
+                # 如果有子节点，则不是叶子节点
+                if node['children']:
+                    node['isLeaf'] = False
+
+                tree_nodes.append(node)
+
+            return tree_nodes
+
+        # 构建树结构数据
+        tree_data = {
+            'id': str(user_id),
+            'name': '分销成员',
+            'isLeaf': False,
+            'children': convert_to_tree_format(sql_data, user_id)
+        }
+
+        # 也可以保留原始数据，方便前端处理
+        return dict(code=200, data=tree_data)
     def get_by_user_id(self, user_id: int) -> Optional[Any]:
         return self._repo.find(user_id=user_id)
 
@@ -253,6 +301,7 @@ class DistributionIncomeService(CRUDService[DistributionIncome]):
             "frozen_money": status_money[2]
         }
         return {"data": result, "code": 200}
+
 
     def get_income_d_m_a_summary(self,user_id: int) -> Dict[str, Any]:
         if not user_id:

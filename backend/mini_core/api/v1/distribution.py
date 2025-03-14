@@ -27,7 +27,6 @@ class DistributionWXView(MethodView):
     @blp.response()
     def get(self, args: dict):
         """查看分销集体信息"""
-        print(args)
         income = distribution_income_service.get_summary_by_user(user_id=args.get("user_id"))
         income_d_m_a = distribution_income_service.get_income_d_m_a_summary(user_id=args.get("user_id"))
         distribution = distribution_service.get(args)["data"]
@@ -132,3 +131,17 @@ class DistributionLogAPI(MethodView):
     def post(self, log):
         """添加分销日志"""
         return distribution_log_service.update(log["id"], log)
+
+@blp.route('/distribution_members')
+class DistributionMembersAPI(MethodView):
+
+    @blp.arguments(DistributionQueryArgSchema,location="query")
+    @blp.response()
+    def get(self,args: dict):
+        """ 分销成员的成员树状 """
+        income = distribution_service.get_summary_build_tree(args)
+
+        return income
+
+    def post(self):
+        pass

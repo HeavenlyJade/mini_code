@@ -20,6 +20,7 @@ DistributionLogSchema = class_schema(DistributionLog, base_schema=EntitySchema)
 class DistributionQueryArgSchema(EntityIntSchema):
     sn = fields.Str(description='编号')
     real_name = fields.Str(description='真实姓名')
+    ser_name = fields.Str(description='字用户对搜索名称')
     mobile = fields.Str(description='手机号')
     user_id = fields.Str(description='用户ID')
     grade_id = fields.Int(description='等级ID')

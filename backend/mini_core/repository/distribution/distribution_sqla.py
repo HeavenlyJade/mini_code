@@ -22,7 +22,7 @@ distribution_table = Table(
     Column('sn', String(50), comment='编号'),
     Column('real_name', String(50), comment='真实姓名'),
     Column('mobile', String(20), comment='手机号'),
-    Column('identity', Integer, comment='身份'),
+    Column('identity', Integer, comment='身份,0超级管理员，1，普通管理员，2，公司成员，3普通用户'),
     Column('reason', Integer, comment='原因'),
     Column('user_id', String(255), comment='用户ID'),
     Column('user_father_id', Integer, comment='上级ID'),
@@ -140,6 +140,69 @@ class DistributionSQLARepository(SQLARepository):
     def in_query_params(self) -> Tuple:
         return 'sn', 'real_name', 'mobile', 'user_id', 'grade_id', 'status'
 
+    def get_summary_tree(self, args):
+        user_id = args["user_id"]
+        ser_name = args.get("ser_name")
+
+        if not ser_name:
+            # 如果没有搜索条件，返回完整的树结构
+            sql = """
+                WITH RECURSIVE UserHierarchy AS (
+                    SELECT *
+                    FROM la_distribution
+                    WHERE user_father_id = :user_id
+                    UNION ALL
+                    SELECT child.*
+                    FROM la_distribution child
+                    JOIN UserHierarchy parent ON child.user_father_id = parent.user_id
+                )
+                SELECT DISTINCT *
+                FROM UserHierarchy
+                ORDER BY user_father_id, id;
+                """
+            result = self.session.execute(sql, {'user_id': user_id}).fetchall()
+        else:
+            # 搜索匹配节点并获取其父节点路径
+            sql = """
+                WITH RECURSIVE UserHierarchy AS (
+                    -- 获取所有子节点
+                    SELECT *
+                    FROM la_distribution
+                    WHERE user_father_id = :user_id
+                    UNION ALL
+                    SELECT child.*
+                    FROM la_distribution child
+                    JOIN UserHierarchy parent ON child.user_father_id = parent.user_id
+                ),
+                -- 找出匹配名称的节点
+                MatchedNodes AS (
+                    SELECT *
+                    FROM UserHierarchy
+                    WHERE real_name LIKE :ser_name
+                ),
+                -- 找出匹配节点的所有父级ID（路径）
+                ParentPaths AS (
+                    SELECT user_father_id
+                    FROM MatchedNodes
+                    UNION
+                    SELECT node.user_father_id
+                    FROM la_distribution node
+                    JOIN ParentPaths pp ON node.user_id = pp.user_father_id
+                    WHERE node.user_father_id IS NOT NULL
+                )
+                -- 返回匹配节点及其父级路径上的所有节点
+                SELECT DISTINCT h.*
+                FROM UserHierarchy h
+                WHERE h.real_name LIKE :ser_name
+                   OR h.user_id IN (SELECT user_father_id FROM ParentPaths)
+                ORDER BY h.user_father_id, h.id;
+                """
+            result = self.session.execute(sql, {
+                'user_id': user_id,
+                'ser_name': f"%{ser_name}%"
+            }).fetchall()
+
+        return [dict(i) for i in result]
 
 class DistributionConfigSQLARepository(SQLARepository):
     @property
