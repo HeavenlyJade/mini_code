@@ -4,14 +4,19 @@ from .card.card_sqla import CardSQLARepository
 from .distribution.distribution_sqla import (DistributionSQLARepository, DistributionConfigSQLARepository,
                                              DistributionGradeSQLARepository, DistributionGradeUpdateSQLARepository,
                                              DistributionIncomeSQLARepository, DistributionLogSQLARepository)
-
+from .shop.shop_sqla import (ShopProductSQLARepository, ShopProductCategorySQLARepository)
 # TODO replace this with DI
 log_sqla_repo = CardSQLARepository(db.session)
 
-# Distribution-related repository instances
+# 分销
 distribution_sqla_repo = DistributionSQLARepository(db.session)
 distribution_config_sqla_repo = DistributionConfigSQLARepository(db.session)
 distribution_grade_sqla_repo = DistributionGradeSQLARepository(db.session)
 distribution_grade_update_sqla_repo = DistributionGradeUpdateSQLARepository(db.session)
 distribution_income_sqla_repo = DistributionIncomeSQLARepository(db.session)
 distribution_log_sqla_repo = DistributionLogSQLARepository(db.session)
+
+# 商城
+shop_product_sqla_repo = ShopProductSQLARepository(db.session)
+shop_product_category_sqla_repo = ShopProductCategorySQLARepository(db.session)
+

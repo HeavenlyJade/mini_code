@@ -59,6 +59,8 @@ class SQLARepository(GenericRepository[Entity]):
         return query.all()
 
     def get_by_id(self, entity_id: int) -> Optional[Entity]:
+        if entity_id is None:
+            return None
         return self.session.get(self.model, entity_id)
 
     def create(self, entity: Entity, commit: bool = True, flush: bool = False) -> Entity:

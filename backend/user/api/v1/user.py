@@ -43,9 +43,9 @@ class LoginAPI(MethodView):
     @blp.response(TokenSchema)
     def post(self, args: dict):
         """用户管理 用户登录"""
-        is_ok = user_service.is_li_ok()
-        if is_ok:
-            return {'msg': 'License has expired ', 'access_token': is_ok, 'code': 561}
+        # is_ok = user_service.is_li_ok()
+        # if is_ok:
+        #     return {'msg': 'License has expired ', 'access_token': is_ok, 'code': 561}
 
         tokens = user_service.login(args)
         log_service.commit(

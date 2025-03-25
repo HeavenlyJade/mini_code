@@ -5,7 +5,7 @@ from webargs import fields
 from backend.mini_core.domain.distribution import (Distribution, DistributionConfig,
                                                    DistributionGrade, DistributionGradeUpdate,
                                                    DistributionIncome, DistributionLog)
-from kit.schema.base import EntitySchema,EntityIntSchema,ListResultSchema
+from kit.schema.base import EntitySchema, EntityIntSchema, ListResultSchema
 
 # 基本 Schema 类
 DistributionSchema = class_schema(Distribution, base_schema=EntitySchema)
@@ -51,8 +51,7 @@ class DistributionIncomeQueryArgSchema(EntityIntSchema):
     grade_id = fields.Int(description='分销等级ID')
     start_date = fields.Str(description='开始时间')
     end_date = fields.Str(description='结束时间')
-    status = fields.Int(description='状态', validate=validate.OneOf([-1,0, 1, 2,3]))
-
+    status = fields.Int(description='状态', validate=validate.OneOf([-1, 0, 1, 2, 3]))
 
 
 # 分销日志查询参数 Schema

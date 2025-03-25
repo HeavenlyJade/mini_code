@@ -17,9 +17,8 @@ def auth_required():
     def wrapper(fn: Callable) -> Callable:
         @wraps(fn)
         def decorator(*args, **kwargs) -> Any:
-            verify_jwt_in_request()
+            jwt_header, jwt_data =verify_jwt_in_request()
             user = get_current_user()
-
             if request.method == 'GET':
                 if user.username == ADMIN_DEFAULT_USERNAME:
                     return fn(*args, **kwargs)

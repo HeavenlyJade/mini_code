@@ -132,12 +132,13 @@ class DistributionLogAPI(MethodView):
         """添加分销日志"""
         return distribution_log_service.update(log["id"], log)
 
+
 @blp.route('/distribution_members')
 class DistributionMembersAPI(MethodView):
 
-    @blp.arguments(DistributionQueryArgSchema,location="query")
+    @blp.arguments(DistributionQueryArgSchema, location="query")
     @blp.response()
-    def get(self,args: dict):
+    def get(self, args: dict):
         """ 分销成员的成员树状 """
         income = distribution_service.get_summary_build_tree(args)
 
