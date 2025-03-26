@@ -1,5 +1,7 @@
 import os
 import traceback
+import json
+from decimal import Decimal
 
 from flask import Flask, jsonify, request
 from loguru import logger
@@ -13,7 +15,11 @@ from kit.message import GlobalMessage
 from kit.util import openapi as openapi_util
 from kit.util.response import APIFlask
 
-
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        return super().default(obj)
 def create_app() -> Flask:
     """创建Flask Application 实例"""
     app = APIFlask(__name__)
@@ -23,7 +29,7 @@ def create_app() -> Flask:
     register_api_blueprints(app)
     register_error_handlers(app)
     register_request_handlers(app)
-
+    app.json_encoder = CustomJSONEncoder
     return app
 
 

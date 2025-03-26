@@ -5,6 +5,8 @@ from .distribution.distribution_sqla import (DistributionSQLARepository, Distrib
                                              DistributionGradeSQLARepository, DistributionGradeUpdateSQLARepository,
                                              DistributionIncomeSQLARepository, DistributionLogSQLARepository)
 from .shop.shop_sqla import (ShopProductSQLARepository, ShopProductCategorySQLARepository)
+from .store.store_car_sqla import ShopStoreCategorySQLARepository
+from .store.store_sqla import ShopStoreSQLARepository
 # TODO replace this with DI
 log_sqla_repo = CardSQLARepository(db.session)
 
@@ -19,4 +21,8 @@ distribution_log_sqla_repo = DistributionLogSQLARepository(db.session)
 # 商城
 shop_product_sqla_repo = ShopProductSQLARepository(db.session)
 shop_product_category_sqla_repo = ShopProductCategorySQLARepository(db.session)
+
+# 门店
+store_sqla_repo = ShopStoreSQLARepository(db.session)
+store_sqla_category_repo = ShopStoreCategorySQLARepository(db.session)
 

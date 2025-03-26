@@ -2,11 +2,13 @@ from backend.mini_core.repository import (log_sqla_repo, distribution_sqla_repo,
                                           distribution_config_sqla_repo,
                                           distribution_grade_sqla_repo, distribution_grade_update_sqla_repo,
                                           distribution_income_sqla_repo, distribution_log_sqla_repo,
-                                          shop_product_sqla_repo,shop_product_category_sqla_repo)
+                                          shop_product_sqla_repo,shop_product_category_sqla_repo,
+                                          store_sqla_repo,store_sqla_category_repo)
 from .card_server import CardService
 from .distribution_server import (DistributionService, DistributionConfigService,
                                   DistributionGradeService, DistributionGradeUpdateService,
                                   DistributionIncomeService, DistributionLogService)
+from .store import (ShopStoreCategoryService,ShopStoreService)
 
 from .shop_server import (ShopProductCategoryService, ShopProductService)
 # 个人卡牌
@@ -22,3 +24,8 @@ distribution_log_service = DistributionLogService(distribution_log_sqla_repo)
 
 shop_product_service = ShopProductService(shop_product_sqla_repo)
 shop_product_category_service = ShopProductCategoryService(shop_product_category_sqla_repo)
+
+# 门店管理
+shop_store_service = ShopStoreService(store_sqla_repo)
+shop_store_category_service = ShopStoreCategoryService(store_sqla_category_repo)
+
