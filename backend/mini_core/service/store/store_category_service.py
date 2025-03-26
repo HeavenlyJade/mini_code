@@ -37,13 +37,12 @@ class ShopStoreCategoryService(CRUDService[ShopStoreCategory]):
             query_params['parent_id'] = parent_id
         if status:
             query_params['status'] = status
-
         data, total = self._repo.list(**query_params)
         return dict(data=data, code=200, total=total)
 
     def get_by_id(self, category_id: int) -> Dict[str, Any]:
         """获取指定ID的分类"""
-        data = self._repo.get(category_id)
+        data = self._repo.get_by_id(category_id)
         return dict(data=data, code=200)
 
     def list_by_parent(self, parent_id: int) -> Dict[str, Any]:
@@ -76,6 +75,42 @@ class ShopStoreCategoryService(CRUDService[ShopStoreCategory]):
         result = super().delete(category_id)
         return dict(data=result, code=200)
 
+    def batch_delete(self, category_ids: List[int]) -> Dict[str, Any]:
+        """批量删除分类 - 遵循事务原子性"""
+        if not category_ids:
+            return dict(data=None, code=400, message="未提供要删除的分类ID")
+
+        # 预检查所有分类
+        error_messages = []
+        for category_id in category_ids:
+            children = self._repo.find(parent_id=category_id)
+            if children:
+                error_messages.append(f"分类ID {category_id} 下有子分类，无法删除")
+
+        # 如果有任何错误，整个操作失败
+        if error_messages:
+            return dict(
+                data=None,
+                code=400,
+                message="批量删除失败: " + "; ".join(error_messages)
+            )
+        # 所有检查都通过，执行批量删除
+        try:
+            self._repo.batch_delete(ids=category_ids)
+            # 只有所有删除都成功时才提交事务
+            return dict(
+                data={"deleted_ids": category_ids},
+                code=200,
+                message=f"成功删除了 {len(category_ids)} 个分类"
+            )
+
+        except Exception as e:
+            # 如有异常，事务会自动回滚（根据你的数据库框架实现）
+            return dict(
+                data=None,
+                code=500,
+                message=f"批量删除过程中发生错误: {str(e)}"
+            )
     def toggle_recommend(self, category_id: int) -> Dict[str, Any]:
         """切换分类的推荐状态"""
         category = self._repo.get(category_id)

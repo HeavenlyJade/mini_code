@@ -2,7 +2,8 @@ from flask.views import MethodView
 
 from backend.mini_core.schema.store.store_category import (
     ShopStoreCategoryQueryArgSchema, ReShopStoreCategorySchema, ReShopStoreCategoryListSchema,
-    ShopStoreCategoryStatusUpdateArgSchema, ReShopStoreCategoryTreeSchema
+    ShopStoreCategoryStatusUpdateArgSchema, ReShopStoreCategoryTreeSchema,
+ShopStoreCategorySchema,DelShopStoreCategorySchema
 )
 from backend.mini_core.domain.store import ShopStoreCategory
 from backend.business.service.auth import auth_required
@@ -23,14 +24,11 @@ class ShopStoreCategoryAPI(MethodView):
         """查询商店分类列表"""
         return shop_store_category_service.get_list(args)
 
-    @blp.arguments(ShopStoreCategory)
+    @blp.arguments(ShopStoreCategorySchema)
     @blp.response(ReShopStoreCategorySchema)
     def post(self, category):
-        """创建或更新商店分类"""
-        if category.get("id"):
-            return shop_store_category_service.update(category["id"], category)
-        else:
-            return shop_store_category_service.create(category)
+        """创建"""
+        return shop_store_category_service.create(category)
 
 
 @blp.route('/shop-store-category/<int:category_id>')
@@ -43,7 +41,7 @@ class ShopStoreCategoryDetailAPI(MethodView):
         """获取指定ID的商店分类"""
         return shop_store_category_service.get_by_id(category_id)
 
-    @blp.arguments(ShopStoreCategory)
+    @blp.arguments(ShopStoreCategorySchema)
     @blp.response(ReShopStoreCategorySchema)
     def put(self, category, category_id: int):
         """更新指定ID的商店分类"""
@@ -54,6 +52,15 @@ class ShopStoreCategoryDetailAPI(MethodView):
         """删除指定ID的商店分类"""
         return shop_store_category_service.delete(category_id)
 
+@blp.route('/batch-delete')
+class ShopStoreCategoryBatchDeleteAPI(MethodView):
+    """批量删除商店分类API"""
+    decorators = [auth_required()]
+
+    @blp.arguments(DelShopStoreCategorySchema, location='json')
+    def post(self, args):
+        """批量删除商店分类"""
+        return shop_store_category_service.batch_delete(args["ids"])
 
 @blp.route('/shop-store-category/tree')
 class ShopStoreCategoryTreeAPI(MethodView):

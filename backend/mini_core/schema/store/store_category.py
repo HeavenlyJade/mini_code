@@ -46,6 +46,8 @@ class ShopStoreCategoryTreeNodeSchema(Schema):
     is_recommend = webargs_fields.Bool(description='是否推荐')
     children = webargs_fields.List(webargs_fields.Nested(lambda: ShopStoreCategoryTreeNodeSchema()), description='子分类')
 
+class DelShopStoreCategorySchema(Schema):
+    ids = webargs_fields.List(webargs_fields.Int(required=True), required=True)
 
 # 分类树响应 Schema
 class ReShopStoreCategoryTreeSchema(EntityIntSchema):

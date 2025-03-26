@@ -7,6 +7,7 @@ from flask import Flask, jsonify, request
 from loguru import logger
 from sqlalchemy.exc import IntegrityError
 from webargs.flaskparser import FlaskParser
+from flask_cors import CORS
 
 from backend.extensions import api, casbin_enforcer, db, jwt, migrate, redis
 from kit.exceptions import ServiceClientException, ServiceException
@@ -30,6 +31,7 @@ def create_app() -> Flask:
     register_error_handlers(app)
     register_request_handlers(app)
     app.json_encoder = CustomJSONEncoder
+    CORS(app)
     return app
 
 

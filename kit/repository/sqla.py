@@ -105,12 +105,31 @@ class SQLARepository(GenericRepository[Entity]):
             self.session.commit()
         return e
 
-    def delete(self, entity_id: int):
+    def delete(self, entity_id: int,commit: bool = True):
         self.session.query(self.model).filter_by(id=entity_id).delete()
-        self.session.commit()
-        # if commit:
-        #     db.session.commit()
+        # self.session.commit()
+        if commit:
+            self.session.commit()
 
+    def batch_delete(self, ids: List[int], commit: bool = True):
+        """
+        批量删除指定ID的实体
+
+        :param ids: 要删除的实体ID列表
+        :param commit: 是否立即提交事务，默认为True
+        :return: 删除的记录数
+        """
+        if not ids:
+            raise ServiceBadRequest("未提供要删除的ID列表")
+
+        deleted_count = self.session.query(self.model).filter(
+            self.model.id.in_(ids)
+        ).delete(synchronize_session=False)
+
+        if commit:
+            self.session.commit()
+
+        return deleted_count
     def delete_by(self, conditions: Dict[str, Any], commit: bool = True):
         conditions = [
             getattr(self.model, field) == value for field, value in conditions.items()
