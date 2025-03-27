@@ -5,12 +5,14 @@ services:
     volumes:
       - web-logs:/app/logs
       - ${LOCAL_STORAGE_PATH}:${LOCAL_STORAGE_PATH}
+      - /var/www/images:/var/www/images  # 添加物理机目录挂载
+
     env_file:
       - .env
     environment:
       - TZ=Asia/Shanghai
     ports:
-      - "8000:5000"
+      - "8006:5000"
     restart: always
     command: gunicorn
       autoapp:app
