@@ -3,14 +3,14 @@ from marshmallow_dataclass import class_schema
 from webargs import fields as webargs_fields
 
 from backend.mini_core.domain.store import ShopStore
-from kit.schema.base import EntitySchema, EntityIntSchema, ListResultSchema
+from kit.schema.base import EntitySchema, EntityIntSchema, ListResultSchema,ListQueryArgSchema
 
 # 基本 Schema 类 - 使用 class_schema 自动生成
 ShopStoreSchema = class_schema(ShopStore, base_schema=EntitySchema)
 
 
 # 商店查询参数 Schema
-class ShopStoreQueryArgSchema(Schema):
+class ShopStoreQueryArgSchema(ListQueryArgSchema):
     name = webargs_fields.Str(description='商店名称')
     type = webargs_fields.Str(description='商店类型')
     store_code = webargs_fields.Str(description='门店编号')
@@ -74,7 +74,7 @@ class WifiSettingsUpdateArgSchema(Schema):
 
 
 # 响应 Schema
-class ReShopStoreSchema(EntityIntSchema):
+class ReShopStoreSchema(Schema):
     data = webargs_fields.Nested(ShopStoreSchema())
     code = webargs_fields.Int(description='状态码')
 

@@ -1,0 +1,42 @@
+version: '3'
+services:
+  web:
+    image: mini_app_bac:latest
+    volumes:
+      - web-logs:/app/logs
+      - ${LOCAL_STORAGE_PATH}:${LOCAL_STORAGE_PATH}
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - "8000:5000"
+    restart: always
+    command: gunicorn
+      autoapp:app
+      --bind 0.0.0.0:5000
+      -w 8
+      -t 0
+      -k eventlet
+      --access-logfile -
+      --error-logfile -
+  celery_worker:
+    image: mini_app_bac:latest
+    volumes:
+      - web-logs:/app/logs
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Shanghai
+      - PYTHONPATH=/app
+      - C_FORCE_ROOT=true
+    restart: always
+    command: celery -A celery_worker.celery worker -l info -P eventlet
+
+
+volumes:
+  web-logs:
+networks:
+  default:
+    external:
+      name: backend-backend

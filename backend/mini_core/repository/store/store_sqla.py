@@ -19,7 +19,7 @@ shop_store_table = Table(
     Column('type', String(32), comment='类型'),
     Column('store_code', String(32), comment='门店编号'),
     Column('fresh_delivery', String(128), comment='生鲜配送'),
-    Column('receive_method', Enum('系统自动接单', '需要商家确认'), comment='接单模式'),
+    Column('receive_method', Enum('系统自动确认', '需要商家确认'), comment='接单模式'),
     Column('takeout_enabled', Boolean, default=False, comment='外卖模式'),
     Column('self_pickup_enabled', Boolean, default=False, comment='自取模式'),
     Column('dine_in_enabled', Boolean, default=False, comment='堂食模式'),

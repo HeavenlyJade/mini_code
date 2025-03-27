@@ -29,8 +29,13 @@ class ShopStoreService(CRUDService[ShopStore]):
         store_category = args.get("store_category")
         province = args.get("province")
         status = args.get("status")
-
-        query_params = {}
+        page = args.get("page")
+        size = args.get("size")
+        query_params = {"need_total_count":True}
+        if page:
+            query_params["page"] = page
+        if size:
+            query_params["size"] = size
         if name:
             query_params['name'] = name
         if store_code:
@@ -49,7 +54,7 @@ class ShopStoreService(CRUDService[ShopStore]):
 
     def get_by_id(self, store_id: int) -> Dict[str, Any]:
         """获取指定ID的商店"""
-        data = self._repo.get(store_id)
+        data = self._repo.get_by_id(store_id)
         return dict(data=data, code=200)
 
     def get_by_category(self, category_id: int) -> Dict[str, Any]:

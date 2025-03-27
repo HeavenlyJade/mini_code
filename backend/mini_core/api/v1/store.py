@@ -4,7 +4,8 @@ from backend.mini_core.schema.store.store import (
     ShopStoreQueryArgSchema, ReShopStoreSchema, ReShopStoreListSchema,
     ShopStoreStatusUpdateArgSchema, NearbyStoreQueryArgSchema, ServiceModeToggleArgSchema,
     BusinessHoursUpdateArgSchema, DeliverySettingsUpdateArgSchema, ContactInfoUpdateArgSchema,
-    WifiSettingsUpdateArgSchema, ReShopStoreStatsSchema, ReNearbyStoreListSchema,KeywordSearchSchema
+    WifiSettingsUpdateArgSchema, ReShopStoreStatsSchema, ReNearbyStoreListSchema,KeywordSearchSchema,
+ShopStoreSchema
 )
 from backend.mini_core.domain.store import ShopStore
 from backend.business.service.auth import auth_required
@@ -25,11 +26,12 @@ class ShopStoreAPI(MethodView):
         """查询商店列表"""
         return shop_store_service.get_store(args)
 
-    @blp.arguments(ShopStore)
+    @blp.arguments(ShopStoreSchema)
     @blp.response(ReShopStoreSchema)
     def post(self, store):
         """创建或更新商店"""
-        if store.get("id"):
+        print("store",store)
+        if store.id:
             return shop_store_service.update_store(store["id"], store)
         else:
             return shop_store_service.create_store(store)

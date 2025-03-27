@@ -80,14 +80,13 @@ class Config:
     BUCKET_NAME = env.str('BUCKET_NAME')
     LOCAL_STORAGE_PATH = env.path('LOCAL_STORAGE_PATH')
 
-
     # Equipment Service
     EQUIPMENT_REPO_TYPE = env.str('EQUIPMENT_REPO_TYPE', 'sqla')
 
     # Kafka
     BOOTSTRAP_SERVERS = env.str('BOOTSTRAP_SERVERS')
     # Web Service
-    WEB_SERVICE_URL_PREFIX = env.str('WEB_SERVICE_URL_PREFIX')
+    # WEB_SERVICE_URL_PREFIX = env.str('WEB_SERVICE_URL_PREFIX')
 
     # RabbitMQ
     RABBITMQ_SERVERS = env.str("RABBITMQ_SERVERS")
@@ -95,6 +94,9 @@ class Config:
     ELK_LISTENER_PORT = env.int('ELK_LISTENER_PORT')
     ELK_TAGS = env.str('ELK_TAGS')
     ELK_VERSION = env.str("ELK_VERSION")
+    IMAGE_PATH = env.str("Image_Path")
+    UPLOADS_URL_PREFIX = env.str('UPLOADS_URL_PREFIX')
+    # Image_Path = env.path("LOCAL_STORAGE_PATH")
 
 class DevelopmentConfig(Config):
     DEBUG = True

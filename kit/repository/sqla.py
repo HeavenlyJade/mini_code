@@ -39,6 +39,7 @@ class SQLARepository(GenericRepository[Entity]):
         return tuple()
 
     def list(self, **kwargs) -> Tuple[List[Entity], int]:
+        print(kwargs)
         query = self.get_queryset(**kwargs)
         total = query.count() if kwargs.get('need_total_count') else 0
         if kwargs.get('page') and kwargs.get('size'):
