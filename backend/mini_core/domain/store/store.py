@@ -73,6 +73,12 @@ class ShopStore(Entity):
             description='省市区',
         ),
     )
+    province_code: str = field(
+        default=None,
+        metadata=dict(
+            description='省市区编码',
+        ),
+    )
     address: str = field(
         default=None,
         metadata=dict(

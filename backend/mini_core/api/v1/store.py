@@ -47,7 +47,7 @@ class ShopStoreDetailAPI(MethodView):
         """获取指定ID的商店"""
         return shop_store_service.get_by_id(store_id)
 
-    @blp.arguments(ShopStore)
+    @blp.arguments(ShopStoreSchema)
     @blp.response(ReShopStoreSchema)
     def put(self, store, store_id: int):
         """更新指定ID的商店"""

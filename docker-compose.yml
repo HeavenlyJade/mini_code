@@ -6,6 +6,8 @@ services:
       - web-logs:/app/logs
       - ${LOCAL_STORAGE_PATH}:${LOCAL_STORAGE_PATH}
       - /var/www/images:/var/www/images  # 添加物理机目录挂载
+      - /opt/dev/apps/backend/mini_code:/app  # 挂载代码目录到容器的/app目录
+
 
     env_file:
       - .env

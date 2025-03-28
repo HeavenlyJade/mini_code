@@ -88,7 +88,7 @@ class ShopProductAPI(MethodView):
         """查询商品列表"""
         return shop_product_service.get(args)
 
-    @blp.arguments(ShopProduct)
+    @blp.arguments(ShopProductCategory)
     @blp.response(ReShopProductSchema)
     def post(self, product):
         """创建或更新商品"""

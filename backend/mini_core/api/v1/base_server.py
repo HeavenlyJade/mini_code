@@ -65,8 +65,6 @@ def save_file(file) -> str:
     unique_filename = f"{timestamp}_{uuid.uuid4().hex}.{extension}" if extension else f"{timestamp}_{uuid.uuid4().hex}"
     # 确保上传目录存在
     Image_Path = current_app.config.get('IMAGE_PATH')
-    print("date_dir",Image_Path)
-
     upload_dir = Path(Image_Path)
     date_dir = upload_dir / timestamp
     if not date_dir.exists():

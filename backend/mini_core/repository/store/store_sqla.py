@@ -25,6 +25,7 @@ shop_store_table = Table(
     Column('dine_in_enabled', Boolean, default=False, comment='堂食模式'),
     Column('store_category', Integer, comment='门店分类ID'),
     Column('province', String(32), comment='省市区'),
+    Column('province_code', String(32), comment='省市区编码'),
     Column('address', String(255), comment='地址'),
     Column('contact_person', String(64), comment='联系人'),
     Column('contact_phone', String(20), comment='联系电话'),
