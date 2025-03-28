@@ -15,6 +15,14 @@ from kit.util.blueprint import APIBlueprint
 blp = APIBlueprint('shop_store', 'shop_store', url_prefix='/')
 
 
+@blp.route('/base_down')
+class BaseDownAPI(MethodView):
+    """基础下载API"""
+    @blp.arguments(KeywordSearchSchema, location='query')
+    def get(self,args: dict):
+        """获取基础下载内容"""
+        return shop_store_service.get_table_down_data(args)
+
 @blp.route('/shop-store')
 class ShopStoreAPI(MethodView):
     """商店API"""

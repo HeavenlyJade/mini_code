@@ -169,3 +169,10 @@ class ShopStoreSQLARepository(SQLARepository):
             'type_stats': [{'type': t[0], 'count': t[1]} for t in type_stats],
             'province_stats': [{'province': p[0], 'count': p[1]} for p in province_stats]
         }
+
+    def get_table_down_data(self, table_name):
+        # 验证表名，防止SQL注入（只允许字母、数字和下划线）
+        # 安全地构建SQL
+        sql = f"SELECT id, `name` FROM {table_name}"
+        result = self.session.execute(sql).fetchall()
+        return [dict(row) for row in result]

@@ -15,6 +15,10 @@ class ShopStoreService(CRUDService[ShopStore]):
     def repo(self) -> ShopStoreSQLARepository:
         return self._repo
 
+    def get_table_down_data(self,args):
+        table_name = args["keyword"]
+        table_dic = {"shop_store":"shop_store","shop_product_category":"shop_product_category"}
+        return self._repo.get_table_down_data(table_dic[table_name])
     def get_store(self, args: dict) -> Dict[str, Any]:
         """根据条件获取商店信息"""
         store_id = args.get("id")

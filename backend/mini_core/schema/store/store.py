@@ -120,3 +120,5 @@ class ReNearbyStoreListSchema(ListResultSchema):
 
 class KeywordSearchSchema(Schema):
     keyword = webargs_fields.Str(required=True, description='搜索关键词')
+
+

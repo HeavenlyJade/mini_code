@@ -4,7 +4,7 @@ from backend.mini_core.schema.shop import (
     ProductCategoryQueryArgSchema, ReProductCategorySchema, ReProductCategoryListSchema,
     ShopProductQueryArgSchema, ReShopProductSchema, ReShopProductListSchema,
     ShopProductStockUpdateArgSchema, ShopProductStatusUpdateArgSchema,
-    ReShopProductStockUpdateSchema, ReProductCategoryTreeSchema,ProductCategorySchema
+    ReShopProductStockUpdateSchema, ReProductCategoryTreeSchema,ProductCategorySchema,ShopProductSchema
 )
 from backend.mini_core.domain.shop import ShopProduct, ShopProductCategory
 from backend.business.service.auth import auth_required
@@ -27,7 +27,7 @@ class ProductCategoryAPI(MethodView):
         """查询商品分类列表"""
         return shop_product_category_service.get_list(args)
 
-    @blp.arguments(ShopProductCategory)
+    @blp.arguments(ShopProductSchema)
     @blp.response(ReProductCategorySchema)
     def post(self, category):
         """创建或更新商品分类"""
@@ -86,16 +86,13 @@ class ShopProductAPI(MethodView):
     @blp.response(ReShopProductListSchema)
     def get(self, args: dict):
         """查询商品列表"""
-        return shop_product_service.get(args)
+        return shop_product_service.get_list(args)
 
-    @blp.arguments(ShopProductCategory)
+    @blp.arguments(ShopProductSchema)
     @blp.response(ReShopProductSchema)
     def post(self, product):
         """创建或更新商品"""
-        if product.get("id"):
-            return shop_product_service.update(product["id"], product)
-        else:
-            return shop_product_service.create(product)
+        return shop_product_service.create_pro(product)
 
 
 @blp.route('/shop-product/<int:product_id>')
@@ -105,13 +102,14 @@ class ShopProductDetailAPI(MethodView):
     @blp.response(ReShopProductSchema)
     def get(self, product_id: int):
         """获取指定ID的商品"""
-        return shop_product_service.get({"id": product_id})
+        data = shop_product_service.get({"id": product_id})
+        return dict(code=200,data=data)
 
-    @blp.arguments(ShopProduct)
+    @blp.arguments(ShopProductSchema)
     @blp.response(ReShopProductSchema)
     def put(self, product, product_id: int):
         """更新指定ID的商品"""
-        return shop_product_service.update(product_id, product)
+        return shop_product_service.update_pro(product_id, product)
 
     @blp.response(ReShopProductSchema)
     def delete(self, product_id: int):

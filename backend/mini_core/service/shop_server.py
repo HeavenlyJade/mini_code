@@ -15,7 +15,8 @@ class ShopProductService(CRUDService[ShopProduct]):
     def repo(self) -> ShopProductSQLARepository:
         return self._repo
 
-    def get(self, args: dict) -> Dict[str, Any]:
+
+    def get_list(self, args: dict) -> Dict[str, Any]:
         """根据条件获取商品"""
         product_id = args.get("id")
         if product_id:
@@ -28,8 +29,15 @@ class ShopProductService(CRUDService[ShopProduct]):
         category_id = args.get("category_id")
         status = args.get("status")
         is_recommended = args.get("is_recommended")
-
-        query_params = {}
+        page = args.get("page")
+        size = args.get("size")
+        query_params = {"need_total_count":True}
+        if page:
+            query_params["page"] = page
+        if size:
+            query_params["size"] = size
+        if name:
+            query_params['name'] = name
         if code:
             query_params['code'] = code
         if name:
@@ -41,8 +49,8 @@ class ShopProductService(CRUDService[ShopProduct]):
         if is_recommended is not None:
             query_params['is_recommended'] = is_recommended
 
-        data = self._repo.find(**query_params)
-        return dict(data=data, code=200)
+        data,total = self._repo.list(**query_params)
+        return dict(data=data,total=total, code=200)
 
     def list_by_category(self, category_id: int) -> Dict[str, Any]:
         """获取指定分类下的所有商品"""
@@ -72,8 +80,10 @@ class ShopProductService(CRUDService[ShopProduct]):
         result = self._repo.update(product_id, product)
         return dict(data=result, stock_warning=stock_warning, code=200)
 
+
     def update_pro(self, product_id: int, product:Dict) -> Dict[str, Any]:
         """更新商品信息"""
+        print("product",product)
         result = super().update(product_id, product)
         return dict(data=result, code=200)
 

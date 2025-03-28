@@ -58,7 +58,7 @@ class ReProductCategoryListSchema(ListResultSchema):
     total = webargs_fields.Int(description='总数')
 
 
-class ReShopProductSchema(EntityIntSchema):
+class ReShopProductSchema(Schema):
     data = webargs_fields.Nested(ShopProductSchema())
     code = webargs_fields.Int(description='状态')
 

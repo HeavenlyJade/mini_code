@@ -23,7 +23,7 @@ class ShopProductCategory(Entity):
 
 
 @dataclass
-class ShopProduct(EntityInt):
+class ShopProduct(Entity):
     category_id: int = field(default=None, metadata=dict(description='商品分类ID'))
     code: str = field(default=None, metadata=dict(description='商品编号'))
     name: str = field(default=None, metadata=dict(description='商品名称'))
