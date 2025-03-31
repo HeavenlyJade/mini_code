@@ -5,6 +5,7 @@ from .distribution.distribution_sqla import (DistributionSQLARepository, Distrib
                                              DistributionGradeSQLARepository, DistributionGradeUpdateSQLARepository,
                                              DistributionIncomeSQLARepository, DistributionLogSQLARepository)
 from .shop.shop_sqla import (ShopProductSQLARepository, ShopProductCategorySQLARepository)
+from .shop.shop_specification import ShopSpecificationSQLARepository,ShopSpecificationAttributeSQLARepository
 from .store.store_car_sqla import ShopStoreCategorySQLARepository
 from .store.store_sqla import ShopStoreSQLARepository
 # TODO replace this with DI
@@ -25,4 +26,9 @@ shop_product_category_sqla_repo = ShopProductCategorySQLARepository(db.session)
 # 门店
 store_sqla_repo = ShopStoreSQLARepository(db.session)
 store_sqla_category_repo = ShopStoreCategorySQLARepository(db.session)
+
+# 规格尺寸
+shop_specification_sqla_repo = ShopSpecificationSQLARepository(db.session)
+shop_specification_attribute_sqla_repo = ShopSpecificationAttributeSQLARepository(db.session)
+
 

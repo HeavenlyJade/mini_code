@@ -42,8 +42,11 @@ class SQLARepository(GenericRepository[Entity]):
         print(kwargs)
         query = self.get_queryset(**kwargs)
         total = query.count() if kwargs.get('need_total_count') else 0
+        print(query)
+
         if kwargs.get('page') and kwargs.get('size'):
             query = self.and_pagination(query, kwargs['page'], kwargs['size'])
+
         return query.all(), total
 
     def get_base_queryset(self):

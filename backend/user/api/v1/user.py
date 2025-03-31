@@ -48,9 +48,9 @@ class LoginAPI(MethodView):
         #     return {'msg': 'License has expired ', 'access_token': is_ok, 'code': 561}
 
         tokens = user_service.login(args)
-        log_service.commit(
-            args['username'], LogOperatingType.LOGIN.value, f'{args["username"]}登录系统'
-        )
+        # log_service.commit(
+        #     args['username'], LogOperatingType.LOGIN.value, f'{args["username"]}登录系统'
+        # )
         return tokens
 
 
