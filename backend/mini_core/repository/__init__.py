@@ -8,6 +8,7 @@ from .shop.shop_sqla import (ShopProductSQLARepository, ShopProductCategorySQLAR
 from .shop.shop_specification import ShopSpecificationSQLARepository,ShopSpecificationAttributeSQLARepository
 from .store.store_car_sqla import ShopStoreCategorySQLARepository
 from .store.store_sqla import ShopStoreSQLARepository
+from .order.order_sqla import ShopOrderSQLARepository
 # TODO replace this with DI
 log_sqla_repo = CardSQLARepository(db.session)
 
@@ -30,5 +31,9 @@ store_sqla_category_repo = ShopStoreCategorySQLARepository(db.session)
 # 规格尺寸
 shop_specification_sqla_repo = ShopSpecificationSQLARepository(db.session)
 shop_specification_attribute_sqla_repo = ShopSpecificationAttributeSQLARepository(db.session)
+
+# 订单
+
+shop_order_sqla_repo = ShopOrderSQLARepository(db.session)
 
 

@@ -148,7 +148,6 @@ class ShopSpecificationAttributeService(CRUDService[ShopSpecificationAttribute])
 
     def update_attribute(self, attribute_id: int, attribute: ShopSpecificationAttribute) -> Dict[str, Any]:
         """更新规格属性"""
-        print(attribute)
         result = self._repo.update_attribute(attribute_id, attribute)
         return dict(data=result, code=200)
 
