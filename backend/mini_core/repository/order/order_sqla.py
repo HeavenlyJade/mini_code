@@ -72,7 +72,9 @@ class ShopOrderSQLARepository(SQLARepository):
     @property
     def model(self) -> Type[ShopOrder]:
         return ShopOrder
-
+    @property
+    def query_params(self):
+        return ('status')
     @property
     def in_query_params(self) -> Tuple:
         return ('order_no', 'order_sn', 'user_id', 'status', 'payment_status', 'delivery_status', 'refund_status',

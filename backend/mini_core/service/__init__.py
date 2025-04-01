@@ -5,7 +5,8 @@ from backend.mini_core.repository import (log_sqla_repo, distribution_sqla_repo,
                                           shop_product_sqla_repo,shop_product_category_sqla_repo,
                                           store_sqla_repo,store_sqla_category_repo,
                                           shop_specification_attribute_sqla_repo,shop_specification_sqla_repo,
-                                          shop_order_sqla_repo)
+                                          shop_order_sqla_repo,shop_order_detail_sqla_repo,order_log_sqla_repo,
+                                          shop_order_setting_sqla_repo,shop_return_reason_sqla_repo)
 from .card_server import CardService
 from .distribution_server import (DistributionService, DistributionConfigService,
                                   DistributionGradeService, DistributionGradeUpdateService,
@@ -14,6 +15,10 @@ from .shop_specification import ShopSpecificationService, ShopSpecificationAttri
 from .store import (ShopStoreCategoryService,ShopStoreService)
 from .shop_server import (ShopProductCategoryService, ShopProductService)
 from .order.order import ShopOrderService
+from .order.order_detail import OrderDetailService
+from .order.order_log import OrderLogService
+from .order.shop_order_setting import ShopOrderSettingService
+from .order.shop_return_reason import ShopReturnReasonService
 # 个人卡牌
 card_service = CardService(log_sqla_repo)
 # 分销系统
@@ -37,3 +42,7 @@ shop_specification_attribute_service = ShopSpecificationAttributeService(shop_sp
 
 # 订单
 shop_order_service = ShopOrderService(shop_order_sqla_repo)
+order_detail_service = OrderDetailService(shop_order_detail_sqla_repo)
+order_log_service = OrderLogService(order_log_sqla_repo)
+shop_order_setting_service = ShopOrderSettingService(shop_order_setting_sqla_repo)
+shop_return_reason_service = ShopReturnReasonService(shop_return_reason_sqla_repo)

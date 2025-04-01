@@ -33,25 +33,6 @@ class ShopOrderService(CRUDService[ShopOrder]):
         # 处理金额范围查询
         if 'min_amount' in args and 'max_amount' in args:
             args['actual_amount'] = [args.pop('min_amount'), args.pop('max_amount')]
-
-        # 处理关键词搜索
-        keyword = args.pop('keyword', None)
-        if keyword:
-            # 在多个字段中搜索关键词
-            orders = self._repo.query().filter(
-                (ShopOrder.order_no.like(f'%{keyword}%')) |
-                (ShopOrder.order_sn.like(f'%{keyword}%')) |
-                (ShopOrder.nickname.like(f'%{keyword}%')) |
-                (ShopOrder.phone.like(f'%{keyword}%')) |
-                (ShopOrder.product_name.like(f'%{keyword}%')) |
-                (ShopOrder.receiver_name.like(f'%{keyword}%')) |
-                (ShopOrder.receiver_phone.like(f'%{keyword}%')) |
-                (ShopOrder.express_no.like(f'%{keyword}%'))
-            )
-
-            return dict(data=orders.all(), code=200, total=orders.count())
-
-        # 使用基础查询
         data, total = self._repo.list(**args)
         return dict(data=data, code=200, total=total)
 

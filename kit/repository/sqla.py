@@ -173,23 +173,23 @@ class SQLARepository(GenericRepository[Entity]):
             # querying is probably the easiest solution here.
             # But it also means that you need to implement similar
             # permission pre-checking in each specific repository implementation.
-            if param == 'allowed_department_ids' and hasattr(self.model, 'create_department_id'):
-                conditions.append(or_(
-                    getattr(self.model, 'create_department_id').in_(value),
-                    getattr(self.model, 'create_department_id').is_(None),
-                ))
-            elif param == 'creator' and hasattr(self.model, 'creator'):
-                conditions.append(or_(
-                    getattr(self.model, 'creator') == value,
-                    getattr(self.model, 'creator').is_(None),
-                ))
-            elif param in self.query_params:
+            # if param == 'allowed_department_ids' and hasattr(self.model, 'create_department_id'):
+            #     conditions.append(or_(
+            #         getattr(self.model, 'create_department_id').in_(value),
+            #         getattr(self.model, 'create_department_id').is_(None),
+            #     ))
+            # elif param == 'creator' and hasattr(self.model, 'creator'):
+            #     conditions.append(or_(
+            #         getattr(self.model, 'creator') == value,
+            #         getattr(self.model, 'creator').is_(None),
+            #     ))
+
+            if param in self.query_params:
                 conditions.append(getattr(self.model, param) == value)
             elif param in self.fuzzy_query_params:
                 conditions.append(getattr(self.model, param).like(f'%{value}%'))
             elif param in self.in_query_params:
                 conditions.append(getattr(self.model, param).in_(value))
-
             elif param in self.range_query_params:
                 start, end = value
                 if start:

@@ -4,11 +4,16 @@ from .card.card_sqla import CardSQLARepository
 from .distribution.distribution_sqla import (DistributionSQLARepository, DistributionConfigSQLARepository,
                                              DistributionGradeSQLARepository, DistributionGradeUpdateSQLARepository,
                                              DistributionIncomeSQLARepository, DistributionLogSQLARepository)
+
 from .shop.shop_sqla import (ShopProductSQLARepository, ShopProductCategorySQLARepository)
-from .shop.shop_specification import ShopSpecificationSQLARepository,ShopSpecificationAttributeSQLARepository
+from .shop.shop_specification import ShopSpecificationSQLARepository, ShopSpecificationAttributeSQLARepository
 from .store.store_car_sqla import ShopStoreCategorySQLARepository
 from .store.store_sqla import ShopStoreSQLARepository
 from .order.order_sqla import ShopOrderSQLARepository
+from .order.order_detail_sql import OrderDetailSQLARepository
+from .order.order_log_sql import OrderLogSQLARepository
+from .order.shop_order_setting_sqla import ShopOrderSettingSQLARepository
+from .order.shop_return_reason_sqla import ShopReturnReasonSQLARepository
 # TODO replace this with DI
 log_sqla_repo = CardSQLARepository(db.session)
 
@@ -33,7 +38,10 @@ shop_specification_sqla_repo = ShopSpecificationSQLARepository(db.session)
 shop_specification_attribute_sqla_repo = ShopSpecificationAttributeSQLARepository(db.session)
 
 # 订单
-
 shop_order_sqla_repo = ShopOrderSQLARepository(db.session)
+shop_order_detail_sqla_repo = OrderDetailSQLARepository(db.session)
+order_log_sqla_repo = OrderLogSQLARepository(db.session)
+shop_order_setting_sqla_repo = ShopOrderSettingSQLARepository(db.session)
+shop_return_reason_sqla_repo = ShopReturnReasonSQLARepository(db.session)
 
 
