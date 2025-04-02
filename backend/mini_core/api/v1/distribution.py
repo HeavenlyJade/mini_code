@@ -29,9 +29,12 @@ class DistributionWXView(MethodView):
         """查看分销集体信息"""
         income = distribution_income_service.get_summary_by_user(user_id=args.get("user_id"))
         income_d_m_a = distribution_income_service.get_income_d_m_a_summary(user_id=args.get("user_id"))
-        distribution = distribution_service.get(args)["data"]
-        return dict(data=dict(income=income, income_d_m_a=income_d_m_a, distribution=distribution), code=200)
+        distribution_data = distribution_service.get(args)["data"]
 
+        from dataclasses import asdict
+        distribution_data = asdict(distribution_data)
+
+        return dict(data=dict(income=income, income_d_m_a=income_d_m_a, distribution=distribution_data), code=200)
 
 @blp.route('/distribution')
 class DistributionAPI(MethodView):

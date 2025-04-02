@@ -269,9 +269,12 @@ class DistributionIncomeService(CRUDService[DistributionIncome]):
             elif start_date ==1:
                 query_args["settlement_time"] = [start_date, end_date]
         data, total = self._repo.list(**query_args)
+        from dataclasses import asdict
+        re_data = []
         for i in data:
-            convert_timestamps_to_datetime(i)
-        return dict(data=data, code=200,total=total)
+            i = convert_timestamps_to_datetime(i)
+            re_data.append(asdict(i))
+        return dict(data=re_data, code=200,total=total)
 
     def get_summary_by_user(self, user_id: int) -> Dict[str, Any]:
         """
