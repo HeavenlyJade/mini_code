@@ -5,7 +5,7 @@ from webargs import fields
 from backend.mini_core.domain.distribution import (Distribution, DistributionConfig,
                                                    DistributionGrade, DistributionGradeUpdate,
                                                    DistributionIncome, DistributionLog)
-from kit.schema.base import EntitySchema, EntityIntSchema, ListResultSchema
+from kit.schema.base import EntitySchema, EntityIntSchema, ListResultSchema,ArgSchema
 
 # 基本 Schema 类
 DistributionSchema = class_schema(Distribution, base_schema=EntitySchema)
@@ -100,6 +100,11 @@ class DistributionIncomeSummarySchema(EntityIntSchema):
 
 
 # 响应 Schema
+class ReDistributionSchemaList(ArgSchema):
+    data = fields.List(fields.Nested(DistributionUserSchema()))
+    code = fields.Int(description='状态')
+    total = fields.Int(description='总数')
+
 class ReDistributionSchema(EntityIntSchema):
     data = fields.Nested(DistributionUserSchema())
     code = fields.Int(description='状态')

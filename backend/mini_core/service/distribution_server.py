@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 
 from kit.service.base import CRUDService
 from backend.mini_core.domain.distribution import (Distribution, DistributionConfig, DistributionGrade,
@@ -10,7 +10,7 @@ from backend.mini_core.repository.distribution.distribution_sqla import (Distrib
                                                                          DistributionGradeUpdateSQLARepository,
                                                                          DistributionIncomeSQLARepository,
                                                                          DistributionLogSQLARepository)
-from kit.util.datetime import datetime_str_to_ts,convert_timestamps_to_datetime
+from kit.util.datetime import datetime_str_to_ts,convert_timestamps_to_datetime,timestamp_to_datetime
 from anytree import Node, RenderTree
 
 __all__ = ['DistributionService', 'DistributionConfigService', 'DistributionGradeService',
@@ -37,6 +37,59 @@ class DistributionService(CRUDService[Distribution]):
             data = convert_timestamps_to_datetime(data)
 
         return {"data": data, "code": 200}
+
+    def data_list(self, args: dict) -> Dict[str, Any]:
+        """
+        获取分销用户列表数据，包含上级用户名称
+
+        参数:
+            args: 包含查询条件的字典，可能包含以下字段:
+                - user_id/mobile/sn/real_name: 用户ID/手机号/编号/真实姓名
+                - status: 状态(0-未审核, 1-已审核)
+                - grade_id: 等级ID
+                - page: 页码
+                - size: 每页条数
+                - start_time/end_time: 创建时间范围
+
+        返回:
+            包含上级用户名称的分销用户列表及总数
+        """
+        # 构建查询参数
+        query_params = {"need_total_count": True}
+
+        # 处理分页参数
+        if "page" in args:
+            query_params["page"] = args["page"]
+        if "size" in args:
+            query_params["size"] = args["size"]
+
+        # 处理查询条件 - 精确匹配字段
+        for key in ["sn", "user_id", "status", "grade_id"]:
+            if key in args and args[key] is not None and args[key] != "":
+                query_params[key] = args[key]
+
+        # 处理模糊查询字段
+        if "real_name" in args and args["real_name"]:
+            query_params["real_name"] = args["real_name"]
+
+        if "mobile" in args and args["mobile"]:
+            query_params["mobile"] = args["mobile"]
+
+        # 处理时间范围查询
+        if "start_time" in args and "end_time" in args and args["start_time"] and args["end_time"]:
+            start_time = datetime_str_to_ts(args["start_time"])
+            end_time = datetime_str_to_ts(args["end_time"])
+            query_params["create_time"] = [start_time, end_time]
+
+        # 执行带有上级用户信息的查询
+        data, total = self._repo.list_with_parent_info(**query_params)
+        for item in data:
+            if 'create_time' in item and item['create_time']:
+                item['create_time'] = timestamp_to_datetime(item['create_time'])
+            if 'update_time' in item and item['update_time']:
+                item['update_time'] = timestamp_to_datetime(item['update_time'])
+        # 返回结果
+        return {"data": data, "total": total, "code": 200}
 
     def get_summary_build_tree(self, args) -> Dict[str, Any]:
         # 获取数据

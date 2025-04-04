@@ -1,7 +1,7 @@
 from flask.views import MethodView
 
 from backend.mini_core.schema.distribution import (
-    DistributionQueryArgSchema, ReDistributionSchema,
+    DistributionQueryArgSchema, ReDistributionSchema,ReDistributionSchemaList,
     DistributionConfigQueryArgSchema, ReDistributionConfigSchema,
     DistributionGradeQueryArgSchema, ReDistributionGradeSchema,
     DistributionGradeUpdateQueryArgSchema, DistributionIncomeQueryArgSchema,
@@ -41,10 +41,10 @@ class DistributionAPI(MethodView):
     """分销API"""
 
     @blp.arguments(DistributionQueryArgSchema, location='query')
-    @blp.response(ReDistributionSchema)
+    # @blp.response(ReDistributionSchemaList)
     def get(self, args: dict):
         """查看分销信息"""
-        return distribution_service.get(args)
+        return distribution_service.data_list(args)
 
     @blp.arguments(Distribution)
     @blp.response(ReDistributionSchema)

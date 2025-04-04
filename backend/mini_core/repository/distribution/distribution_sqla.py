@@ -1,4 +1,4 @@
-from typing import Type, Tuple
+from typing import Type, Tuple,List,Dict
 
 from sqlalchemy import Column, String, Table, Integer, DECIMAL, Text
 from sqlalchemy import func
@@ -204,6 +204,103 @@ class DistributionSQLARepository(SQLARepository):
 
         return [dict(i) for i in result]
 
+    def list_with_parent_info(self, **kwargs) -> Tuple[List[Dict], int]:
+        """
+        获取分销用户列表，并包含上级用户的名称信息
+
+        参数:
+            与list方法相同的查询参数（页码、每页数量、过滤条件等）
+
+        返回:
+            包含上级用户名称的分销用户列表及总数
+        """
+        # 构建基础SQL查询
+        base_sql = """
+            SELECT d.*, parent.real_name as parent_name
+            FROM la_distribution d
+            LEFT JOIN la_distribution parent ON d.user_father_id = parent.user_id
+            WHERE 1=1
+        """
+
+        # 构建WHERE条件
+        params = {}
+        where_clauses = []
+
+        # 添加查询条件
+        if 'sn' in kwargs and kwargs['sn']:
+            where_clauses.append("d.sn = :sn")
+            params['sn'] = kwargs['sn']
+
+        if 'real_name' in kwargs and kwargs['real_name']:
+            where_clauses.append("d.real_name LIKE :real_name")
+            params['real_name'] = f"%{kwargs['real_name']}%"
+
+        if 'mobile' in kwargs and kwargs['mobile']:
+            where_clauses.append("d.mobile LIKE :mobile")
+            params['mobile'] = f"%{kwargs['mobile']}%"
+
+        if 'user_id' in kwargs and kwargs['user_id']:
+            where_clauses.append("d.user_id = :user_id")
+            params['user_id'] = kwargs['user_id']
+
+        if 'grade_id' in kwargs and kwargs['grade_id']:
+            where_clauses.append("d.grade_id = :grade_id")
+            params['grade_id'] = kwargs['grade_id']
+
+        if 'status' in kwargs and kwargs['status'] is not None:
+            where_clauses.append("d.status = :status")
+            params['status'] = kwargs['status']
+
+        # 处理时间范围查询
+        if 'create_time' in kwargs and isinstance(kwargs['create_time'], list) and len(kwargs['create_time']) == 2:
+            start_time, end_time = kwargs['create_time']
+            where_clauses.append("d.create_time BETWEEN :start_time AND :end_time")
+            params['start_time'] = start_time
+            params['end_time'] = end_time
+
+        # 拼接WHERE条件
+        if where_clauses:
+            base_sql += " AND " + " AND ".join(where_clauses)
+
+        # 添加排序
+        if 'ordering' in kwargs and kwargs['ordering']:
+            order_fields = []
+            for field in kwargs['ordering']:
+                is_desc = field.startswith('-')
+                field_name = field[1:] if is_desc else field
+                order_fields.append(f"d.{field_name} {'DESC' if is_desc else 'ASC'}")
+
+            if order_fields:
+                base_sql += " ORDER BY " + ", ".join(order_fields)
+        else:
+            # 默认排序
+            base_sql += " ORDER BY d.create_time DESC"
+
+        # 计算总数
+        count_sql = f"""
+            SELECT COUNT(*) as total
+            FROM la_distribution d
+            WHERE {' AND '.join(where_clauses) if where_clauses else '1=1'}
+        """
+        total = 0
+        if kwargs.get('need_total_count'):
+            total_row = self.session.execute(count_sql, params).fetchone()
+            total = total_row.total if total_row else 0
+
+        # 添加分页
+        if 'page' in kwargs and 'size' in kwargs:
+            page = int(kwargs['page'])
+            size = int(kwargs['size'])
+            base_sql += f" LIMIT {size} OFFSET {(page - 1) * size}"
+
+        # 执行查询
+        result = self.session.execute(base_sql, params).fetchall()
+
+        # 将结果转换为字典列表
+        result_list = [dict(row) for row in result]
+
+
+        return result_list, total
 class DistributionConfigSQLARepository(SQLARepository):
     @property
     def model(self) -> Type[DistributionConfig]:
