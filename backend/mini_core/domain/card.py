@@ -14,6 +14,12 @@ class CardQuery(Entity):
     )
 @dataclass
 class Card(Entity):
+    user_id: str = field(
+        default=None,
+        metadata=dict(
+            description='用户编号',
+        ),
+    )
     name: str = field(
         default=None,
         metadata=dict(
@@ -50,6 +56,11 @@ class Card(Entity):
             description='微信',
         ),
     )
-
+    image_url: str = field(
+        default=None,
+        metadata=dict(
+            description='图片路由',
+        ),
+    )
 
 

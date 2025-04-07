@@ -1,7 +1,8 @@
-from typing import Optional, List, Dict, Any
-from kit.service.base import CRUDService
+from typing import Dict, Any
+
 from backend.mini_core.domain.store import ShopStore
 from backend.mini_core.repository.store.store_sqla import ShopStoreSQLARepository
+from kit.service.base import CRUDService
 
 __all__ = ['ShopStoreService']
 
@@ -15,45 +16,14 @@ class ShopStoreService(CRUDService[ShopStore]):
     def repo(self) -> ShopStoreSQLARepository:
         return self._repo
 
-    def get_table_down_data(self,args):
+    def get_table_down_data(self, args):
         table_name = args["keyword"]
-        table_dic = {"shop_store":"shop_store","shop_product_category":"shop_product_category"}
+        table_dic = {"shop_store": "shop_store", "shop_product_category": "shop_product_category"}
         return self._repo.get_table_down_data(table_dic[table_name])
+
     def get_store(self, args: dict) -> Dict[str, Any]:
         """根据条件获取商店信息"""
-        store_id = args.get("id")
-        if store_id:
-            data = self._repo.get(store_id)
-            return dict(data=data, code=200)
-
-        # 支持按名称、编码、分类等查询
-        name = args.get("name")
-        store_code = args.get("store_code")
-        type = args.get("type")
-        store_category = args.get("store_category")
-        province = args.get("province")
-        status = args.get("status")
-        page = args.get("page")
-        size = args.get("size")
-        query_params = {"need_total_count":True}
-        if page:
-            query_params["page"] = page
-        if size:
-            query_params["size"] = size
-        if name:
-            query_params['name'] = name
-        if store_code:
-            query_params['store_code'] = store_code
-        if type:
-            query_params['type'] = type
-        if store_category:
-            query_params['store_category'] = store_category
-        if province:
-            query_params['province'] = province
-        if status:
-            query_params['status'] = status
-
-        data, total = self._repo.list(**query_params)
+        data, total = self._repo.get_stores_with_category_info(**args)
         return dict(data=data, code=200, total=total)
 
     def get_by_id(self, store_id: int) -> Dict[str, Any]:

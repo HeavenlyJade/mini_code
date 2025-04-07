@@ -15,6 +15,7 @@ card_table = Table(
     'card',
     mapper_registry.metadata,
     id_column(),
+    Column('user_id', String(64), comment='用户编号'),
     Column('name', String(255), comment='用户名称'),
     Column('openid', Integer,  comment='微信ID'),
     Column('phone', String(255), comment='电话'),
@@ -22,6 +23,8 @@ card_table = Table(
     Column('position', String(255), comment='职位'),
     Column('company', String(255), comment='公司'),
     Column('creator', String(255), comment='创建人'),
+    Column('image_url', String(255), comment='图片路由'),
+
     Column('create_time', DateTime, default=dt.datetime.now),
     Column('update_time', DateTime, default=dt.datetime.now, onupdate=dt.datetime.now),
 )

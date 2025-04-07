@@ -14,7 +14,7 @@ class ShopStoreQueryArgSchema(ListQueryArgSchema):
     name = webargs_fields.Str(description='商店名称')
     type = webargs_fields.Str(description='商店类型')
     store_code = webargs_fields.Str(description='门店编号')
-    store_category = webargs_fields.Int(description='门店分类ID')
+    category_id = webargs_fields.Int(description='门店分类ID')
     province = webargs_fields.Str(description='省市区')
     status = webargs_fields.Str(description='状态')
     keyword = webargs_fields.Str(description='关键词')

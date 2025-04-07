@@ -6,7 +6,8 @@ from backend.mini_core.repository import (log_sqla_repo, distribution_sqla_repo,
                                           store_sqla_repo,store_sqla_category_repo,
                                           shop_specification_attribute_sqla_repo,shop_specification_sqla_repo,
                                           shop_order_sqla_repo,shop_order_detail_sqla_repo,order_log_sqla_repo,
-                                          shop_order_setting_sqla_repo,shop_return_reason_sqla_repo)
+                                          shop_order_setting_sqla_repo,shop_return_reason_sqla_repo,
+                                          shop_user_sqla_repo,shop_user_address_sqla_repo)
 from .card_server import CardService
 from .distribution_server import (DistributionService, DistributionConfigService,
                                   DistributionGradeService, DistributionGradeUpdateService,
@@ -19,6 +20,8 @@ from .order.order_detail import OrderDetailService
 from .order.order_log import OrderLogService
 from .order.shop_order_setting import ShopOrderSettingService
 from .order.shop_return_reason import ShopReturnReasonService
+from .shop_user import ShopUserService,ShopUserAddressService
+
 # 个人卡牌
 card_service = CardService(log_sqla_repo)
 # 分销系统
@@ -46,3 +49,6 @@ order_detail_service = OrderDetailService(shop_order_detail_sqla_repo)
 order_log_service = OrderLogService(order_log_sqla_repo)
 shop_order_setting_service = ShopOrderSettingService(shop_order_setting_sqla_repo)
 shop_return_reason_service = ShopReturnReasonService(shop_return_reason_sqla_repo)
+# 商城用户
+shop_user_service = ShopUserService(shop_user_sqla_repo)
+shop_user_address_service = ShopUserAddressService(shop_user_address_sqla_repo)

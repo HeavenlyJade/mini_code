@@ -146,6 +146,7 @@ class SQLARepository(GenericRepository[Entity]):
             self.session.commit()
 
     def find(self, row_locked: bool = False, **kwargs) -> Union[Type[Entity], Type[EntityInt]]:
+        print("kwargs",kwargs)
         query = self.session.query(self.model).filter_by(**kwargs)
         if row_locked:
             query = query.with_for_update()

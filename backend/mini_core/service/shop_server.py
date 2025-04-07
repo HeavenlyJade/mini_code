@@ -26,7 +26,6 @@ class ShopProductService(CRUDService[ShopProduct]):
         # 支持按名称、编码、分类等查询
         code = args.get("code")
         name = args.get("name")
-        category_id = args.get("category_id")
         status = args.get("status")
         is_recommended = args.get("is_recommended")
         page = args.get("page")
@@ -40,17 +39,13 @@ class ShopProductService(CRUDService[ShopProduct]):
             query_params['name'] = name
         if code:
             query_params['code'] = code
-        if name:
-            query_params['name'] = name
-        if category_id:
-            query_params['category_id'] = category_id
         if status:
             query_params['status'] = status
         if is_recommended is not None:
             query_params['is_recommended'] = is_recommended
 
-        data,total = self._repo.list(**query_params)
-        return dict(data=data,total=total, code=200)
+        data, total = self._repo.list(**query_params)
+        return dict(data=data, total=total, code=200)
 
     def list_by_category(self, category_id: int) -> Dict[str, Any]:
         """获取指定分类下的所有商品"""

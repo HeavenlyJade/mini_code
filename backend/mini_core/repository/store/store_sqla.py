@@ -1,6 +1,6 @@
 from typing import Type, Tuple, List, Dict, Any
 import datetime as dt
-
+from dataclasses import asdict
 from sqlalchemy import Column, String, Table, Integer, DateTime, Text, Enum, Boolean, Numeric, func
 
 from backend.extensions import mapper_registry
@@ -176,3 +176,76 @@ class ShopStoreSQLARepository(SQLARepository):
         sql = f"SELECT id, `name` FROM {table_name}"
         result = self.session.execute(sql).fetchall()
         return [dict(row) for row in result]
+
+    def get_stores_with_category_info(self, **kwargs) :
+        """
+        获取商店信息并关联分类信息，可按状态和分类ID筛选
+
+        kwargs:
+            status: 商店状态筛选
+            category_id: 分类ID筛选
+
+        Returns:
+            List[Dict[str, Any]]: 包含商店及其分类信息的列表
+        """
+        from backend.mini_core.domain.store import ShopStoreCategory
+        from dataclasses import asdict
+
+        # 解析查询参数
+        status = kwargs.get("status")
+        category_id = kwargs.get("category_id")
+        name = kwargs.get("name")
+        store_code = kwargs.get("store_code")
+        type = kwargs.get("type")
+        province = kwargs.get("province")
+        page = kwargs.get("page")
+        size = kwargs.get("size")
+
+        # 开始查询
+        query = self.session.query(
+            ShopStore, ShopStoreCategory
+        ).outerjoin(
+            ShopStoreCategory,
+            ShopStore.store_category == ShopStoreCategory.id
+        )
+
+        # 添加各种筛选条件
+        if status:
+            query = query.filter(ShopStore.status == status)
+
+        if category_id:
+            query = query.filter(ShopStore.store_category == category_id)
+
+        if name:
+            query = query.filter(ShopStore.name.like(f'%{name}%'))
+
+        if store_code:
+            query = query.filter(ShopStore.store_code == store_code)
+
+        if type:
+            query = query.filter(ShopStore.type == type)
+
+        if province:
+            query = query.filter(ShopStore.province == province)
+
+        # 计算总数
+        total = query.count()
+
+        # 添加分页
+        if page and size:
+            query = query.limit(size).offset((int(page) - 1) * int(size))
+
+        result = query.all()
+
+        # 构建结果
+        stores_with_category = []
+        for store, category in result:
+            # 转换为字典
+            store_dict = asdict(store)
+            if category:
+                store_dict['category'] = asdict(category)
+            else:
+                store_dict['category'] ={}
+            stores_with_category.append(store_dict)
+
+        return stores_with_category,total

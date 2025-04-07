@@ -36,7 +36,9 @@ class ShopStoreCategorySQLARepository(SQLARepository):
     @property
     def model(self) -> Type[ShopStoreCategory]:
         return ShopStoreCategory
-
+    @property
+    def query_params(self) -> Tuple:
+        return 'name', 'code', 'parent_id', 'status'
     @property
     def in_query_params(self) -> Tuple:
         return 'name', 'code', 'parent_id', 'status'

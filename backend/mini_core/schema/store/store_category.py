@@ -28,6 +28,7 @@ class ShopStoreCategoryStatusUpdateArgSchema(Schema):
 class ReShopStoreCategorySchema(EntityIntSchema):
     data = webargs_fields.Nested(ShopStoreCategorySchema())
     code = webargs_fields.Int(description='状态码')
+    message = webargs_fields.Str(description='信息')
 
 
 class ReShopStoreCategoryListSchema(ListResultSchema):

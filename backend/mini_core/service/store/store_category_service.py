@@ -27,7 +27,6 @@ class ShopStoreCategoryService(CRUDService[ShopStoreCategory]):
         name = args.get("name")
         parent_id = args.get("parent_id")
         status = args.get("status")
-
         query_params = {}
         if code:
             query_params['code'] = code
@@ -70,7 +69,7 @@ class ShopStoreCategoryService(CRUDService[ShopStoreCategory]):
         # 检查是否有子分类
         children = self._repo.find(parent_id=category_id)
         if children:
-            return dict(data=None, code=400, message="该分类下有子分类，不能删除")
+            return dict(data=None, code=400, message="该门店分类下有子分类，不能删除")
 
         result = super().delete(category_id)
         return dict(data=result, code=200)

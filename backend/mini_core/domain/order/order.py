@@ -26,10 +26,10 @@ class ShopOrder(Entity):
             description='订单号',
         ),
     )
-    user_id: int = field(
+    user_id: str = field(
         default=None,
         metadata=dict(
-            description='用户ID',
+            description='用户编号',
         ),
     )
     nickname: str = field(

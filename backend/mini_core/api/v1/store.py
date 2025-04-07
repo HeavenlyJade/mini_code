@@ -29,7 +29,7 @@ class ShopStoreAPI(MethodView):
     decorators = [auth_required()]
 
     @blp.arguments(ShopStoreQueryArgSchema, location='query')
-    @blp.response(ReShopStoreListSchema)
+    # @blp.response(ReShopStoreListSchema)
     def get(self, args: dict):
         """查询商店列表"""
         return shop_store_service.get_store(args)
@@ -38,7 +38,6 @@ class ShopStoreAPI(MethodView):
     @blp.response(ReShopStoreSchema)
     def post(self, store):
         """创建或更新商店"""
-        print("store",store)
         if store.id:
             return shop_store_service.update_store(store["id"], store)
         else:
