@@ -38,6 +38,51 @@ class SQLARepository(GenericRepository[Entity]):
     def range_query_params(self) -> Tuple:
         return tuple()
 
+    def get_fields_by_names(self, field_names: List[str] = None) -> List[dict]:
+        """
+        根据传入的字段名列表，返回对应的数据库查询结果字典列表
+
+        Args:
+            field_names: 要查询的字段名列表，如果为None则返回所有字段
+
+        Returns:
+            包含查询结果的字典列表
+        """
+        # 如果没有传入字段，则使用所有字段
+        if not field_names or len(field_names) == 0:
+            # 获取所有查询结果并转为字典
+            query_result = self.session.query(self.model).all()
+            return [asdict(item) for item in query_result]
+
+        # 构建有效字段列表
+        valid_fields = []
+        valid_field_names = []
+        for field_name in field_names:
+            if hasattr(self.model, field_name):
+                valid_fields.append(getattr(self.model, field_name))
+                valid_field_names.append(field_name)
+
+        # 如果没有有效字段，返回空列表
+        if not valid_fields:
+            return []
+
+        # 执行查询
+        queryset = self.session.query(*valid_fields)
+        results = queryset.all()
+
+        # 将结果转换为字典列表
+        result_dicts = []
+        for row in results:
+            # 如果只查询了一个字段，row可能不是元组
+            if len(valid_field_names) == 1:
+                row_dict = {valid_field_names[0]: row}
+            else:
+                # 将查询结果和字段名对应起来创建字典
+                row_dict = {field_name: value for field_name, value in zip(valid_field_names, row)}
+            result_dicts.append(row_dict)
+
+        return result_dicts
+
     def list(self, **kwargs) -> Tuple[List[Entity], int]:
         query = self.get_queryset(**kwargs)
         total = query.count() if kwargs.get('need_total_count') else 0
@@ -46,7 +91,7 @@ class SQLARepository(GenericRepository[Entity]):
             query = self.and_pagination(query, kwargs['page'], kwargs['size'])
 
         return query.all(), total
-
+    @property
     def get_base_queryset(self):
         queryset = self.session.query(self.model)
         return queryset
@@ -54,7 +99,7 @@ class SQLARepository(GenericRepository[Entity]):
     def get_queryset(self, **kwargs):
         conditions = self._get_conditions(**kwargs)
         sort_conditions = self._get_sort_conditions(**kwargs)
-        return self.get_base_queryset().filter(*conditions).order_by(*sort_conditions)
+        return self.get_base_queryset.filter(*conditions).order_by(*sort_conditions)
 
     def get_all(self, **kwargs) -> List[Entity]:
         query = self.get_queryset(**kwargs)

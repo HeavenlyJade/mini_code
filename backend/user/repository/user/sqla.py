@@ -42,7 +42,7 @@ class UserSQLARepository(UserRepository, SQLARepository):
     def get_base_queryset(self):
         return (
             super()
-            .get_base_queryset()
+            .get_base_queryset
             .outerjoin(Department, Department.id == User.department_id)
             .add_entity(
                 Department.name.label('department'),

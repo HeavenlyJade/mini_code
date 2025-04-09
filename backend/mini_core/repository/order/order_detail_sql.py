@@ -2,7 +2,7 @@ import datetime as dt
 import json
 from typing import Type, Tuple, List,Dict
 
-from sqlalchemy import Column, String, Table, Integer, Numeric, Text, and_
+from sqlalchemy import Column, String, Table, Integer, Numeric, Text, and_,DateTime
 
 from backend.extensions import mapper_registry
 from backend.mini_core.domain.order.order_detail import OrderDetail
@@ -16,6 +16,7 @@ order_detail_table = Table(
     'shop_order_shop_detail',
     mapper_registry.metadata,
     id_column(),
+    Column('order_item_id', String(255), nullable=False, index=True, comment='订单明细ID'),
     Column('order_no', String(255), nullable=False, index=True, comment='订单ID'),
     Column('sku_id', String(255), nullable=False, comment='sku_id'),
     Column('product_id', Integer, comment='商品ID'),
@@ -26,12 +27,15 @@ order_detail_table = Table(
     Column('product_img', String(255), comment='商品图片'),
     Column('product_spec', String(255), comment='商品规格'),
     Column('product_name', String(255), comment='商品名称'),
+    Column('refund_status', String(32), comment='退款状态'),
     Column('quantity', Integer, comment='商品数量'),
     Column('unit_price', Numeric(10, 2), comment='商品单价'),
     Column('total_price', Numeric(10, 2), comment='商品总价'),
     Column('is_gift', Integer, default=0, comment='是否赠品'),
-    Column('create_time', String(255), default=dt.datetime.now),
-    Column('update_time', String(255), default=dt.datetime.now, onupdate=dt.datetime.now),
+    Column('refund_status', Integer, default=0, comment='退款状态,0:无退款,1退款中,2，已拒绝,3，已完成'),
+    Column('create_time', DateTime, default=dt.datetime.now),
+    Column('refund_time', DateTime, comment='退款申请时间1'),
+    Column('update_time', DateTime, default=dt.datetime.now, onupdate=dt.datetime.now),
 )
 
 # 映射关系
@@ -44,8 +48,8 @@ class OrderDetailSQLARepository(SQLARepository):
         return OrderDetail
 
     @property
-    def in_query_params(self) -> Tuple:
-        return 'order_no', 'sku_id', 'product_id', 'sku_code'
+    def query_params(self) -> Tuple:
+        return 'refund_status','order_no', 'sku_id', 'product_id', 'sku_code'
 
     @property
     def fuzzy_query_params(self) -> Tuple:
@@ -100,7 +104,7 @@ class OrderDetailSQLARepository(SQLARepository):
 
     def get_gift_details(self, order_no: str) -> List[OrderDetail]:
         """获取指定订单的所有赠品详情"""
-        query = self.query().filter(
+        query = self.session.query().filter(
             and_(OrderDetail.order_no == order_no, OrderDetail.is_gift == 1)
         )
         return query.all()

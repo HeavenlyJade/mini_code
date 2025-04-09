@@ -6,6 +6,7 @@ from backend.mini_core.schema.shop import (
     ShopProductStockUpdateArgSchema, ShopProductStatusUpdateArgSchema,
     ReShopProductStockUpdateSchema, ReProductCategoryTreeSchema,ProductCategorySchema,ShopProductSchema
 )
+from kit.schema.base import  FieldQuerySchema
 from backend.mini_core.domain.shop import ShopProduct, ShopProductCategory
 from backend.business.service.auth import auth_required
 from backend.mini_core.service import (
@@ -15,6 +16,17 @@ from kit.util.blueprint import APIBlueprint
 
 blp = APIBlueprint('shop', 'shop', url_prefix='/')
 
+
+@blp.route('/product-category-field')
+class ProductCategoryAPI(MethodView):
+    """商品分类API"""
+    decorators = [auth_required()]
+
+    @blp.arguments(FieldQuerySchema)
+    @blp.response()
+    def post(self, args: dict):
+        """查询商品分类列表"""
+        return shop_product_category_service.get_table_filed(args["fields"])
 
 @blp.route('/product-category')
 class ProductCategoryAPI(MethodView):
@@ -27,14 +39,11 @@ class ProductCategoryAPI(MethodView):
         """查询商品分类列表"""
         return shop_product_category_service.get_list(args)
 
-    @blp.arguments(ShopProductSchema)
+    @blp.arguments(ProductCategorySchema)
     @blp.response(ReProductCategorySchema)
     def post(self, category):
         """创建或更新商品分类"""
-        if category.get("id"):
-            return shop_product_category_service.update(category["id"], category)
-        else:
-            return shop_product_category_service.create(category)
+        return shop_product_category_service.create(category)
 
 
 @blp.route('/product-category/<int:category_id>')
@@ -50,12 +59,12 @@ class ProductCategoryDetailAPI(MethodView):
     @blp.response(ReProductCategorySchema)
     def put(self, category, category_id: int):
         """更新指定ID的商品分类"""
-        return shop_product_service.update(category_id, category)
+        return shop_product_category_service.update(category_id, category)
 
     @blp.response(ReProductCategorySchema)
     def delete(self, category_id: int):
         """删除指定ID的商品分类"""
-        return shop_product_service.delete(category_id)
+        return shop_product_category_service.delete(category_id)
 
 
 @blp.route('/product-category/tree')
@@ -65,7 +74,7 @@ class ProductCategoryTreeAPI(MethodView):
     @blp.response(ReProductCategoryTreeSchema)
     def get(self):
         """获取商品分类树结构"""
-        return shop_product_service.get_tree()
+        return shop_product_category_service.get_tree()
 
 
 @blp.route('/product-category/children/<int:parent_id>')
@@ -75,7 +84,7 @@ class ProductCategoryChildrenAPI(MethodView):
     @blp.response(ReProductCategoryListSchema)
     def get(self, parent_id: int):
         """获取指定父分类下的所有子分类"""
-        return shop_product_service.list_by_parent(parent_id)
+        return shop_product_category_service.list_by_parent(parent_id)
 
 
 @blp.route('/shop-product')

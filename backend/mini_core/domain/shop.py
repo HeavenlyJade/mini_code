@@ -1,5 +1,5 @@
 from dataclasses import field
-from typing import Optional
+from typing import Optional,Any,Text
 from decimal import Decimal
 from marshmallow_dataclass import dataclass
 
@@ -20,6 +20,9 @@ class ShopProductCategory(Entity):
     is_audit: bool = field(default=False, metadata=dict(description='是否审核'))
     audit_type: str = field(default=None, metadata=dict(description='审核类型'))
     store_id: int = field(default=None, metadata=dict(description='所属门店ID'))
+    attribute: Any = field(default=None, metadata=dict(description='扩展属性'))
+    content: Text = field(default=None, metadata=dict(description='内容文本'))
+
 
 
 @dataclass
@@ -62,3 +65,4 @@ class ShopProduct(Entity):
     attributes: str = field(default=None, metadata=dict(description='扩展属性(JSON格式，包含属性名和属性值)'))
     spec_combinations: str = field(default=None, metadata=dict(description='规格组合(JSON格式，包含初始方式/颜色/尺寸等搭配)'))
     updater: str = field(default=None, metadata=dict(description='更新者'))
+    store_id: int = field(default=None, metadata=dict(description='店铺ID'))

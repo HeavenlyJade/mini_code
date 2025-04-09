@@ -16,6 +16,7 @@ class OrderDetailQueryArgSchema(ListQueryArgSchema):
     sku_id = webargs_fields.Str(description='SKU ID')
     product_id = webargs_fields.Int(description='商品ID')
     product_name = webargs_fields.Str(description='商品名称')
+    refund_status = webargs_fields.Int(description='退款状态,0:无退款,1退款中,2，已拒绝,3，已完成')
     is_gift = webargs_fields.Int(description='是否赠品', validate=validate.OneOf([0, 1]))
 
 
@@ -35,6 +36,7 @@ class OrderDetailCreateSchema(Schema):
     unit_price = webargs_fields.Decimal(description='商品单价')
     total_price = webargs_fields.Decimal(description='商品总价')
     is_gift = webargs_fields.Int(description='是否赠品', validate=validate.OneOf([0, 1]), missing=0)
+    refund_status = webargs_fields.Int(description="退款状态",validate=validate.OneOf(["无退款", "退款中", "已完成", "已驳回"]))
 
 
 # 批量创建订单详情 Schema
@@ -50,7 +52,5 @@ class OrderDetailResponseSchema(EntityIntSchema):
 
 class OrderDetailListResponseSchema(ListResultSchema):
     order_details = webargs_fields.List(webargs_fields.Nested(OrderDetailSchema()))
-    order_info = webargs_fields.Nested(ShopOrderSchema())
-    order_logs = webargs_fields.List(webargs_fields.Nested(OrderLogSchema()))
     code = webargs_fields.Int(description='状态码')
     total = webargs_fields.Int(description='总数')

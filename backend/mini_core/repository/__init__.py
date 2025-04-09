@@ -14,7 +14,10 @@ from .order.order_detail_sql import OrderDetailSQLARepository
 from .order.order_log_sql import OrderLogSQLARepository
 from .order.shop_order_setting_sqla import ShopOrderSettingSQLARepository
 from .order.shop_return_reason_sqla import ShopReturnReasonSQLARepository
-from .shop.shop_user_sqla import ShopUserSQLARepository,ShopUserAddressSQLARepository
+from .order.order_return_sql import OrderReturnSQLARepository, OrderReturnDetailSQLARepository, \
+    OrderReturnLogSQLARepository
+from .shop.shop_user_sqla import ShopUserSQLARepository, ShopUserAddressSQLARepository
+
 # TODO replace this with DI
 log_sqla_repo = CardSQLARepository(db.session)
 
@@ -44,11 +47,11 @@ shop_order_detail_sqla_repo = OrderDetailSQLARepository(db.session)
 order_log_sqla_repo = OrderLogSQLARepository(db.session)
 shop_order_setting_sqla_repo = ShopOrderSettingSQLARepository(db.session)
 shop_return_reason_sqla_repo = ShopReturnReasonSQLARepository(db.session)
-
+# 订单退货
+shop_order_return_sqla_repo = OrderReturnSQLARepository(db.session)
+shop_order_return_detail_sqla_repo = OrderReturnDetailSQLARepository(db.session)
+shop_order_return_log_sqla_repo = OrderReturnLogSQLARepository(db.session)
 
 # 商城用户
 shop_user_sqla_repo = ShopUserSQLARepository(db.session)
 shop_user_address_sqla_repo = ShopUserAddressSQLARepository(db.session)
-
-
-

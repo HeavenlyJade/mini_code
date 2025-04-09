@@ -1,14 +1,26 @@
 from flask.views import MethodView
 
+from backend.business.service.auth import auth_required
 from backend.mini_core.schema.order.order_detail import (
     OrderDetailQueryArgSchema, OrderDetailResponseSchema, OrderDetailListResponseSchema,
     OrderDetailCreateSchema, BatchCreateOrderDetailSchema
 )
 from backend.mini_core.service import order_detail_service
-from backend.business.service.auth import auth_required
 from kit.util.blueprint import APIBlueprint
 
 blp = APIBlueprint('order_detail', 'order_detail', url_prefix='/')
+
+
+@blp.route('/return_apply')
+class OrderDetailView(MethodView):
+    """订单详情列表API"""
+    decorators = [auth_required()]
+
+    @blp.arguments(OrderDetailQueryArgSchema, location='query')
+    @blp.response(OrderDetailListResponseSchema)
+    def get(self, args: dict):
+        """查询订单详情列表"""
+        return order_detail_service.get_order_detail_list(**args)
 
 
 @blp.route('/order-details')

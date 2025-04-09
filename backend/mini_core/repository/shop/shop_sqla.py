@@ -2,7 +2,7 @@ import datetime as dt
 from typing import Type, Tuple
 
 from flask_jwt_extended import get_current_user
-from sqlalchemy import Column, String, Table, Integer, DateTime, Text, Enum, Boolean, Numeric, ForeignKey
+from sqlalchemy import Column, String, Table, Integer, DateTime, Text, Enum, Boolean, Numeric, ForeignKey,JSON
 
 from backend.extensions import mapper_registry
 from backend.mini_core.domain.shop import ShopProductCategory, ShopProduct
@@ -27,6 +27,8 @@ product_category_table = Table(
     Column('is_audit', Boolean, default=False, comment='是否审核'),
     Column('audit_type', Enum('自动', '人工'), comment='审核类型'),
     Column('store_id', Integer, comment='所属门店ID'),
+    Column('attribute', JSON, comment='attribute'),
+    Column('content', Text, comment='内容'),
     Column('create_time', DateTime, default=dt.datetime.now),
     Column('update_time', DateTime, default=dt.datetime.now, onupdate=dt.datetime.now),
 )
@@ -75,6 +77,8 @@ shop_product_table = Table(
     Column('create_time', DateTime, default=dt.datetime.now),
     Column('update_time', DateTime, default=dt.datetime.now, onupdate=dt.datetime.now),
     Column('updater', String(64), comment='更新者'),
+    Column('store_id', Integer, comment='店铺ID'),
+
 )
 
 mapper_registry.map_imperatively(ShopProduct, shop_product_table)
@@ -98,6 +102,11 @@ class ShopProductSQLARepository(SQLARepository):
         return ShopProduct
 
     @property
-    def in_query_params(self) -> Tuple:
-        return 'name', 'code', 'category_id', 'status', 'type', 'is_recommended'
+    def query_params(self) -> Tuple:
+        return 'status', 'type','category_id','name', 'code',
+
+    # @property
+    # def fuzzy_query_params(self) -> Tuple:
+    #     return 'name', 'code',
+
 

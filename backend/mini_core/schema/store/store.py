@@ -35,7 +35,7 @@ class ShopStoreStatusUpdateArgSchema(Schema):
 class NearbyStoreQueryArgSchema(Schema):
     latitude = webargs_fields.Float(required=True, description='纬度')
     longitude = webargs_fields.Float(required=True, description='经度')
-    distance = webargs_fields.Float(description='距离范围（公里）', missing=5.0)
+    distance = webargs_fields.Float(description='距离范围（公里）',)
 
 
 # 服务模式切换参数 Schema

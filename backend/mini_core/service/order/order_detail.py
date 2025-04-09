@@ -1,9 +1,9 @@
-from typing import Optional, List, Dict, Any
 from decimal import Decimal
+from typing import List, Dict, Any
 
-from kit.service.base import CRUDService
 from backend.mini_core.domain.order.order_detail import OrderDetail
 from backend.mini_core.repository.order.order_detail_sql import OrderDetailSQLARepository
+from kit.service.base import CRUDService
 
 __all__ = ['OrderDetailService']
 
@@ -16,6 +16,12 @@ class OrderDetailService(CRUDService[OrderDetail]):
     @property
     def repo(self) -> OrderDetailSQLARepository:
         return self._repo
+
+    def get_order_detail_list(self, **kwargs):
+        print(kwargs)
+        data, total = self._repo.list(**kwargs)
+
+        return dict(order_details=data, total=total, code=200)
 
     def get_order_details(self, order_no: str) -> Dict[str, Any]:
         """获取指定订单的所有订单详情"""

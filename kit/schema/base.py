@@ -4,6 +4,7 @@ from flask_smorest.fields import Upload
 from loguru import logger
 from marshmallow import EXCLUDE, Schema, ValidationError
 from webargs import fields
+from webargs import fields as webargs_fields
 
 from kit.exceptions import ServiceBadRequest
 from kit.schema.field import DateTime
@@ -35,14 +36,6 @@ class EntitySchema(ArgSchema):
     update_time = DateTime(dump_only=True, description='更新时间')
 
 
-class EntityIntSchema(ArgSchema):
-    id = fields.Int(dump_only=True)
-    create_time = DateTime(dump_only=True,description='创建时间')
-    update_time = DateTime(dump_only=True,description='更新时间')
-    delete_time = DateTime(dump_only=True,description='删除时间')
-
-
-
 class UuidEntitySchema(EntitySchema):
     id = fields.Str(dump_only=True)
 
@@ -72,3 +65,14 @@ class UploadArgSchema(ArgSchema):
     file = Upload(
         description='待上传文件', required=True, error_messages={'required': '待上传文件不能为空'}
     )
+
+
+class EntityIntSchema(ListQueryArgSchema):
+    id = fields.Int(dump_only=True)
+    create_time = DateTime(dump_only=True, description='创建时间')
+    update_time = DateTime(dump_only=True, description='更新时间')
+    delete_time = DateTime(dump_only=True, description='删除时间')
+
+
+class FieldQuerySchema(BaseSchema):
+    fields = webargs_fields.List(webargs_fields.Str(), description='入参字段')

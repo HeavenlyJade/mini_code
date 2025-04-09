@@ -2,7 +2,7 @@ from dataclasses import field
 from typing import Optional
 from decimal import Decimal
 from marshmallow_dataclass import dataclass
-
+import datetime as dt
 from kit.domain.entity import Entity
 
 
@@ -11,8 +11,14 @@ class OrderDetail(Entity):
     """
     订单详情领域模型
 
-    用于表示订单中的商品详情信息，包括订单号、商品信息、价格、数量等
+    用于表示订单中的商品详情信息，包括订单号、商品信息、价格、数量等 order_item_id
     """
+    order_item_id: str = field(
+        default=None,
+        metadata=dict(
+            description='订单订单明细ID',
+        ),
+    )
     order_no: str = field(
         default=None,
         metadata=dict(
@@ -97,3 +103,16 @@ class OrderDetail(Entity):
             description='是否赠品',
         ),
     )
+    refund_status: int = field(
+        default=0,
+        metadata=dict(
+            description='退款状态,0:无退款,1退款中,2，已拒绝,3，已完成',
+        ),
+    )
+    refund_time: dt.datetime = field(
+        default=None,
+        metadata=dict(
+            dump_only=True,
+        ),
+    )
+
