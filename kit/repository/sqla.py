@@ -99,7 +99,7 @@ class SQLARepository(GenericRepository[Entity]):
     def get_queryset(self, **kwargs):
         conditions = self._get_conditions(**kwargs)
         sort_conditions = self._get_sort_conditions(**kwargs)
-        return self.get_base_queryset.filter(*conditions).order_by(*sort_conditions)
+        return self.session.query(self.model).filter(*conditions).order_by(*sort_conditions)
 
     def get_all(self, **kwargs) -> List[Entity]:
         query = self.get_queryset(**kwargs)

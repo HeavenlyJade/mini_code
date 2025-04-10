@@ -1,5 +1,5 @@
 import datetime as dt
-import time
+import time,uuid
 import random
 from typing import List, Optional, Dict, Any
 
@@ -174,12 +174,56 @@ class ShopUserService(CRUDService[ShopUser]):
 
     def refresh_token(self):
         """刷新token"""
-        user_id = get_jwt_identity()
+        openid = get_jwt_identity()
         return {
-            'access_token': create_access_token(identity=user_id),
+            'access_token': create_access_token(identity=openid),
             'code': 200
         }
 
+    def get_or_create_wechat_user(self, user_data: Dict[str, Any]) -> ShopUser:
+        """
+        查找或创建微信用户
+
+        Args:
+            user_data: 包含以下字段的字典:
+                - openid: 微信用户的openid
+                - username: 用户名
+                - nickName: 微信昵称
+                - avatarurl: 头像URL
+                - appid: 微信应用ID
+
+        Returns:
+            ShopUser: 返回找到或新创建的用户对象
+        """
+        # 首先尝试通过openid查找用户
+        openid = user_data.get('openid')
+        if not openid:
+            raise ServiceBadRequest("微信用户标识(openid)不能为空")
+
+        user = self.repo.get_by_openid(openid)
+
+        # 如果用户存在，更新必要的字段
+        if user:
+            user.last_login_time = dt.datetime.now()
+            self.repo.update(user.id, user)
+            return user
+
+        # 用户不存在，创建新用户
+        new_user = ShopUser(
+            openid=openid,
+            user_id=_generate_user_id(),  # 生成用户ID
+            username=user_data.get('username', f"wx_user_{openid[-8:]}"),  # 生成默认用户名
+            nickname=user_data.get('nickName', '微信用户'),
+            unionid = user_data.get('appid', ''),
+            avatar=user_data.get('avatarurl', ''),
+            status=1,  # 默认启用状态
+            register_channel='微信小程序',
+            register_time=dt.datetime.now(),
+            mini_program_name=user_data.get('appid', '')  # 存储appid到mini_program_name字段
+        )
+
+        # 创建用户
+        return self.create(new_user)
     @classmethod
     def _verify_password(cls, pw_hash: str, password: str) -> bool:
         """验证密码"""

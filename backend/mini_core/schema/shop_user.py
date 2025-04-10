@@ -106,6 +106,7 @@ class ShopWechatLoginSchema(ArgSchema):
     user_info = fields.Dict(description='用户信息')
 
 
+
 class ShopLoginSchema(ArgSchema):
     username = fields.Str(required=True, description='用户名/手机号')
     password = fields.Str(required=True, description='密码')

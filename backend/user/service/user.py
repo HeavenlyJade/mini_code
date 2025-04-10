@@ -48,10 +48,10 @@ class UserService(CRUDService[User]):
         if user and user.role_numbers:
             role = role_service.repo.find(role_number=user.role_numbers)
             user.areas = role.areas or []
-            user.allowed_department_ids = role.get_allowed_department_ids() or []
+            # user.allowed_department_ids = role.get_allowed_department_ids() or []
         else:
             user.areas = []
-            user.allowed_department_ids = []
+            # user.allowed_department_ids = []
         return user
 
     def list(self, args: dict) -> dict:
@@ -69,8 +69,9 @@ class UserService(CRUDService[User]):
         users, total = self.repo.list(**args)
         casbin_enforcer.e.load_policy()
         items = list()
-        for user, department in users:
-            user.department = department
+        for user in users:
+            print(user)
+            # user.department = department
             item = self._get_user_detail(user)
             items.append(item)
         return dict(items=items, total=total)

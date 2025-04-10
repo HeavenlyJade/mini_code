@@ -61,9 +61,9 @@ class User(Entity):
         default=None,
         metadata=dict(description='区域列表', dump_only=True),
     )
-    allowed_department_ids: List[int] = field(
-        default_factory=list,
-        metadata=dict(
-            dump_only=True,
-        )
-    )
+    # allowed_department_ids: List[int] = field(
+    #     default_factory=list,
+    #     metadata=dict(
+    #         dump_only=True,
+    #     )
+    # )

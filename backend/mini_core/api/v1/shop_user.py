@@ -40,23 +40,23 @@ class ShopLoginAPI(MethodView):
         return shop_user_service.login(args)
 
 
-@blp.route('/wechat/login')
-class ShopWechatLoginAPI(MethodView):
-    @blp.arguments(ShopWechatLoginSchema)
-    @blp.response(ShopTokenSchema)
-    def post(self, args: dict):
-        """商城用户 微信用户登录"""
-        return shop_user_service.wechat_login(args)
+# @blp.route('/wechat/login')
+# class ShopWechatLoginAPI(MethodView):
+#     @blp.arguments(ShopWechatLoginSchema)
+#     @blp.response(ShopTokenSchema)
+#     def post(self, args: dict):
+#         """商城用户 微信用户登录"""
+#         return shop_user_service.wechat_login(args)
 
 
-@blp.route('/refresh')
-class ShopTokenRefreshAPI(MethodView):
-    @jwt_required(refresh=True)
-    @blp.response(RefreshTokenSchema)
-    def post(self):
-        """商城用户 刷新Token"""
-        return shop_user_service.refresh_token()
-
+# @blp.route('/refresh')
+# class ShopTokenRefreshAPI(MethodView):
+#     @jwt_required(refresh=True)
+#     @blp.response(RefreshTokenSchema)
+#     def post(self):
+#         """商城用户 刷新Token"""
+#         return shop_user_service.refresh_token()
+#
 
 @blp.route('/')
 class ShopUserAPI(MethodView):

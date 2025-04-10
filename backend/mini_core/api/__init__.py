@@ -1,4 +1,4 @@
-from backend.mini_core.api.v1 import mini_core_v1_blp
+from backend.mini_core.api.v1 import mini_core_v1_blp, mini_wx_app_v1_blp
 from backend.mini_core.api.v1.card import blp as card_api
 from backend.mini_core.api.v1.distribution import blp as distribution_api
 from backend.mini_core.api.v1.shop import blp as shop_api
@@ -31,7 +31,6 @@ mini_core_v1_blp.register_blueprint(shop_user_blp)
 mini_core_v1_blp.register_blueprint(shop_user_address_blp)
 mini_core_v1_blp.register_blueprint(shop_order_return_api)
 
+from backend.mini_core.api.v1.mini_api.app_user import blp as wx_app_user_api
 
-
-
-
+mini_wx_app_v1_blp.register_blueprint(wx_app_user_api)
