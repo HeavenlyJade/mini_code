@@ -18,9 +18,7 @@ class OrderDetailService(CRUDService[OrderDetail]):
         return self._repo
 
     def get_order_detail_list(self, **kwargs):
-        print(kwargs)
         data, total = self._repo.list(**kwargs)
-
         return dict(order_details=data, total=total, code=200)
 
     def get_order_details(self, order_no: str) -> Dict[str, Any]:

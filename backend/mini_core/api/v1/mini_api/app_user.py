@@ -7,7 +7,7 @@ from backend.mini_core.service import shop_user_service
 from kit.util.blueprint import APIBlueprint
 
 from kit.exceptions import ServiceBadRequest
-from backend.mini_core.schema.shop_app.wx_login import WechatLoginSchema,ShopAppSchema
+from backend.mini_core.schema.shop_app.wx_login import WechatLoginSchema, ShopAppSchema
 from backend.mini_core.service.shop_app import wechat_auth_service
 
 blp = APIBlueprint('wx_auth', 'wx_auth', url_prefix='/wx_auth')
@@ -26,14 +26,24 @@ class WechatLoginAPI(MethodView):
         后端使用code换取用户信息,并创建或更新用户
         """
         code = args['code']
-        nickName =args['nickName']
+        nickName = args['nickName']
+        # 识别平台类型 - 可从请求中获取或通过参数传递
+        platform_type = args.get('platform_type', 'wx_mini_program')  # 默认为小程序
+
         # 通过code获取微信用户信息
         wechat_data = wechat_auth_service.code2verify_info(code)
+
         # 获取或创建用户
         session_key = wechat_data["session_key"]
         openid = wechat_data['openid']
-        user_data =dict(username=nickName,nickName=nickName,avatarurl=args["avatarUrl"],
-                        openid=wechat_data['openid'],appid=wechat_data['appid'],)
+        user_data = dict(
+            username=nickName,
+            nickName=nickName,
+            avatarurl=args["avatarUrl"],
+            openid=openid,
+            appid=wechat_data['appid'],
+            platform_type=platform_type  # 记录平台类型
+        )
 
         if not user_data:
             raise ServiceBadRequest("无法获取微信用户信息")
@@ -44,10 +54,24 @@ class WechatLoginAPI(MethodView):
         else:
             raise ServiceBadRequest("无法获取微信用户标识")
 
-        # 生成JWT令牌
-        access_token = create_access_token(identity=openid, fresh=True)
-        refresh_token = create_refresh_token(identity=openid)
+        # 在token的额外声明中包含平台信息
+        additional_claims = {
+            "platform": platform_type,
+            "appid": wechat_data['appid'],
+            'openid':openid
+        }
 
+        # 生成JWT令牌，并包含额外信息
+        access_token = create_access_token(
+            identity=user.id,
+            fresh=True,
+            additional_claims=additional_claims
+        )
+        refresh_token = create_refresh_token(
+            identity=user.id,
+            additional_claims=additional_claims
+        )
+        print("access_token",access_token)
         return {
             'access_token': access_token,
             'refresh_token': refresh_token,
@@ -55,4 +79,3 @@ class WechatLoginAPI(MethodView):
             'code': 200,
             'msg': '登录成功'
         }
-

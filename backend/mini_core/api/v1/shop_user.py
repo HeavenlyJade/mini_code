@@ -22,13 +22,25 @@ from backend.mini_core.schema.shop_user import (
 from backend.mini_core.service import shop_user_service
 from kit.schema.base import RespSchema
 from kit.util.blueprint import APIBlueprint
+from backend.user.service import user_service
+from backend.user.message import AuthMessage
+from backend.user.domain import User
 
 blp = APIBlueprint('shop_users', 'shop_users', url_prefix='/shop_users')
+
+@jwt.user_lookup_loader
+def user_loader_callback(jwt_header: dict, jwt_data: dict) -> User:
+    openid = jwt_data.get("openid")
+    platform = jwt_data.get("platform")
+    if openid :
+        return shop_user_service.find(openid=openid)
+    else:
+        return user_service.get(jwt_data['sub'])
 
 
 @jwt.expired_token_loader
 def expire_token_callback(jwt_header: dict, jwt_payload: dict):
-    return jsonify(message=ShopAuthMessage.TOKEN_EXPIRES), 401
+    return jsonify(message=AuthMessage.TOKEN_EXPIRES), 401
 
 
 @blp.route('/login')

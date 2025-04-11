@@ -17,10 +17,11 @@ from .order.shop_return_reason_sqla import ShopReturnReasonSQLARepository
 from .order.order_return_sql import OrderReturnSQLARepository, OrderReturnDetailSQLARepository, \
     OrderReturnLogSQLARepository
 from .shop.shop_user_sqla import ShopUserSQLARepository, ShopUserAddressSQLARepository
+from .banner.banner_sqla import BannerSQLARepository
 
 # TODO replace this with DI
 log_sqla_repo = CardSQLARepository(db.session)
-
+banner_sqla_repo = BannerSQLARepository(db.session)
 # 分销
 distribution_sqla_repo = DistributionSQLARepository(db.session)
 distribution_config_sqla_repo = DistributionConfigSQLARepository(db.session)

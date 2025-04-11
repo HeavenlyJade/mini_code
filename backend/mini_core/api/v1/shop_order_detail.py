@@ -79,7 +79,7 @@ class OrderDetailsByOrderAPI(MethodView):
     """订单的详情API"""
     decorators = [auth_required()]
 
-    @blp.response(OrderDetailListResponseSchema)
+    @blp.response()
     def get(self, order_no: str):
         """获取指定订单的所有详情"""
         return order_detail_service.get_order_details(order_no)

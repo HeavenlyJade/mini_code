@@ -85,7 +85,6 @@ class OrderDetailSQLARepository(SQLARepository):
             re_data = dict(row)
             if old_value and isinstance(old_value, str):
                 re_data["old_value"] = json.loads(old_value)
-                print(re_data["old_value"])
             if new_value and isinstance(new_value, str):
                 re_data["new_value"] = json.loads(new_value)
             re_order_logs.append(re_data)

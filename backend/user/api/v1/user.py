@@ -27,14 +27,6 @@ from kit.util.blueprint import APIBlueprint
 blp = APIBlueprint('users', 'users', url_prefix='/')
 
 
-@jwt.user_lookup_loader
-def user_loader_callback(jwt_header: dict, jwt_data: dict) -> User:
-    return user_service.get(jwt_data['sub'])
-
-
-@jwt.expired_token_loader
-def expire_token_callback(jwt_header: dict, jwt_payload: dict):
-    return jsonify(message=AuthMessage.TOKEN_EXPIRES), 401
 
 
 @blp.route('/login')

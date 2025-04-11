@@ -23,6 +23,7 @@ class ShopOrderAPI(MethodView):
     @blp.response(ReShopOrderListSchema)
     def get(self, args: dict):
         """查询订单列表"""
+        print("args",args)
         return shop_order_service.get_order_list(args)
 
     @blp.arguments(OrderCreateSchema)

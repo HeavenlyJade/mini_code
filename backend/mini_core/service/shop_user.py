@@ -41,7 +41,8 @@ class ShopUserService(CRUDService[ShopUser]):
     def get(self, user_id: int) -> Optional[ShopUser]:
         """获取商城用户详情"""
         return super().get(user_id)
-
+    def find(self,**kwargs) :
+        return self._repo.find(**kwargs)
     def create(self, user: ShopUser) -> ShopUser:
         """创建商城用户"""
         # 生成用户编号
