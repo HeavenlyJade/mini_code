@@ -61,9 +61,8 @@ class RoleByIDAPI(MethodView):
 
 @blp.route('/<int:role_id>/permissions')
 class RolePermissionAPI(MethodView):
-    decorators = [jwt_required()]
-
-    @blp.response(PermissionSchema(many=True))
+    # decorators = [jwt_required()]
+    @blp.response(PermissionSchema())
     def get(self, role_id: int):
         """系统管理 查看角色权限信息"""
         return role_service.get_permissions(role_id)

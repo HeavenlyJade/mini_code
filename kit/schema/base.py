@@ -11,15 +11,32 @@ from kit.schema.field import DateTime
 
 
 class BaseSchema(Schema):
-    def handle_error(self, error: ValidationError, data: Any, *, many: bool, **kwargs):
-        error_map = list(error.messages.values())[0] if many else error.messages
-        for key, value in error_map.items():
-            if isinstance(value, dict):
-                value = list(value.values())[0]
-            error_msg = f'验证错误, 错误字段为 {key} , 错误为 {";".join(value)}'
-            logger.info(error_msg)
-            raise ServiceBadRequest(error_msg)
+    # def handle_error(self, error: ValidationError, data: Any, *, many: bool, **kwargs):
+    #     error_map = list(error.messages.values())[0] if many else error.messages
+    #     for key, value in error_map.items():
+    #         if isinstance(value, dict):
+    #             value = list(value.values())[0]
+    #         error_msg = f'验证错误, 错误字段为 {key} , 错误为 {";".join(value)}'
+    #         logger.info(error_msg)
+    #         raise ServiceBadRequest(error_msg)
+    def handle_error(self, error, data, **kwargs):
+        """Handle ValidationError by raising ServiceBadRequest."""
+        error_map = error.messages
 
+        if isinstance(error_map, list):
+            # 处理列表错误
+            raise ServiceBadRequest(str(error_map))
+        elif isinstance(error_map, dict):
+            # 处理字典错误
+            for key, value in error_map.items():
+                if isinstance(value, (list, tuple)):
+                    if isinstance(value[0], (dict, list)):
+                        raise ServiceBadRequest(f"{key} {str(value)}")
+                    raise ServiceBadRequest(f"{key} {value[0]}")
+                raise ServiceBadRequest(f"{key} {str(value)}")
+        else:
+            # 回退处理
+            raise ServiceBadRequest(str(error_map))
     class Meta:
         ordered = True
 

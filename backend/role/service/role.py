@@ -47,7 +47,9 @@ class RoleService(CRUDService[Role]):
         role_number = casbin_util.get_casbin_role_number(role.role_number)
         casbin_enforcer.e.load_policy()
         permission_list = casbin_enforcer.e.get_permissions_for_user(role_number)
-        return casbin_util.get_system_permissions(permission_list)
+        re_data = casbin_util.get_system_permissions(permission_list)
+        return re_data
+
 
     def assign_permissions(self, role_id: int, permissions: List[dict]) -> None:
         role = self.get(role_id)
