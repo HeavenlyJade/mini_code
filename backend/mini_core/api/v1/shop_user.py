@@ -40,7 +40,7 @@ def user_loader_callback(jwt_header: dict, jwt_data: dict) -> User:
 
 @jwt.expired_token_loader
 def expire_token_callback(jwt_header: dict, jwt_payload: dict):
-    return jsonify(message=AuthMessage.TOKEN_EXPIRES), 401
+    return jsonify(message=AuthMessage.TOKEN_EXPIRES,code=401), 401
 
 
 @blp.route('/login')

@@ -35,15 +35,16 @@ class RoleCreateSchema(RoleSchema):
 
 
 class RoleUpdateSchema(RoleSchema):
-    class Meta:
-        unknown = EXCLUDE
-        fields = (
-            'role_number',
-            'access_level',
-            'operation_terminal',
-            'allowed_department_ids',
-            'areas',
-        )
+    pass
+    # class Meta:
+    #     unknown = EXCLUDE
+    #     fields = (
+    #         'role_number',
+    #         'access_level',
+    #         'operation_terminal',
+    #         'allowed_department_ids',
+    #         'areas',
+    #     )
 
 
 class PermissionSchema(ArgSchema):

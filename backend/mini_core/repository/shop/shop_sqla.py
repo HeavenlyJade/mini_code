@@ -3,7 +3,7 @@ from typing import Type, Tuple
 
 from flask_jwt_extended import get_current_user
 from sqlalchemy import Column, String, Table, Integer, DateTime, Text, Enum, Boolean, Numeric, ForeignKey,JSON
-
+from kit.util.sqla import id_column, JsonText
 from backend.extensions import mapper_registry
 from backend.mini_core.domain.shop import ShopProductCategory, ShopProduct
 from kit.repository.sqla import SQLARepository
@@ -69,7 +69,7 @@ shop_product_table = Table(
     Column('video_code', String(128), comment='视频编号'),
     Column('video_url', Text, comment='视频地址'),
     Column('detail', Text, comment='详细介绍'),
-    Column('images', Text, comment='商品图片(JSON格式，包含多张图片URL)'),
+    Column('images', JsonText, comment='商品图片(JSON格式，包含多张图片URL)'),
     Column('specifications', Text, comment='商品规格(JSON格式，包含规格名称和规格值)'),
     Column('services', Text, comment='售后服务(JSON格式，包含服务类型和适用状态)'),
     Column('attributes', Text, comment='扩展属性(JSON格式，包含属性名和属性值)'),
@@ -92,7 +92,7 @@ class ShopProductCategorySQLARepository(SQLARepository):
         return ShopProductCategory
 
     @property
-    def in_query_params(self) -> Tuple:
+    def query_params(self) -> Tuple:
         return 'name', 'code', 'type', 'parent_id'
 
 

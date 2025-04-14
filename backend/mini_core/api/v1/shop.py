@@ -100,7 +100,7 @@ class ShopProductAPI(MethodView):
     @blp.arguments(ShopProductSchema)
     @blp.response(ReShopProductSchema)
     def post(self, product):
-        """创建或更新商品"""
+        """创建商品"""
         return shop_product_service.create_pro(product)
 
 

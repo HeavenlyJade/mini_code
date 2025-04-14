@@ -56,8 +56,8 @@ class ShopProductService(CRUDService[ShopProduct]):
     def update_pro(self, product_id: int, product: Dict) -> Dict[str, Any]:
         """更新商品信息"""
         print("product", product)
-        result = super().update(product_id, product)
-        return dict(data=result, code=200)
+        re_data = self._repo.update(product_id,product)
+        return dict(data=re_data, code=200)
 
     def create_pro(self, product: Dict) -> Dict[str, Any]:
         """创建新商品"""

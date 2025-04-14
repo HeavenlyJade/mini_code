@@ -26,3 +26,4 @@ def dumps(obj: Any, ensure_ascii: bool = False) -> str:
 
 def loads(obj: str) -> dict:
     return json.loads(obj)
+

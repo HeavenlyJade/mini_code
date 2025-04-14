@@ -59,7 +59,7 @@ class ShopProduct(Entity):
     video_code: str = field(default=None, metadata=dict(description='视频编号'))
     video_url: str = field(default=None, metadata=dict(description='视频地址'))
     detail: str = field(default=None, metadata=dict(description='详细介绍'))
-    images: str = field(default=None, metadata=dict(description='商品图片(JSON格式，包含多张图片URL)'))
+    images: Any = field(default=None, metadata=dict(description='商品图片(JSON格式，包含多张图片URL)'))
     specifications: str = field(default=None, metadata=dict(description='商品规格(JSON格式，包含规格名称和规格值)'))
     services: str = field(default=None, metadata=dict(description='售后服务(JSON格式，包含服务类型和适用状态)'))
     attributes: str = field(default=None, metadata=dict(description='扩展属性(JSON格式，包含属性名和属性值)'))

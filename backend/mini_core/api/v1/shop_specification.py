@@ -29,7 +29,6 @@ class ShopSpecificationAPI(MethodView):
     @blp.response(ReShopSpecificationSchema)
     def post(self, specification):
         """创建商品规格"""
-        print("specification",specification)
         return shop_specification_service.create_specification(specification)
 
 
