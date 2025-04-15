@@ -46,3 +46,5 @@ class WechatAuthService:
             return dict(code=400,msg=f"用户错误:{errmsg}")
         return dict(session_key=session_key, openid=openid,appid=appid,)
 
+
+

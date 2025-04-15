@@ -79,7 +79,9 @@ def save_file(file) -> str:
 
 def get_file_url(filename: str) -> str:
     """根据文件名生成访问URL"""
+    import os
     base_url = current_app.config.get('UPLOADS_URL_PREFIX', '/files')
+    # os.path.join(base_url,filename)
     return f"{base_url}/{filename}"
 
 

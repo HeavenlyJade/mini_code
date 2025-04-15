@@ -176,6 +176,11 @@ class ShopUserAddressUpdateSchema(ShopUserAddressSchema):
             'is_default',
         )
 
+class ShopUserSchemaRe(ArgSchema):
+    data = fields.Nested(ShopUserSchema())
+    code = fields.Int()
+
+
 
 class SetDefaultAddressSchema(ArgSchema):
     address_id = fields.Int(required=True, description='地址ID')

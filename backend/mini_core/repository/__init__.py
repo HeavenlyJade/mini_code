@@ -18,6 +18,7 @@ from .order.order_return_sql import OrderReturnSQLARepository, OrderReturnDetail
     OrderReturnLogSQLARepository
 from .shop.shop_user_sqla import ShopUserSQLARepository, ShopUserAddressSQLARepository
 from .banner.banner_sqla import BannerSQLARepository
+from .order.shop_order_cart_sqla import ShopOrderCartSQLARepository
 
 # TODO replace this with DI
 log_sqla_repo = CardSQLARepository(db.session)
@@ -56,3 +57,5 @@ shop_order_return_log_sqla_repo = OrderReturnLogSQLARepository(db.session)
 # 商城用户
 shop_user_sqla_repo = ShopUserSQLARepository(db.session)
 shop_user_address_sqla_repo = ShopUserAddressSQLARepository(db.session)
+# 购物车
+shop_order_cart_sqla_repo = ShopOrderCartSQLARepository(db.session)

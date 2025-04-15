@@ -1,7 +1,7 @@
 import datetime as dt
 import time,uuid
 import random
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union, Type
 
 from flask import g
 from flask_jwt_extended import (
@@ -15,6 +15,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from backend.mini_core.domain.t_user import ShopUser, ShopUserAddress
 from backend.mini_core.message.shop_user import ShopUserMessage
 from backend.mini_core.repository.shop.shop_user_sqla import ShopUserSQLARepository,ShopUserAddressSQLARepository
+from kit.domain.entity import Entity, EntityInt
 from kit.exceptions import ServiceBadRequest
 from kit.service.base import CRUDService
 
@@ -38,9 +39,13 @@ class ShopUserService(CRUDService[ShopUser]):
     def repo(self) -> ShopUserSQLARepository:
         return self._repo
 
-    def get(self, user_id: int) -> Optional[ShopUser]:
+    def get(self, user_id: int) -> Type[Union[Entity, EntityInt,ShopUser]]:
         """获取商城用户详情"""
-        return super().get(user_id)
+        user = get_current_user()
+        user_id_cache = user.id
+        if user_id_cache != user_id:
+            raise ServiceBadRequest("错误的请求用户")
+        return self._repo.find(id=user_id)
     def find(self,**kwargs) :
         return self._repo.find(**kwargs)
     def create(self, user: ShopUser) -> ShopUser:
@@ -65,6 +70,10 @@ class ShopUserService(CRUDService[ShopUser]):
     def update(self, entity_id: int, user: ShopUser) -> Optional[ShopUser]:
         """更新商城用户信息"""
         # 如果提供了密码，对其进行哈希处理
+        user_cache = get_current_user()
+        user_id_cache = user_cache.id
+        if user_id_cache != entity_id:
+            raise ServiceBadRequest("错误的请求用户")
         if user.password:
             user.password = generate_password_hash(user.password)
 
@@ -72,8 +81,7 @@ class ShopUserService(CRUDService[ShopUser]):
         current_user = get_current_user()
         if current_user:
             user.updater = current_user.username
-
-        return super().update(entity_id, user)
+        return self._repo.update(entity_id,user)
 
     def delete(self, entity_id: int) -> None:
         """删除商城用户"""
@@ -147,7 +155,7 @@ class ShopUserService(CRUDService[ShopUser]):
             user = ShopUser(
                 openid=openid,
                 nickname=user_info.get('nickName', '微信用户'),
-                avatar=user_info.get('avatarUrl', ''),
+                avatar=user_info.get('avatar', ''),
                 gender=user_info.get('gender', 0),
                 status=1,
                 register_channel='微信小程序',
@@ -190,7 +198,7 @@ class ShopUserService(CRUDService[ShopUser]):
                 - openid: 微信用户的openid
                 - username: 用户名
                 - nickName: 微信昵称
-                - avatarurl: 头像URL
+                - avatar: 头像URL
                 - appid: 微信应用ID
 
         Returns:
@@ -216,7 +224,7 @@ class ShopUserService(CRUDService[ShopUser]):
             username=user_data.get('username', f"wx_user_{openid[-8:]}"),  # 生成默认用户名
             nickname=user_data.get('nickName', '微信用户'),
             unionid = user_data.get('appid', ''),
-            avatar=user_data.get('avatarurl', ''),
+            avatar=user_data.get('avatar', ''),
             status=1,  # 默认启用状态
             register_channel='微信小程序',
             register_time=dt.datetime.now(),

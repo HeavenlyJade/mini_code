@@ -43,13 +43,13 @@ def expire_token_callback(jwt_header: dict, jwt_payload: dict):
     return jsonify(message=AuthMessage.TOKEN_EXPIRES,code=401), 401
 
 
-@blp.route('/login')
-class ShopLoginAPI(MethodView):
-    @blp.arguments(ShopLoginSchema)
-    @blp.response(ShopTokenSchema)
-    def post(self, args: dict):
-        """商城用户 用户登录"""
-        return shop_user_service.login(args)
+# @blp.route('/login')
+# class ShopLoginAPI(MethodView):
+#     @blp.arguments(ShopLoginSchema)
+#     @blp.response(ShopTokenSchema)
+#     def post(self, args: dict):
+#         """商城用户 用户登录"""
+#         return shop_user_service.login(args)
 
 
 # @blp.route('/wechat/login')

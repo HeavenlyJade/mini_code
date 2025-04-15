@@ -58,7 +58,8 @@ class WechatLoginAPI(MethodView):
         additional_claims = {
             "platform": platform_type,
             "appid": wechat_data['appid'],
-            'openid':openid
+            'openid':openid,
+            "code":code
         }
 
         # 生成JWT令牌，并包含额外信息
@@ -71,7 +72,6 @@ class WechatLoginAPI(MethodView):
             identity=user.id,
             additional_claims=additional_claims
         )
-        print("access_token",access_token)
         return {
             'access_token': access_token,
             'refresh_token': refresh_token,

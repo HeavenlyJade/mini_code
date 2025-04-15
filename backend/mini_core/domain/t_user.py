@@ -190,12 +190,7 @@ class ShopUser(Entity):
             description='更新人',
         ),
     )
-    avatarurl:str =field(
-        default=None,
-        metadata=dict(
-            description='头像路由',
-        ),
-    )
+
 
 @ma_dataclass
 class ShopUserAddress(Entity):

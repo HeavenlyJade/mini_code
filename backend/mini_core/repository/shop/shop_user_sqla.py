@@ -50,7 +50,6 @@ shop_user_table = Table(
     Column('create_time', DateTime, default=dt.datetime.now),
     Column('update_time', DateTime, default=dt.datetime.now, onupdate=dt.datetime.now),
     Column('updater', String(64), comment='更新人'),
-    Column('avatarurl', String(255), comment='头像路径'),
 
 )
 
