@@ -1,7 +1,7 @@
 import datetime as dt
-import time,uuid
 import random
-from typing import List, Optional, Dict, Any, Union, Type
+import time
+from typing import Optional, Dict, Any, Union, Type
 
 from flask import g
 from flask_jwt_extended import (
@@ -14,7 +14,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from backend.mini_core.domain.t_user import ShopUser, ShopUserAddress
 from backend.mini_core.message.shop_user import ShopUserMessage
-from backend.mini_core.repository.shop.shop_user_sqla import ShopUserSQLARepository,ShopUserAddressSQLARepository
+from backend.mini_core.repository.shop.shop_user_sqla import ShopUserSQLARepository, ShopUserAddressSQLARepository
 from kit.domain.entity import Entity, EntityInt
 from kit.exceptions import ServiceBadRequest
 from kit.service.base import CRUDService
@@ -39,15 +39,17 @@ class ShopUserService(CRUDService[ShopUser]):
     def repo(self) -> ShopUserSQLARepository:
         return self._repo
 
-    def get(self, user_id: int) -> Type[Union[Entity, EntityInt,ShopUser]]:
+    def get(self, user_id: int) -> Type[Union[Entity, EntityInt, ShopUser]]:
         """获取商城用户详情"""
         user = get_current_user()
         user_id_cache = user.id
         if user_id_cache != user_id:
             raise ServiceBadRequest("错误的请求用户")
         return self._repo.find(id=user_id)
-    def find(self,**kwargs) :
+
+    def find(self, **kwargs):
         return self._repo.find(**kwargs)
+
     def create(self, user: ShopUser) -> ShopUser:
         """创建商城用户"""
         # 生成用户编号
@@ -81,7 +83,7 @@ class ShopUserService(CRUDService[ShopUser]):
         current_user = get_current_user()
         if current_user:
             user.updater = current_user.username
-        return self._repo.update(entity_id,user)
+        return self._repo.update(entity_id, user)
 
     def delete(self, entity_id: int) -> None:
         """删除商城用户"""
@@ -223,7 +225,7 @@ class ShopUserService(CRUDService[ShopUser]):
             user_id=_generate_user_id(),  # 生成用户ID
             username=user_data.get('username', f"wx_user_{openid[-8:]}"),  # 生成默认用户名
             nickname=user_data.get('nickName', '微信用户'),
-            unionid = user_data.get('appid', ''),
+            unionid=user_data.get('appid', ''),
             avatar=user_data.get('avatar', ''),
             status=1,  # 默认启用状态
             register_channel='微信小程序',
@@ -233,6 +235,7 @@ class ShopUserService(CRUDService[ShopUser]):
 
         # 创建用户
         return self.create(new_user)
+
     @classmethod
     def _verify_password(cls, pw_hash: str, password: str) -> bool:
         """验证密码"""
@@ -261,20 +264,43 @@ class ShopUserAddressService(CRUDService[ShopUserAddress]):
         """获取用户默认地址"""
         return self.repo.get_default_address(user_id)
 
-    def create(self, address: ShopUserAddress) -> ShopUserAddress:
+    def create(self, address: ShopUserAddress) -> dict[str, Union[int, Entity]]:
         """创建用户地址"""
         # 如果是默认地址，则将其他地址设为非默认
         if address.is_default == 1:
             self.repo.set_default_address(0, address.user_id)  # 0表示没有一个是默认地址
-
         # 记录创建者
         current_user = get_current_user()
         if current_user:
             address.creator = current_user.username
+        re_data = self.repo.create(address)
+        return dict(code=200, data=re_data)
 
-        return super().create(address)
+    def find_address(self, address_id: int, user_id: str):
+        address = self.get(address_id)
+        print("address.user_id ",address.user_id ,user_id,type(address.user_id ))
+        if not address or address.user_id != user_id:
+            raise ServiceBadRequest("地址不存在或不属于该用户")
+        return dict(code=200, data=address)
 
-    def update(self, entity_id: int, address: ShopUserAddress) -> Optional[ShopUserAddress]:
+    def get_address(self, user_id: str) -> dict[str, list[Entity]]:
+        from kit.util.sqla import validate_user_entity_match
+        validate_user_entity_match(user_id)
+        re_data = self.repo.find_all(user_id=str(user_id))
+        return dict(items=re_data, code=200)
+
+    def set_default_address(self, address_id: int, ):
+        user_cache = get_current_user()
+        user_id_cache = user_cache.id
+        original_address = self.get(address_id)
+        if not original_address:
+            raise ServiceBadRequest("地址不存在")
+        if str(original_address.user_id) != str(user_id_cache):
+            raise ServiceBadRequest("错误的用户，1006")
+        self.repo.set_default_address(address_id, str(user_id_cache))
+        return dict(code=200)
+
+    def update(self, entity_id: int, address: ShopUserAddress) -> dict[str, Union[int, Entity, None]]:
         """更新用户地址"""
         # 获取原地址信息
         original_address = self.get(entity_id)
@@ -284,13 +310,12 @@ class ShopUserAddressService(CRUDService[ShopUserAddress]):
         # 如果设置为默认地址，则将用户其他地址设为非默认
         if address.is_default == 1 and original_address.is_default != 1:
             self.repo.set_default_address(entity_id, original_address.user_id)
-
         # 记录更新者
         current_user = get_current_user()
         if current_user:
             address.updater = current_user.username
-
-        return super().update(entity_id, address)
+        re_data = self.repo.update(entity_id, address)
+        return dict(code=200, data=re_data)
 
     def set_default(self, address_id: int, user_id: str) -> Dict[str, Any]:
         """设置默认地址"""
@@ -306,3 +331,9 @@ class ShopUserAddressService(CRUDService[ShopUserAddress]):
             'code': 200,
             'msg': '设置默认地址成功'
         }
+
+    def delete_user_addr(self, address_id: int, user_id: str) -> None:
+        address = self.get(address_id)
+        if not address or address.user_id != user_id:
+            raise ServiceBadRequest("地址不存在或不属于该用户")
+        self.repo.delete(address_id)

@@ -146,9 +146,7 @@ class ShopUserAddressSQLARepository( SQLARepository):
         ).update({'is_default': 0})
 
         # 设置指定地址为默认
-        self.session.query(ShopUserAddress).filter(
-            ShopUserAddress.id == address_id
-        ).update({'is_default': 1})
+        self.session.query(ShopUserAddress).filter(ShopUserAddress.id == address_id).update({'is_default': 1})
 
         self.session.commit()
 

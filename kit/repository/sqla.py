@@ -202,6 +202,7 @@ class SQLARepository(GenericRepository[Entity]):
         return query.all()
 
     def find_all(self, **kwargs) -> List[Entity]:
+        print("1321",kwargs,self.model)
         query = self.session.query(self.model).filter_by(**kwargs)
         return query.all()
 

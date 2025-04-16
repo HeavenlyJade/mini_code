@@ -1,14 +1,25 @@
-from flask import jsonify
 from flask.views import MethodView
-from flask_jwt_extended import create_access_token, create_refresh_token
-import uuid
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    get_current_user,
+    jwt_required
+)
 
-from backend.mini_core.service import shop_user_service
-from kit.util.blueprint import APIBlueprint
-
-from kit.exceptions import ServiceBadRequest
+from backend.mini_core.domain.t_user import ShopUserAddress
 from backend.mini_core.schema.shop_app.wx_login import WechatLoginSchema, ShopAppSchema
+from backend.mini_core.schema.shop_user import (
+    ShopUserAddressListSchema,
+    ShopUserAddressUpdateSchema,
+    SetDefaultAddressSchema,
+    ShopUserAddressCreateSchema,
+    ShopUserAddressSchemaRe
+)
+from backend.mini_core.service import shop_user_address_service
+from backend.mini_core.service import shop_user_service
 from backend.mini_core.service.shop_app import wechat_auth_service
+from kit.exceptions import ServiceBadRequest
+from kit.util.blueprint import APIBlueprint
 
 blp = APIBlueprint('wx_auth', 'wx_auth', url_prefix='/wx_auth')
 
@@ -58,8 +69,8 @@ class WechatLoginAPI(MethodView):
         additional_claims = {
             "platform": platform_type,
             "appid": wechat_data['appid'],
-            'openid':openid,
-            "code":code
+            'openid': openid,
+            "code": code
         }
 
         # 生成JWT令牌，并包含额外信息
@@ -79,3 +90,61 @@ class WechatLoginAPI(MethodView):
             'code': 200,
             'msg': '登录成功'
         }
+
+
+@blp.route('/address/set_default')
+class SetShopUserAddress(MethodView):
+    decorators = [jwt_required()]
+
+    @blp.arguments(SetDefaultAddressSchema)
+    @blp.response()
+    def post(self, args: dict):
+        """设置商城用户默认地址"""
+        return shop_user_address_service.set_default_address(args["address_id"])
+
+
+@blp.route('/address/<int:user_id>/<int:address_id>')
+class FindShopUserAddress(MethodView):
+    decorators = [jwt_required()]
+
+    @blp.response(ShopUserAddressSchemaRe)
+    def get(self, user_id: int, address_id: int):
+        """获取商城用户的所有ID"""
+        user_cache = get_current_user()
+        user_id_cache = user_cache.id
+        if user_id_cache != user_id:
+            raise ServiceBadRequest("错误的用户")
+        return shop_user_address_service.find_address(address_id, str(user_id))
+
+    @blp.arguments(ShopUserAddressUpdateSchema)
+    @blp.response(ShopUserAddressSchemaRe)
+    def put(self, address: ShopUserAddress,user_id:int, address_id: int):
+        """商城用户地址 编辑地址"""
+        return shop_user_address_service.update(address_id, address)
+
+@blp.route('/address/<int:user_id>')
+class ShopUserAddressByIDAPI(MethodView):
+    decorators = [jwt_required()]
+
+    @blp.response(ShopUserAddressListSchema)
+    def get(self, user_id: int):
+        """获取商城用户的所有ID"""
+        return shop_user_address_service.get_address(user_id)
+
+    @blp.arguments(ShopUserAddressCreateSchema)
+    @blp.response(ShopUserAddressSchemaRe)
+    def post(self, address: ShopUserAddress, user_id: int):
+        """商城用户地址 创建地址"""
+        user_cache = get_current_user()
+        user_id_cache = user_cache.id
+        address.user_id = str(user_id_cache)
+        address.updater = user_cache.username
+        return shop_user_address_service.create(address)
+
+
+    @blp.arguments(SetDefaultAddressSchema)
+    @blp.response()
+    def delete(self, args: dict, user_id: int):
+        """商城用户地址 删除地址"""
+        shop_user_address_service.delete_user_addr(args["address_id"], str(user_id))
+        return {'code': 200, 'msg': '删除成功'}

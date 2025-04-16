@@ -1,4 +1,4 @@
-from marshmallow import EXCLUDE, post_load, post_dump
+from marshmallow import EXCLUDE
 from marshmallow_dataclass import class_schema
 from webargs import fields
 
@@ -10,7 +10,7 @@ from kit.schema.base import (
     ListQueryArgSchema,
     ListResultSchema,
 )
-from kit.schema.field import RequiredStr, DateTimeDelimitedList, Date
+from kit.schema.field import DateTimeDelimitedList
 
 # ShopUser Schemas
 ShopUserSchema = class_schema(ShopUser, base_schema=EntitySchema)
@@ -106,7 +106,6 @@ class ShopWechatLoginSchema(ArgSchema):
     user_info = fields.Dict(description='用户信息')
 
 
-
 class ShopLoginSchema(ArgSchema):
     username = fields.Str(required=True, description='用户名/手机号')
     password = fields.Str(required=True, description='密码')
@@ -176,10 +175,15 @@ class ShopUserAddressUpdateSchema(ShopUserAddressSchema):
             'is_default',
         )
 
+
 class ShopUserSchemaRe(ArgSchema):
     data = fields.Nested(ShopUserSchema())
     code = fields.Int()
 
+
+class ShopUserAddressSchemaRe(ArgSchema):
+    data = fields.Nested(ShopUserAddressSchema())
+    code = fields.Int()
 
 
 class SetDefaultAddressSchema(ArgSchema):
