@@ -63,11 +63,13 @@ class ShopUserService(CRUDService[ShopUser]):
         user.register_time = dt.datetime.now()
 
         # 获取当前用户信息（如果有）
-        current_user = get_current_user()
-        if current_user:
-            user.creator = current_user.username
-
-        return super().create(user)
+        try:
+            current_user = get_current_user()
+            if current_user:
+                user.creator = current_user.username
+        except:
+            user.creator = "admin"
+        return   self._repo.create(user)
 
     def update(self, entity_id: int, user: ShopUser) -> Optional[ShopUser]:
         """更新商城用户信息"""
