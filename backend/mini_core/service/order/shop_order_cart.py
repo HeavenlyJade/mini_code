@@ -68,6 +68,7 @@ class ShopOrderCartService(CRUDService[ShopOrderCart]):
         """添加商品到购物车"""
         # 获取当前用户对象
         user = get_current_user()
+        print("user",user)
         open_id = user.openid
         user_id = user.id
         quantity = item_data.get('product_count',)
@@ -89,7 +90,6 @@ class ShopOrderCartService(CRUDService[ShopOrderCart]):
             new_quantity = existing_item.product_count + quantity
             if product_info.get('stock', 0) < new_quantity:
                 return {'code': 400, 'message': '商品库存不足'}
-
             existing_item.product_count = new_quantity
             self._set_updater(existing_item)
             result = self._repo.update(existing_item.id, existing_item)
@@ -131,8 +131,10 @@ class ShopOrderCartService(CRUDService[ShopOrderCart]):
 
         return {'data': result, 'code': 200, 'message': '购物车已更新'}
 
-    def delete_cart_item(self, user_id: str, sku_id: int) -> Dict[str, Any]:
+    def delete_cart_item(self,  sku_id: int) -> Dict[str, Any]:
         """删除购物车商品"""
+        user = get_current_user()
+        user_id = str(user.id)
         self._repo.delete_by_user_and_sku(user_id, sku_id)
         return {'code': 200, 'message': '商品已从购物车删除'}
 

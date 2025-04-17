@@ -18,8 +18,6 @@ class ShopOrderCartQueryArgSchema(ListQueryArgSchema):
 
 # 购物车商品添加参数 Schema
 class CartItemAddSchema(Schema):
-    # user_id = webargs_fields.Str(required=, description='用户ID')
-    # open_id = webargs_fields.Str(description='微信openID')
     sku_id = webargs_fields.Int(required=True, description='商品SKU ID')
     product_count = webargs_fields.Int(required=True, description='商品数量', validate=validate.Range(min=1))
 
@@ -27,12 +25,13 @@ class CartItemAddSchema(Schema):
 # 购物车商品更新参数 Schema
 class CartItemUpdateSchema(Schema):
     id = webargs_fields.Int(required=True, description='购物车项ID')
+    sku_id = webargs_fields.Int(required=True, description='商品id')
+
     product_count = webargs_fields.Int(required=True, description='商品数量', validate=validate.Range(min=1))
 
 
 # 购物车商品删除参数 Schema
 class CartItemDeleteSchema(Schema):
-    user_id = webargs_fields.Str(required=True, description='用户ID')
     sku_id = webargs_fields.Int(required=True, description='商品SKU ID')
 
 

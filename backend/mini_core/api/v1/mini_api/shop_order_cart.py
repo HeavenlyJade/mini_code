@@ -26,6 +26,7 @@ class ShopOrderCartAPI(MethodView):
     @blp.response(ShopOrderCartResponseSchema)
     def post(self, cart_item):
         """添加商品到购物车"""
+        print(cart_item)
         return shop_order_cart_service.add_to_cart(cart_item)
 
 
@@ -50,7 +51,7 @@ class ShopOrderCartDeleteAPI(MethodView):
     @blp.response(ShopOrderCartResponseSchema)
     def post(self, args):
         """从购物车中删除商品"""
-        return shop_order_cart_service.delete_cart_item(args['user_id'], args['sku_id'])
+        return shop_order_cart_service.delete_cart_item(args['sku_id'])
 
 
 @blp.route('/shop-cart/clear/<string:user_id>')
