@@ -156,8 +156,8 @@ class ShopUserAddressSQLARepository( SQLARepository):
 def shop_user_before_insert(mapper, connection, target: ShopUser):
     # 检查用户名唯一性
     from backend.extensions import db
-    if target.username and db.session.query(ShopUser).filter(ShopUser.username == target.username).first():
-        raise ServiceBadRequest(ShopUserMessage.USER_EXISTED)
+    # if target.username and db.session.query(ShopUser).filter(ShopUser.username == target.username).first():
+    #     raise ServiceBadRequest(ShopUserMessage.USER_EXISTED)
 
     # 检查手机号唯一性
     if target.phone and db.session.query(ShopUser).filter(ShopUser.phone == target.phone).first():

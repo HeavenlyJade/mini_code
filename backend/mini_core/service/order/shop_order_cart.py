@@ -35,7 +35,7 @@ class ShopOrderCartService(CRUDService[ShopOrderCart]):
         # 使用联表查询方法获取购物车和商品信息
         user = get_current_user()
         user_id = user.id
-        cart_items_with_product_data = self._repo.get_cart_items_with_products(user_id)
+        cart_items_with_product_data = self._repo.get_cart_items_with_products(str(user_id))
 
         # 初始化统计数据
         total_price = Decimal('0')

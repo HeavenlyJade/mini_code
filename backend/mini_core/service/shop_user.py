@@ -50,7 +50,7 @@ class ShopUserService(CRUDService[ShopUser]):
     def find(self, **kwargs):
         return self._repo.find(**kwargs)
 
-    def create(self, user: ShopUser) -> ShopUser:
+    def create(self, user: ShopUser) -> Entity:
         """创建商城用户"""
         # 生成用户编号
         user.user_id = _generate_user_id()
