@@ -278,7 +278,6 @@ class ShopUserAddressService(CRUDService[ShopUserAddress]):
 
     def find_address(self, address_id: int, user_id: str):
         address = self.get(address_id)
-        print("address.user_id ",address.user_id ,user_id,type(address.user_id ))
         if not address or address.user_id != user_id:
             raise ServiceBadRequest("地址不存在或不属于该用户")
         return dict(code=200, data=address)

@@ -78,22 +78,6 @@ class ShopUserAddressByIDAPI(MethodView):
         return {'code': 200, 'msg': '删除成功'}
 
 
-@blp.route('/default')
-class DefaultAddressAPI(MethodView):
-    decorators = [jwt_required()]
-
-    @blp.response(ShopUserAddressSchema)
-    def get(self):
-        """商城用户地址 获取默认地址"""
-        user_id = get_jwt_identity()
-        return shop_user_address_service.get_default_address(user_id)
-
-    @blp.arguments(SetDefaultAddressSchema)
-    @blp.response(RespSchema)
-    def post(self, args: dict):
-        """商城用户地址 设置默认地址"""
-        user_id = get_jwt_identity()
-        return shop_user_address_service.set_default(args['address_id'], user_id)
 
 
 @blp.route('/user/<user_id>')

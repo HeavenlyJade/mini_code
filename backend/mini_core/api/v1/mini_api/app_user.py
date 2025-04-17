@@ -3,7 +3,8 @@ from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
     get_current_user,
-    jwt_required
+    jwt_required,
+    get_jwt_identity
 )
 
 from backend.mini_core.domain.t_user import ShopUserAddress
@@ -13,7 +14,8 @@ from backend.mini_core.schema.shop_user import (
     ShopUserAddressUpdateSchema,
     SetDefaultAddressSchema,
     ShopUserAddressCreateSchema,
-    ShopUserAddressSchemaRe
+    ShopUserAddressSchemaRe,
+    ShopUserAddressSchema
 )
 from backend.mini_core.service import shop_user_address_service
 from backend.mini_core.service import shop_user_service
@@ -96,6 +98,12 @@ class WechatLoginAPI(MethodView):
 class SetShopUserAddress(MethodView):
     decorators = [jwt_required()]
 
+    @blp.response(ShopUserAddressSchema)
+    def get(self):
+        """商城用户地址 获取默认地址"""
+        user_id = get_jwt_identity()
+        return shop_user_address_service.get_default_address(user_id)
+
     @blp.arguments(SetDefaultAddressSchema)
     @blp.response()
     def post(self, args: dict):
@@ -118,9 +126,10 @@ class FindShopUserAddress(MethodView):
 
     @blp.arguments(ShopUserAddressUpdateSchema)
     @blp.response(ShopUserAddressSchemaRe)
-    def put(self, address: ShopUserAddress,user_id:int, address_id: int):
+    def put(self, address: ShopUserAddress, user_id: int, address_id: int):
         """商城用户地址 编辑地址"""
         return shop_user_address_service.update(address_id, address)
+
 
 @blp.route('/address/<int:user_id>')
 class ShopUserAddressByIDAPI(MethodView):
@@ -140,7 +149,6 @@ class ShopUserAddressByIDAPI(MethodView):
         address.user_id = str(user_id_cache)
         address.updater = user_cache.username
         return shop_user_address_service.create(address)
-
 
     @blp.arguments(SetDefaultAddressSchema)
     @blp.response()
