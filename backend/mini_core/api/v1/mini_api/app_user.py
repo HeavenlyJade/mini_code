@@ -60,7 +60,6 @@ class WechatLoginAPI(MethodView):
 
         if not user_data:
             raise ServiceBadRequest("无法获取微信用户信息")
-
         # 查询或创建用户
         if 'openid' in user_data:
             user = shop_user_service.get_or_create_wechat_user(user_data)
