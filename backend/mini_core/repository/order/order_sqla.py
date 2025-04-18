@@ -279,8 +279,9 @@ class ShopOrderSQLARepository(SQLARepository):
                     {"stock": ShopProduct.stock - number},
                     synchronize_session='evaluate'
                 )
-            RedisOrderQueue.add_pending_order(order_no, order_data_to_save)
             # 提交事务
+            RedisOrderQueue.add_pending_order(order_no, order_data_to_save)
+
             self.session.commit()
             return dict(data=order, code=200, message="订单创建成功")
 

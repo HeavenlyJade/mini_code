@@ -81,7 +81,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
         now = dt.datetime.now()
         order_no = f"ORD{now.strftime('%Y%m%d%H%M%S')}{str(uuid.uuid4().int)[:6]}"
         order_sn = f"SN{now.strftime('%Y%m%d')}{str(uuid.uuid4().int)[:8]}"
-
+        amount = Decimal(order_data['amount'])
         # 解析用户信息
         user_detail = json.loads(order_data.get('userDetail', '{}'))
         user_id = user_detail.get('id')
@@ -98,7 +98,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
         cart_items = []
         product_amount = Decimal('0')
         product_count = 0
-
+        bac_amount = 0
         for item in goods_detail:
             product_id = item.get('product_id')
             cart_id = item.get('cart_id')
@@ -113,6 +113,8 @@ class ShopOrderService(CRUDService[ShopOrder]):
             # 验证价格是否一致（允许少量误差）
             if abs(Decimal(str(price)) - product.price) > Decimal('0.01'):
                 return dict(data=None, code=400, message=f"商品价格不一致: {product.name}")
+            bac_amount += product.price * number
+
             # 验证库存是否足够
             if product.stock < number:
                 return dict(data=None, code=400, message=f"商品库存不足: {product.name}，当前库存: {product.stock}")
@@ -134,7 +136,8 @@ class ShopOrderService(CRUDService[ShopOrder]):
 
         # 解析收货地址
         address_info = json.loads(order_data.get('address', '{}'))
-
+        if bac_amount !=amount:
+            return dict(data=None, code=400, message=f"价格订单和: 商城订单不一致")
         # 设置订单基础信息
         order_data_to_save = {
             'order_no': order_no,

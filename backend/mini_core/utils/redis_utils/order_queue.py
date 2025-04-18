@@ -27,7 +27,7 @@ class RedisOrderQueue:
 
         参数:
             order_no: 订单号
-            order_data: 订单数据，应包含以下字段:
+            order_data: 订单数据，应包含:
                 - id: 订单ID
                 - user_id: 用户ID
                 - actual_amount: 订单实际金额
@@ -35,15 +35,18 @@ class RedisOrderQueue:
                 - product_count: 商品数量
                 - status: 订单状态
                 - payment_status: 支付状态
-                - create_time: 创建时间
             expire_seconds: 过期时间（秒），默认30分钟
 
         返回:
             bool: 是否添加成功
         """
+        from backend.extensions import redis
+        import json
+        import time
+
         try:
             # 验证必要的订单字段
-            required_fields = ['user_id', 'actual_amount', 'product_amount',
+            required_fields = [ 'user_id', 'actual_amount', 'product_amount',
                                'product_count', 'status', 'payment_status']
 
             for field in required_fields:
@@ -60,6 +63,8 @@ class RedisOrderQueue:
                 'product_count': order_data['product_count'],
                 'status': order_data['status'],
                 'payment_status': order_data['payment_status'],
+                'create_time': order_data.get('create_time', int(time.time())),
+                'expire_time': int(time.time()) + expire_seconds
             }
 
             # 计算过期时间戳
@@ -67,17 +72,15 @@ class RedisOrderQueue:
 
             # 存储订单数据（带过期时间）
             order_data_key = f"{cls.ORDER_DATA_KEY_PREFIX}{order_no}"
-            redis.setex(
-                order_data_key,
-                expire_seconds,
-                json.dumps(order_storage_data)
-            )
+
+            # 使用 RedisHook 的 set_key_with_expiration 方法替代 setex
+            redis.set_key_with_expiration(order_data_key, json.dumps(order_storage_data), expire_seconds)
 
             # 添加到待支付订单集合
-            redis.sadd(cls.PENDING_ORDERS_KEY, order_no)
+            redis.client.sadd(cls.PENDING_ORDERS_KEY, order_no)
 
             # 添加到过期时间有序集合（用于快速查找即将过期的订单）
-            redis.zadd(cls.ORDER_EXPIRY_INDEX, {order_no: expiry_time})
+            redis.client.zadd(cls.ORDER_EXPIRY_INDEX, {order_no: expiry_time})
 
             return True
         except Exception as e:
@@ -95,16 +98,18 @@ class RedisOrderQueue:
         返回:
             bool: 是否移除成功
         """
+        from backend.extensions import redis
+
         try:
             # 从待支付订单集合中移除
-            redis.srem(cls.PENDING_ORDERS_KEY, order_no)
+            redis.client.srem(cls.PENDING_ORDERS_KEY, order_no)
 
             # 从过期时间索引中移除
-            redis.zrem(cls.ORDER_EXPIRY_INDEX, order_no)
+            redis.client.zrem(cls.ORDER_EXPIRY_INDEX, order_no)
 
             # 删除订单数据
             order_data_key = f"{cls.ORDER_DATA_KEY_PREFIX}{order_no}"
-            redis.delete(order_data_key)
+            redis.client.delete(order_data_key)
 
             return True
         except Exception as e:
@@ -122,11 +127,15 @@ class RedisOrderQueue:
         返回:
             Dict或None: 订单数据，如果不存在则返回None
         """
+        from backend.extensions import redis
+        import json
+
         try:
             order_data_key = f"{cls.ORDER_DATA_KEY_PREFIX}{order_no}"
-            data = redis.get(order_data_key)
+            data = redis.client.get(order_data_key)
 
             if data:
+                # RedisHook 已设置 decode_responses=True，所以不需要再解码
                 return json.loads(data)
             return None
         except Exception as e:
@@ -144,20 +153,22 @@ class RedisOrderQueue:
         返回:
             List[str]: 即将过期的订单号列表
         """
+        from backend.extensions import redis
+        import time
+
         try:
             current_time = int(time.time())
             max_time = current_time + within_seconds
 
             # 获取即将过期的订单
-            expiring_orders = redis.zrangebyscore(
+            expiring_orders = redis.client.zrangebyscore(
                 cls.ORDER_EXPIRY_INDEX,
                 current_time,
                 max_time
             )
 
-            # 如果返回的是字节类型，转换为字符串
-            return [order.decode() if isinstance(order, bytes) else order
-                    for order in expiring_orders]
+            # RedisHook 已设置 decode_responses=True，所以不需要再解码
+            return expiring_orders
         except Exception as e:
             print(f"获取即将过期订单出错: {str(e)}")
             return []

@@ -41,39 +41,6 @@ class RedisHook(BaseHook):
         self.raw_client = StrictRedis.from_url(redis_url, **connection_kwargs)
         logger.info(f'Initializing redis hook for conn_name {redis_conn_name}')
         self._detect_connectivity()
-    # def init_app(self, app: Flask, redis_conn_name: str = 'redis_default'):
-    #     self.app = app
-    #     connection_kwargs = dict(
-    #         socket_timeout=0.5, retry_on_timeout=True, socket_keepalive=True
-    #     )
-    #     print("app.config.get('REDIS_PASSWORD')",app.config.get('REDIS_PASSWORD'))
-    #     if password := app.config.get('REDIS_PASSWORD'):
-    #         connection_kwargs['password'] = password
-    #
-    #     if redis_cluster_nodes := app.config.get('REDIS_CLUSTER_NODES'):
-    #         startup_nodes = self._get_rc_startup_nodes(redis_cluster_nodes)
-    #         connection_pool = ClusterBlockingConnectionPool(
-    #             startup_nodes, **connection_kwargs
-    #         )
-    #         self.client = RedisCluster(
-    #             connection_pool=connection_pool, decode_responses=True
-    #         )
-    #         self.raw_client = RedisCluster(connection_pool=connection_pool)
-    #     elif sentinel_nodes := app.config.get('REDIS_SENTINEL_NODES'):
-    #         sentinels = self._get_sentinel_nodes(sentinel_nodes)
-    #         sentinel = Sentinel(sentinels, decode_responses=True, **connection_kwargs)
-    #         raw_sentinel = Sentinel(sentinels, **connection_kwargs)
-    #         self.client = sentinel.master_for('mymaster', **connection_kwargs)
-    #         self.raw_client = raw_sentinel.master_for('mymaster', **connection_kwargs)
-    #     else:
-    #         redis_url = app.config['REDIS_URL']
-    #         self.client = StrictRedis.from_url(
-    #             redis_url, decode_responses=True, **connection_kwargs
-    #         )
-    #         self.raw_client = StrictRedis.from_url(redis_url, **connection_kwargs)
-    #     logger.info(f'Initializing redis hook for conn_name {redis_conn_name}')
-    #     self._detect_connectivity()
-
     @staticmethod
     def _get_sentinel_nodes(sentinel_nodes: List[str]) -> List[tuple]:
         start_up_nodes = list()
