@@ -206,3 +206,90 @@ class ShopOrderSQLARepository(SQLARepository):
         """
         result = self.session.execute(query).fetchall()
         return [{'month': r[0], 'order_count': r[1], 'total_sales': float(r[2])} for r in result]
+
+    def order_create(self, args: dict):
+        """
+        创建订单及相关操作（订单详情、删除购物车项、更新商品库存）
+        使用事务确保所有操作要么全部成功，要么全部回滚
+
+        Args:
+            args: 包含订单数据的字典，应包含：
+                - order_data_to_save: 订单数据
+                - cart_items: 购物车项列表
+                - order_no: 订单编号
+
+        Returns:
+            Dict: 包含操作结果的字典
+        """
+        from backend.mini_core.domain.order.order_detail import OrderDetail
+        from backend.mini_core.domain.order.shop_order_cart import ShopOrderCart
+        from backend.mini_core.domain.shop import ShopProduct
+        from sqlalchemy.exc import SQLAlchemyError
+        from backend.mini_core.utils.redis_utils.order_queue import RedisOrderQueue
+
+        order_data_to_save = args["order_data_to_save"]
+        cart_items = args["cart_items"]
+        order_no = args["order_no"]
+
+        # 开始事务
+        try:
+            # 创建订单
+            order = ShopOrder(**order_data_to_save)
+            self.session.add(order)
+            self.session.flush()  # 确保获取到主键ID
+            # 创建订单详情
+            order_details = []
+            for item in cart_items:
+                detail_data = {
+                    'order_no': order_no,
+                    'order_item_id': f"{order_no}_{item['product_id']}",
+                    'sku_id': str(item['product_id']),
+                    'product_id': item['product_id'],
+                    'product_name': item['product_name'],
+                    'product_img': item['product_img'],
+                    'price': item['price'],
+                    'actual_price': item['price'],
+                    'num': item['number'],
+                    'quantity': item['number'],
+                    'unit_price': item['price'],
+                    'total_price': item['subtotal'],
+                    'is_gift': 0,
+                    'refund_status': 0
+                }
+                order_detail = OrderDetail(**detail_data)
+                order_details.append(order_detail)
+                self.session.add(order_detail)
+
+            # 删除购物车项
+            cart_ids = [item['cart_id'] for item in cart_items]
+            if cart_ids:
+                # 优化：批量操作
+                self.session.query(ShopOrderCart).filter(
+                    ShopOrderCart.id.in_(cart_ids)
+                ).delete(synchronize_session='fetch')
+
+            # 更新商品库存
+            for item in cart_items:
+                product_id = item['product_id']
+                number = item['number']
+                # 使用update语句直接更新库存，避免竞态条件
+                self.session.query(ShopProduct).filter(
+                    ShopProduct.id == product_id
+                ).update(
+                    {"stock": ShopProduct.stock - number},
+                    synchronize_session='evaluate'
+                )
+            RedisOrderQueue.add_pending_order(order_no, order_data_to_save)
+            # 提交事务
+            self.session.commit()
+            return dict(data=order, code=200, message="订单创建成功")
+
+        except SQLAlchemyError as e:
+            # 发生异常时回滚事务
+            self.session.rollback()
+            print(e)
+            return dict(data=None, code=500, message=f"订单创建失败: {str(e)}")
+
+
+
+

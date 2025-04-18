@@ -1,7 +1,7 @@
 import uuid
 import datetime as dt
 from typing import Dict, Any, List, Optional
-
+from flask import current_app
 from kit.service.base import CRUDService
 from backend.mini_core.domain.order.order import ShopOrder
 from backend.mini_core.repository.order.order_sqla import ShopOrderSQLARepository
@@ -67,39 +67,126 @@ class ShopOrderService(CRUDService[ShopOrder]):
         return dict(data=data, code=200)
 
     def create_order(self, order_data: Dict[str, Any]) -> Dict[str, Any]:
-        """创建订单"""
+        """创建订单
+
+        验证购物车数据和商品信息，创建订单记录
+        """
+        import json
+        from decimal import Decimal
+        import datetime as dt
+        import uuid
+        from backend.mini_core.repository import (shop_order_cart_sqla_repo, shop_product_sqla_repo)
+
         # 生成订单编号和订单号
         now = dt.datetime.now()
         order_no = f"ORD{now.strftime('%Y%m%d%H%M%S')}{str(uuid.uuid4().int)[:6]}"
         order_sn = f"SN{now.strftime('%Y%m%d')}{str(uuid.uuid4().int)[:8]}"
 
+        # 解析用户信息
+        user_detail = json.loads(order_data.get('userDetail', '{}'))
+        user_id = user_detail.get('id')
+
+        if not user_id:
+            return dict(data=None, code=400, message="用户信息不完整")
+
+        # 解析商品详情
+        goods_detail = json.loads(order_data.get('goodsDetail', '[]'))
+        if not goods_detail:
+            return dict(data=None, code=400, message="商品信息不完整")
+
+        # 验证购物车数据和商品信息
+        cart_items = []
+        product_amount = Decimal('0')
+        product_count = 0
+
+        for item in goods_detail:
+            product_id = item.get('product_id')
+            cart_id = item.get('cart_id')
+            number = item.get('number', 0)
+            price = item.get('price')
+
+            # 1. 验证购物车项是否存在
+            product = shop_product_sqla_repo.find(**{'id': product_id})
+            # 2. 验证商品是否存在并检查价格
+            if not product:
+                return dict(data=None, code=400, message=f"商品不存在: {product_id}")
+            # 验证价格是否一致（允许少量误差）
+            if abs(Decimal(str(price)) - product.price) > Decimal('0.01'):
+                return dict(data=None, code=400, message=f"商品价格不一致: {product.name}")
+            # 验证库存是否足够
+            if product.stock < number:
+                return dict(data=None, code=400, message=f"商品库存不足: {product.name}，当前库存: {product.stock}")
+
+            # 收集商品信息
+            cart_items.append({
+                'cart_id': cart_id,
+                'product_id': product_id,
+                'product_name': product.name,
+                'product_img': product.images[0] if product.images else None,
+                'price': product.price,
+                'number': number,
+                'subtotal': product.price * number
+            })
+
+            # 累计金额和数量
+            product_amount += Decimal(str(price)) * Decimal(str(number))
+            product_count += number
+
+        # 解析收货地址
+        address_info = json.loads(order_data.get('address', '{}'))
+
         # 设置订单基础信息
-        order_data['order_no'] = order_no
-        order_data['order_sn'] = order_sn
-        order_data['status'] = '待支付'
-        order_data['payment_status'] = '待支付'
-        order_data['delivery_status'] = '未发货'
-        order_data['refund_status'] = '无退款'
-        order_data['product_count'] = order_data.get('quantity', 0)
-        order_data['product_amount'] = order_data.get('total_price', 0)
-        order_data['actual_amount'] = order_data.get('total_price', 0)
+        order_data_to_save = {
+            'order_no': order_no,
+            'order_sn': order_sn,
+            'user_id': user_id,
+            'nickname': user_detail.get('nickname', ''),
+            'phone': address_info.get('mobile', ''),
+            'order_type': '普通订单',
+            'order_source': '小程序',
+            'status': '待支付',
+            'payment_status': '待支付',
+            'delivery_status': '未发货',
+            'refund_status': '无退款',
+            'product_count': product_count,
+            'product_amount': product_amount,
+            'actual_amount': product_amount,
+            'discount_amount': order_data.get('benefit', Decimal('0')),
+            'freight_amount': order_data.get('postage', Decimal('0')),
+            'receiver_name': address_info.get('name', ''),
+            'receiver_phone': address_info.get('mobile', ''),
+            'province': address_info.get('pickerText', '').split('-')[0] if '-' in address_info.get('pickerText',
+                                                                                                    '') else '',
+            'city': address_info.get('pickerText', '').split('-')[1] if '-' in address_info.get('pickerText',
+                                                                                                '') and len(
+                address_info.get('pickerText', '').split('-')) > 1 else '',
+            'district': address_info.get('pickerText', '').split('-')[2] if '-' in address_info.get('pickerText',
+                                                                                                    '') and len(
+                address_info.get('pickerText', '').split('-')) > 2 else '',
+            'address': address_info.get('addressName', ''),
+            'client_remark': order_data.get('memo', ''),
+            'transaction_time': now
+        }
 
         # 处理折扣金额
-        discount_amount = order_data.get('discount_amount', 0)
+        discount_amount = order_data.get('benefit', Decimal('0'))
         if discount_amount:
-            order_data['actual_amount'] = order_data['product_amount'] - discount_amount
+            order_data_to_save['actual_amount'] = product_amount - discount_amount
 
         # 处理运费
-        freight_amount = order_data.get('freight_amount', 0)
+        freight_amount = order_data.get('postage', Decimal('0'))
         if freight_amount:
-            order_data['actual_amount'] = order_data['actual_amount'] + freight_amount
+            order_data_to_save['actual_amount'] = order_data_to_save['actual_amount'] + freight_amount
 
-        # 创建订单
-        order = ShopOrder(**order_data)
-        result = super().create(order)
+        # 创建订单，使用事务操作
+        args = {
+            "order_data_to_save": order_data_to_save,
+            "cart_items": cart_items,
+            "order_no": order_no
+        }
 
-        return dict(data=result, code=200)
-
+        # 调用事务方法创建订单和相关数据
+        return self._repo.order_create(args)
     def update_order_status(self, order_id: int, status: str) -> Dict[str, Any]:
         """更新订单状态"""
         order = self._repo.update_order_status(order_id, status)

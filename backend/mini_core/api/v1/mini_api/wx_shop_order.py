@@ -1,18 +1,17 @@
 from flask.views import MethodView
-from flask import current_app
 
 from backend.mini_core.schema.order.order import (
     ShopOrderQueryArgSchema, ReShopOrderSchema, ReShopOrderListSchema,
     OrderStatusUpdateArgSchema, PaymentStatusUpdateArgSchema,
     DeliveryStatusUpdateArgSchema, RefundStatusUpdateArgSchema,
     OrderCreateSchema, DateRangeQueryArgSchema,
-    ReOrderStatsSchema, ReMonthlySalesSchema
+    ReOrderStatsSchema, ReMonthlySalesSchema,MiniOrderCreateSchema
 )
 from backend.business.service.auth import auth_required
 from backend.mini_core.service import shop_order_service
 from kit.util.blueprint import APIBlueprint
 
-blp = APIBlueprint('shop_order', 'shop_order', url_prefix='/')
+blp = APIBlueprint('wx_shop_order', 'wx_shop_order', url_prefix='/')
 
 
 @blp.route('/shop-order')
@@ -26,11 +25,10 @@ class ShopOrderAPI(MethodView):
         """查询订单列表"""
         return shop_order_service.get_order_list(args)
 
-    @blp.arguments(OrderCreateSchema)
+    @blp.arguments(MiniOrderCreateSchema)
     @blp.response(ReShopOrderSchema)
     def post(self, order_data):
         """创建订单"""
-        data_secret_key = current_app.config.get('DATA_SECRET_KEY')
         return shop_order_service.create_order(order_data)
 
 

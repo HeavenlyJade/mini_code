@@ -2,6 +2,7 @@ from marshmallow import validate, Schema
 from marshmallow_dataclass import class_schema
 from webargs import fields as webargs_fields
 from datetime import datetime
+from marshmallow import Schema, fields
 
 from backend.mini_core.domain.order.order import ShopOrder
 from kit.schema.base import EntitySchema, EntityIntSchema, ListResultSchema, ListQueryArgSchema
@@ -139,6 +140,7 @@ class MonthlySalesSchema(Schema):
 class ReShopOrderSchema(Schema):
     data = webargs_fields.Nested(ShopOrderSchema())
     code = webargs_fields.Int(description='状态码')
+    message = webargs_fields.Str(description='错误信息')
 
 
 class ReShopOrderListSchema(ListResultSchema):
@@ -155,3 +157,24 @@ class ReOrderStatsSchema(Schema):
 class ReMonthlySalesSchema(Schema):
     data = webargs_fields.List(webargs_fields.Nested(MonthlySalesSchema()))
     code = webargs_fields.Int(description='状态码')
+
+class GoodsItemSchema(Schema):
+    """Schema for individual goods items in the order"""
+    product_id = fields.Int(required=True)
+    number = fields.Int(required=True)
+    price = fields.Decimal(required=True)
+    cart_id = fields.Int(required=True)
+
+
+class MiniOrderCreateSchema(Schema):
+    """Schema for mini program order creation"""
+    amount = fields.Decimal(required=True, description='订单总金额')
+    benefit = fields.Decimal(required=True, description='优惠金额')
+    postage = fields.Decimal(required=True, description='邮费')
+    address = fields.Str(required=True, description='地址信息JSON字符串')
+    goodsDetail = fields.Str(required=True, description='商品详情JSON字符串')
+    memo = fields.Str(description='备注')
+    userDetail = fields.Str(required=True, description='用户信息JSON字符串')
+    userId = fields.Int(required=True, description='用户ID')
+    timestamp = fields.Int(required=True, description='时间戳')
+    signStr = fields.Str(required=True, description='签名')

@@ -37,7 +37,6 @@ class Config:
     sqlalchemy_binds_str = env("SQLALCHEMY_BINDS", "{}")
     SQLALCHEMY_BINDS = json.loads(sqlalchemy_binds_str)
 
-
     # Multiple databases support.
     DATABASE_TYPE = SQLALCHEMY_DATABASE_URI.split(':')[0]
 
@@ -96,10 +95,12 @@ class Config:
     ELK_VERSION = env.str("ELK_VERSION")
     IMAGE_PATH = env.str("Image_Path")
     UPLOADS_URL_PREFIX = env.str('UPLOADS_URL_PREFIX')
-    WECHAT_MULTIPLATFORM_APPID  = env.str("WECHAT_MULTIPLATFORM_APPID")
-    WECHAT_MULTIPLATFORM_SECRET  =env.str("WECHAT_MULTIPLATFORM_SECRET")
+    WECHAT_MULTIPLATFORM_APPID = env.str("WECHAT_MULTIPLATFORM_APPID")
+    WECHAT_MULTIPLATFORM_SECRET = env.str("WECHAT_MULTIPLATFORM_SECRET")
+    DATA_SECRET_KEY = env.str("DATA_SECRET_KEY")
 
     # Image_Path = env.path("LOCAL_STORAGE_PATH")
+
 
 class DevelopmentConfig(Config):
     DEBUG = True

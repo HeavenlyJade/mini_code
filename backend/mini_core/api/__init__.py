@@ -37,8 +37,11 @@ mini_core_v1_blp.register_blueprint(banner_api)
 from backend.mini_core.api.v1.mini_api.app_user import blp as wx_app_user_api
 from backend.mini_core.api.v1.mini_api.app_shop import blp as wx_app_shop_api
 from backend.mini_core.api.v1.mini_api.shop_order_cart import blp as cart_api
+from backend.mini_core.api.v1.mini_api.wx_shop_order import blp as wx_shop_order
 
 mini_wx_app_v1_blp.register_blueprint(wx_app_user_api)
 mini_wx_app_v1_blp.register_blueprint(wx_app_shop_api)
 mini_wx_app_v1_blp.register_blueprint(cart_api)
+mini_wx_app_v1_blp.register_blueprint(wx_shop_order)
+
 
