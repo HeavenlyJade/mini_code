@@ -178,3 +178,8 @@ class MiniOrderCreateSchema(Schema):
     userId = fields.Int(required=True, description='用户ID')
     timestamp = fields.Int(required=True, description='时间戳')
     signStr = fields.Str(required=True, description='签名')
+
+
+class WXShopOrderQueryArgSchema(ListQueryArgSchema):
+    user_id = webargs_fields.Int(description='用户ID')
+    status = webargs_fields.Str(description='订单状态')

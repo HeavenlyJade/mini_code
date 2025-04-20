@@ -4,7 +4,7 @@ from backend.mini_core.schema.order.order import (
     ShopOrderQueryArgSchema, ReShopOrderSchema, ReShopOrderListSchema,
     OrderStatusUpdateArgSchema, PaymentStatusUpdateArgSchema,
     DeliveryStatusUpdateArgSchema, RefundStatusUpdateArgSchema,
-    OrderCreateSchema, DateRangeQueryArgSchema,
+    OrderCreateSchema, DateRangeQueryArgSchema,WXShopOrderQueryArgSchema,
     ReOrderStatsSchema, ReMonthlySalesSchema,MiniOrderCreateSchema
 )
 from backend.business.service.auth import auth_required
@@ -19,11 +19,11 @@ class ShopOrderAPI(MethodView):
     """订单API"""
     decorators = [auth_required()]
 
-    @blp.arguments(ShopOrderQueryArgSchema, location='query')
-    @blp.response(ReShopOrderListSchema)
+    @blp.arguments(WXShopOrderQueryArgSchema, location='query')
+    @blp.response()
     def get(self, args: dict):
         """查询订单列表"""
-        return shop_order_service.get_order_list(args)
+        return shop_order_service.get_order_detail_msg(args)
 
     @blp.arguments(MiniOrderCreateSchema)
     @blp.response(ReShopOrderSchema)

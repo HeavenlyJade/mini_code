@@ -45,3 +45,4 @@ mini_wx_app_v1_blp.register_blueprint(cart_api)
 mini_wx_app_v1_blp.register_blueprint(wx_shop_order)
 
 
+

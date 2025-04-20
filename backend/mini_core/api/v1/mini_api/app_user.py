@@ -15,7 +15,7 @@ from backend.mini_core.schema.shop_user import (
     SetDefaultAddressSchema,
     ShopUserAddressCreateSchema,
     ShopUserAddressSchemaRe,
-    ShopUserAddressSchema
+    ShopUserAddressSchema,
 )
 from backend.mini_core.service import shop_user_address_service
 from backend.mini_core.service import shop_user_service
@@ -45,7 +45,6 @@ class WechatLoginAPI(MethodView):
 
         # 通过code获取微信用户信息
         wechat_data = wechat_auth_service.code2verify_info(code)
-
         # 获取或创建用户
         session_key = wechat_data["session_key"]
         openid = wechat_data['openid']

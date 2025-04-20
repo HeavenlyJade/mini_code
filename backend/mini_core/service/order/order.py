@@ -18,6 +18,12 @@ class ShopOrderService(CRUDService[ShopOrder]):
     def repo(self) -> ShopOrderSQLARepository:
         return self._repo
 
+    def get_order_detail_msg(self, args: dict):
+        from flask_jwt_extended import get_jwt_identity
+
+        user_id = get_jwt_identity()
+        return self._repo.get_order_msg(user_id=user_id, args=args)
+
     def get_order_list(self, args: dict) -> Dict[str, Any]:
         """获取订单列表"""
         # 处理时间范围查询
@@ -136,7 +142,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
 
         # 解析收货地址
         address_info = json.loads(order_data.get('address', '{}'))
-        if bac_amount !=amount:
+        if bac_amount != amount:
             return dict(data=None, code=400, message=f"价格订单和: 商城订单不一致")
         # 设置订单基础信息
         order_data_to_save = {
@@ -190,6 +196,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
 
         # 调用事务方法创建订单和相关数据
         return self._repo.order_create(args)
+
     def update_order_status(self, order_id: int, status: str) -> Dict[str, Any]:
         """更新订单状态"""
         order = self._repo.update_order_status(order_id, status)
@@ -199,7 +206,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
         return dict(data=order, code=200)
 
     def update_payment_status(self, order_id: int, payment_status: str, payment_no: str = None, trade_no: str = None) -> \
-    Dict[str, Any]:
+        Dict[str, Any]:
         """更新支付状态"""
         order = self._repo.get_by_id(order_id)
         if not order:

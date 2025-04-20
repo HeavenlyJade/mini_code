@@ -291,6 +291,79 @@ class ShopOrderSQLARepository(SQLARepository):
             print(e)
             return dict(data=None, code=500, message=f"订单创建失败: {str(e)}")
 
+    def get_order_msg(self, user_id, args: dict):
+        """
+        获取订单消息数据，通过连表查询同时获取订单和订单详情数据
 
+        Args:
+            user_id (str): 用户ID，可以查询用户的所有订单
+            args (dict): 包含查询参数的字典
 
+        Returns:
+            Dict: 包含订单信息和订单详情的字典
+        """
+        from backend.mini_core.domain.order.order_detail import OrderDetail
+        from sqlalchemy import and_, or_, desc, func, outerjoin
+        from dataclasses import asdict
 
+        # 添加查询条件
+        order_no = args.get('order_no')
+        status = args.get('status')
+        size = args.get('size', 10)
+        page = args.get('page', 1)
+        filter_conditions = []
+        if order_no:
+            filter_conditions.append(self.model.order_no == order_no)
+        if user_id:
+            filter_conditions.append(self.model.user_id == user_id)
+        if status:
+            filter_conditions.append(self.model.status == status)
+        if not filter_conditions:
+            return {"code": 400, "message": "必须提供至少一个查询条件"}
+        filter_expr = and_(*filter_conditions)
+
+        # 查询订单总数
+        total_count = self.session.query(func.count(self.model.id)).filter(filter_expr).scalar()
+
+        # 如果没有订单，直接返回空结果
+        if total_count == 0:
+            return {"data": [], "code": 200, "total": 0, "page": page, "size": size}
+
+        # 计算分页参数
+        offset = (page - 1) * size
+
+        # 查询分页后的订单数据
+        paginated_orders = self.session.query(self.model).filter(filter_expr).order_by(
+            desc(self.model.create_time)).offset(offset).limit(size).all()
+
+        # 获取这些订单的ID列表
+        order_nos = [order.order_no for order in paginated_orders]
+
+        # 使用连表查询获取订单和订单详情
+
+        results = self.session.query(OrderDetail).filter(OrderDetail.order_no.in_(order_nos)).all()
+        order_details={}
+        for result in results:
+            if not result.order_no in order_details:
+                order_details[result.order_no] = [asdict(result)]
+            else:
+                order_details[result.order_no].append(asdict(result))
+        # 组装最终结果
+        result_data = []
+        for order in paginated_orders:
+            order_details_list = order_details.get(order.order_no, [])
+            # 计算订单总数和总金
+            order_data = {
+                "order_info": asdict(order),
+                "order_details": order_details_list,
+            }
+            result_data.append(order_data)
+
+        return {
+            "data": result_data,
+            "code": 200,
+            "total": total_count,
+            "page": page,
+            "size": size,
+            "pages": (total_count + size - 1) // size  # 总页数
+        }
