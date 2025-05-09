@@ -65,3 +65,6 @@ class CartItemWithProductListResponseSchema(ListResultSchema):
     total = webargs_fields.Int(description='总数')
     total_count = webargs_fields.Int(description='商品总数')
     total_price = webargs_fields.Decimal(description='总价')
+
+
+
