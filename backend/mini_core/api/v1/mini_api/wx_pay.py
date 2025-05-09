@@ -15,7 +15,7 @@ class WxShopPay(MethodView):
 
     @blp.arguments(WxPay)
     @blp.response(WxPaySchema)
-    def post(self, args, user_id):
+    def post(self, args):
         """创建微信支付订单"""
         # 调用支付服务创建订单
         result = WechatPayService.create_jsapi_order(args)
