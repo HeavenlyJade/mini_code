@@ -9,6 +9,7 @@ __pycache__/
 *.so
 
 # distribution / packaging
+
 .Python
 build/
 develop-eggs/
@@ -148,3 +149,5 @@ logs/*
 
 # migrations
 migrations/*
+
+wxcert

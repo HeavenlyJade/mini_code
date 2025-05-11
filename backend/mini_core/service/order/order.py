@@ -300,3 +300,11 @@ class ShopOrderService(CRUDService[ShopOrder]):
 
         self._repo.update(order_id, order)
         return dict(data=order, code=200)
+
+    def change_order_to_paid(self, order_id: int) -> Dict[str, Any]:
+        """将订单从待支付状态变更为已支付状态"""
+        order = self._repo.change_to_paid(order_id)
+        if not order:
+            return dict(data=None, code=400, message="订单不存在或当前状态不允许变更为已支付")
+        
+        return dict(data=order, code=200, message="订单已成功变更为已支付状态")
