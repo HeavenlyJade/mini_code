@@ -1,11 +1,10 @@
-from marshmallow import validate, Schema
+from marshmallow_dataclass import class_schema
+from marshmallow import Schema, fields
 from marshmallow_dataclass import class_schema
 from webargs import fields as webargs_fields
-from datetime import datetime
-from marshmallow import Schema, fields
 
 from backend.mini_core.domain.order.order import ShopOrder
-from kit.schema.base import EntitySchema, EntityIntSchema, ListResultSchema, ListQueryArgSchema
+from kit.schema.base import EntitySchema, ListResultSchema, ListQueryArgSchema
 
 # 基本 Schema 类 - 使用 class_schema 自动生成
 ShopOrderSchema = class_schema(ShopOrder, base_schema=EntitySchema)
@@ -158,6 +157,7 @@ class ReMonthlySalesSchema(Schema):
     data = webargs_fields.List(webargs_fields.Nested(MonthlySalesSchema()))
     code = webargs_fields.Int(description='状态码')
 
+
 class GoodsItemSchema(Schema):
     """Schema for individual goods items in the order"""
     product_id = fields.Int(required=True)
@@ -183,3 +183,12 @@ class MiniOrderCreateSchema(Schema):
 class WXShopOrderQueryArgSchema(ListQueryArgSchema):
     user_id = webargs_fields.Int(description='用户ID')
     status = webargs_fields.Str(description='订单状态')
+
+
+# 物流信息更新参数 Schema
+class ShippingInfoUpdateArgSchema(Schema):
+    order_no = webargs_fields.Str(required=True, description='订单编号')
+    express_company = webargs_fields.Str(description='快递公司名称')
+    express_no = webargs_fields.Str(description='快递单号')
+    delivery_platform = webargs_fields.Str(description='配送平台')
+    remark = webargs_fields.Str(description='备注')

@@ -2,6 +2,8 @@ import uuid
 import datetime as dt
 from typing import Dict, Any, List, Optional
 from flask import current_app
+from flask_jwt_extended import get_current_user
+
 from kit.service.base import CRUDService
 from backend.mini_core.domain.order.order import ShopOrder
 from backend.mini_core.repository.order.order_sqla import ShopOrderSQLARepository
@@ -39,6 +41,8 @@ class ShopOrderService(CRUDService[ShopOrder]):
         # 处理金额范围查询
         if 'min_amount' in args and 'max_amount' in args:
             args['actual_amount'] = [args.pop('min_amount'), args.pop('max_amount')]
+        if not "ordering" in args:
+            args['ordering'] = ['-create_time']
         data, total = self._repo.list(**args)
         return dict(data=data, code=200, total=total)
 
@@ -306,5 +310,60 @@ class ShopOrderService(CRUDService[ShopOrder]):
         order = self._repo.change_to_paid(order_id)
         if not order:
             return dict(data=None, code=400, message="订单不存在或当前状态不允许变更为已支付")
-        
+
         return dict(data=order, code=200, message="订单已成功变更为已支付状态")
+
+    def update_shipping_info(self, order_no: str, shipping_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        更新订单的物流信息
+
+        参数:
+            order_id: 订单ID
+            shipping_data: 包含物流信息的字典，可包含以下字段:
+                - express_company: 快递公司
+                - express_no: 快递单号
+                - delivery_platform: 配送平台
+                - remark: 备注
+
+        返回:
+            Dict[str, Any]: 包含更新结果的字典
+        """
+        order = self._repo.find(order_no=order_no)
+        if not order:
+            return dict(data=None, code=404, message="订单不存在")
+
+        # 更新物流信息字段
+        if 'express_company' in shipping_data and shipping_data['express_company']:
+            order.express_company = shipping_data['express_company']
+
+        if 'express_no' in shipping_data and shipping_data['express_no']:
+            order.express_no = shipping_data['express_no']
+
+        if 'delivery_platform' in shipping_data and shipping_data['delivery_platform']:
+            order.delivery_platform = shipping_data['delivery_platform']
+
+        if 'remark' in shipping_data and shipping_data['remark']:
+            order.remark = shipping_data['remark']
+        from backend.mini_core.service import order_log_service
+        current_user = get_current_user()
+        operator = current_user.username if hasattr(current_user, 'username') else 'system'
+        order.status = '已发货'
+        order.delivery_status = '已发货'
+        order.ship_time = dt.datetime.now()
+        order_id=order.id
+        order.updater=operator
+        # 更新订单
+        result = self._repo.update(order_id, order)
+
+        # 记录物流更新日志
+
+        log_desc = f"更新物流信息: {order.express_company or ''} {order.express_no or ''}"
+        if 'delivery_platform' in shipping_data and shipping_data['delivery_platform']:
+            log_desc += f"，配送平台: {shipping_data['delivery_platform']}"
+        order_log_service.create_log({
+            'order_no': order.order_no,
+            'operation_type': '物流信息更新',
+            'operation_desc': log_desc,
+            'operator': operator,
+        })
+        return dict(data=result, code=200, message="物流信息更新成功")

@@ -308,5 +308,6 @@ class OrderReturnLogService(CRUDService[OrderReturnLog]):
                     log_data['operation_ip'] = request.headers.get('X-Real-IP')
                 else:
                     log_data['operation_ip'] = request.remote_addr or ""
+        log_data["updater"]=log_data.get("operator")
         log = OrderReturnLog(**log_data)
         return self.create(log)

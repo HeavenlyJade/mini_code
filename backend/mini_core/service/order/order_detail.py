@@ -82,6 +82,7 @@ class OrderDetailService(CRUDService[OrderDetail]):
         result = self.update(detail_id, OrderDetail(**detail_data))
         return dict(data=result, code=200)
 
+
     def delete_detail(self, detail_id: int) -> Dict[str, Any]:
         """删除订单详情"""
         self.delete(detail_id)

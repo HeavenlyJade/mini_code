@@ -6,7 +6,7 @@ from backend.mini_core.schema.order.order import (
     OrderStatusUpdateArgSchema, PaymentStatusUpdateArgSchema,
     DeliveryStatusUpdateArgSchema, RefundStatusUpdateArgSchema,
     OrderCreateSchema, DateRangeQueryArgSchema,
-    ReOrderStatsSchema, ReMonthlySalesSchema
+    ReOrderStatsSchema, ReMonthlySalesSchema,ShippingInfoUpdateArgSchema
 )
 from backend.business.service.auth import auth_required
 from backend.mini_core.service import shop_order_service
@@ -202,3 +202,14 @@ class CloseOrderAPI(MethodView):
     def post(self, order_id: int):
         """关闭订单"""
         return shop_order_service.close_order(order_id)
+
+@blp.route('/shop-order/shipping-info')
+class OrderShippingInfoAPI(MethodView):
+    """订单物流信息API"""
+    decorators = [auth_required()]
+
+    @blp.arguments(ShippingInfoUpdateArgSchema)
+    @blp.response(ReShopOrderSchema)
+    def post(self, args):
+        """更新订单物流信息"""
+        return shop_order_service.update_shipping_info(args["order_no"],args)
