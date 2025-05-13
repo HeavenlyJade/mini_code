@@ -87,3 +87,6 @@ class ReShopProductStockUpdateSchema(EntityIntSchema):
     data = webargs_fields.Nested(ShopProductSchema())
     stock_warning = webargs_fields.Bool(description='库存是否低于预警值')
     code = webargs_fields.Int(description='状态')
+
+class ProductCategoryBatchDeleteSchema(Schema):
+    category_ids = webargs_fields.List(webargs_fields.Int(), required=True, description='要删除的分类ID列表')

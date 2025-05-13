@@ -1,10 +1,12 @@
 from flask.views import MethodView
+from typing import List
 
 from backend.mini_core.schema.shop import (
     ProductCategoryQueryArgSchema, ReProductCategorySchema, ReProductCategoryListSchema,
     ShopProductQueryArgSchema, ReShopProductSchema, ReShopProductListSchema,
     ShopProductStockUpdateArgSchema, ShopProductStatusUpdateArgSchema,
-    ReShopProductStockUpdateSchema, ReProductCategoryTreeSchema,ProductCategorySchema,ShopProductSchema
+    ReShopProductStockUpdateSchema, ReProductCategoryTreeSchema,ProductCategorySchema,ShopProductSchema,
+    ProductCategoryBatchDeleteSchema
 )
 from kit.schema.base import  FieldQuerySchema
 from backend.mini_core.domain.shop import ShopProduct, ShopProductCategory
@@ -65,6 +67,18 @@ class ProductCategoryDetailAPI(MethodView):
     def delete(self, category_id: int):
         """删除指定ID的商品分类"""
         return shop_product_category_service.delete(category_id)
+
+
+@blp.route('/product-category/batch-delete')
+class ProductCategoryBatchDeleteAPI(MethodView):
+    """批量删除商品分类API"""
+
+    @blp.arguments(ProductCategoryBatchDeleteSchema)
+    @blp.response()
+    def post(self, args):
+        """批量删除指定ID的商品分类"""
+        category_ids = args["category_ids"]
+        return shop_product_category_service.delete_batch(category_ids)
 
 
 @blp.route('/product-category/tree')
@@ -176,3 +190,5 @@ class ShopProductToggleRecommendationAPI(MethodView):
     def post(self, product_id: int):
         """切换商品的推荐状态"""
         return shop_product_service.toggle_recommendation(product_id)
+
+

@@ -161,3 +161,11 @@ class ShopProductCategoryService(CRUDService[ShopProductCategory]):
         """删除分类"""
         result = super().delete(category_id)
         return dict(data=result, code=200)
+
+    def delete_batch(self, category_ids: List[int]) -> Dict[str, Any]:
+        """批量删除分类"""
+        results = []
+        for category_id in category_ids:
+            result = self.delete(category_id)
+            results.append(result)
+        return dict(data=results, code=200)
