@@ -64,7 +64,7 @@ shop_product_table = Table(
     Column('discount', String(20), comment='优惠券'),
     Column('sort_order', Integer, comment='排序'),
     Column('is_recommended', Boolean, default=False, comment='是否推荐'),
-    Column('display_mode', Enum('正常展示', '默认隐藏，不在前端显示'), comment='是否展示'),
+    Column('display_mode', String(20), comment='是否展示'),
     Column('status', Enum('上架', '下架'), comment='状态'),
     Column('video_code', String(128), comment='视频编号'),
     Column('video_url', Text, comment='视频地址'),

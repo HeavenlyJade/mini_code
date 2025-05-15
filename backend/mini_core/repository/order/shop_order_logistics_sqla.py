@@ -18,6 +18,7 @@ shop_order_logistics_table = Table(
     Column('order_no', String(30), nullable=False, index=True, comment='订单编号'),
     Column('logistics_no', String(50), nullable=False, comment='物流单号'),
     Column('logistics_company', String(50), nullable=False, comment='物流公司'),
+    Column('logistics_code', String(5), nullable=False, comment='物流编码'),
     Column('courier_number', String(20), comment='快递员编号'),
     Column('courier_phone', String(15), comment='快递员电话'),
     Column('sender_info', Text, comment='发件人信息(JSON格式)'),

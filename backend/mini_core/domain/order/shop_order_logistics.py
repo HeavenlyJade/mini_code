@@ -31,6 +31,12 @@ class ShopOrderLogistics(Entity):
             description='物流公司',
         ),
     )
+    logistics_code: str = field(
+        default=None,
+        metadata=dict(
+            description='物流公司编码',
+        ),
+    ),
     courier_number: str = field(
         default=None,
         metadata=dict(
