@@ -42,7 +42,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
         if 'min_amount' in args and 'max_amount' in args:
             args['actual_amount'] = [args.pop('min_amount'), args.pop('max_amount')]
         if not "ordering" in args:
-            args['ordering'] = ['-create_time']
+            args['ordering'] = ['-update_time']
         data, total = self._repo.list(**args)
         return dict(data=data, code=200, total=total)
 
@@ -85,7 +85,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
         from decimal import Decimal
         import datetime as dt
         import uuid
-        from backend.mini_core.repository import (shop_order_cart_sqla_repo, shop_product_sqla_repo)
+        from backend.mini_core.repository import  shop_product_sqla_repo
 
         # 生成订单编号和订单号
         now = dt.datetime.now()
@@ -109,6 +109,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
         product_amount = Decimal('0')
         product_count = 0
         bac_amount = 0
+        product_name=""
         for item in goods_detail:
             product_id = item.get('product_id')
             cart_id = item.get('cart_id')
@@ -124,7 +125,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
             if abs(Decimal(str(price)) - product.price) > Decimal('0.01'):
                 return dict(data=None, code=400, message=f"商品价格不一致: {product.name}")
             bac_amount += product.price * number
-
+            product_name += " \n"+product.name
             # 验证库存是否足够
             if product.stock < number:
                 return dict(data=None, code=400, message=f"商品库存不足: {product.name}，当前库存: {product.stock}")
@@ -152,6 +153,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
         order_data_to_save = {
             'order_no': order_no,
             'order_sn': order_sn,
+            "product_name":product_name,
             'user_id': user_id,
             'nickname': user_detail.get('nickname', ''),
             'phone': address_info.get('mobile', ''),
@@ -315,10 +317,10 @@ class ShopOrderService(CRUDService[ShopOrder]):
 
     def update_shipping_info(self, order_no: str, shipping_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        更新订单的物流信息
+        更新订单的物流信息，同时在物流表中创建或更新对应记录
 
         参数:
-            order_id: 订单ID
+            order_no: 订单编号
             shipping_data: 包含物流信息的字典，可包含以下字段:
                 - express_company: 快递公司
                 - express_no: 快递单号
@@ -328,35 +330,109 @@ class ShopOrderService(CRUDService[ShopOrder]):
         返回:
             Dict[str, Any]: 包含更新结果的字典
         """
-        order = self._repo.find(order_no=order_no)
+
+        # 同步更新物流表中的记录
+        from backend.mini_core.service import shop_order_logistics_service
+        from backend.mini_core.domain.order.shop_order_logistics import ShopOrderLogistics
+        import json
+        order:ShopOrder = self._repo.find(order_no=order_no)
         if not order:
             return dict(data=None, code=404, message="订单不存在")
 
-        # 更新物流信息字段
-        if 'express_company' in shipping_data and shipping_data['express_company']:
-            order.express_company = shipping_data['express_company']
-
-        if 'express_no' in shipping_data and shipping_data['express_no']:
-            order.express_no = shipping_data['express_no']
-
-        if 'delivery_platform' in shipping_data and shipping_data['delivery_platform']:
-            order.delivery_platform = shipping_data['delivery_platform']
-
-        if 'remark' in shipping_data and shipping_data['remark']:
-            order.remark = shipping_data['remark']
-        from backend.mini_core.service import order_log_service
+        # 获取当前用户和时间信息
         current_user = get_current_user()
         operator = current_user.username if hasattr(current_user, 'username') else 'system'
+        current_time = dt.datetime.now()
+        express_company = shipping_data.get('express_company')
+        express_no = shipping_data.get('express_no')
+        delivery_platform = shipping_data.get('delivery_platform')
+        remark = shipping_data.get('remark')
+        # 更新物流信息字段
+        if express_company:
+            order.express_company = express_company
+        if express_no:
+            order.express_no = shipping_data['express_no']
+        if delivery_platform:
+            order.delivery_platform = shipping_data['delivery_platform']
+        if remark:
+            order.remark = shipping_data['remark']
+
+        # 更新订单状态
         order.status = '已发货'
         order.delivery_status = '已发货'
-        order.ship_time = dt.datetime.now()
-        order_id=order.id
-        order.updater=operator
-        # 更新订单
+        order.ship_time = current_time
+        order_id = order.id
+        order.updater = operator
+
+
+
+        # 获取收件人信息
+        receiver_info = {
+            "name": order.receiver_name,
+            "phone": order.receiver_phone,
+            "province": order.province,
+            "city": order.city,
+        }
+
+        # 获取现有物流记录或创建新记录
+        logistics_data = shop_order_logistics_service.get_logistics_by_order_no(order_no)
+
+        if logistics_data and logistics_data.get('data'):
+            # 更新现有物流记录
+            logistics = logistics_data.get('data')
+            logistics_id = logistics.id
+            # 准备更新的物流数据
+            logistics_update = {
+                'logistics_company': order.express_company,
+                'logistics_no': order.express_no,
+                'current_status': '已发货',
+                'shipping_time': current_time,
+                'estimate_time': current_time + dt.timedelta(days=3),  # 预计3天送达
+                'receiver_info': receiver_info
+            }
+
+            # 添加物流轨迹记录
+            if logistics.logistics_route:
+                try:
+                    route = json.loads(logistics.logistics_route)
+                except:
+                    route = []
+            else:
+                route = []
+
+            # 添加新的轨迹节点
+            route.append({
+                'time': current_time.strftime('%Y-%m-%d %H:%M:%S'),
+                'status': '已发货',
+                'location': shipping_data.get('current_location', ''),
+                'remark': f'商家已发货: {order.express_company} {order.express_no}'
+            })
+
+            logistics_update['logistics_route'] = json.dumps(route)
+
+            # 更新物流记录
+            shop_order_logistics_service.update_logistics(logistics_id, logistics_update)
+        else:
+            # 创建新的物流记录
+            new_logistics = ShopOrderLogistics(
+                order_no=order_no,
+                logistics_no=order.express_no,
+                logistics_company=order.express_company,
+                courier_number=shipping_data.get('courier_number',),
+                courier_phone=shipping_data.get('courier_phone',),
+                receiver_info=receiver_info,
+                shipping_time=current_time,
+                estimate_time=current_time + dt.timedelta(days=3),  # 预计3天送达
+                current_status='已发货',
+                current_location=shipping_data.get('current_location'),
+                start_date=current_time,
+                remark=shipping_data.get('remark',),
+                logistics_route={}
+
+            )
+            shop_order_logistics_service.create(new_logistics)
         result = self._repo.update(order_id, order)
-
-        # 记录物流更新日志
-
+        from backend.mini_core.service import order_log_service
         log_desc = f"更新物流信息: {order.express_company or ''} {order.express_no or ''}"
         if 'delivery_platform' in shipping_data and shipping_data['delivery_platform']:
             log_desc += f"，配送平台: {shipping_data['delivery_platform']}"
@@ -366,4 +442,4 @@ class ShopOrderService(CRUDService[ShopOrder]):
             'operation_desc': log_desc,
             'operator': operator,
         })
-        return dict(data=result, code=200, message="物流信息更新成功")
+        return dict(data=result, code=200, message="物流信息更新成功，物流跟踪已建立")

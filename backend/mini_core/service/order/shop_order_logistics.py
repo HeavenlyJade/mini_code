@@ -160,92 +160,6 @@ class ShopOrderLogisticsService(CRUDService[ShopOrderLogistics]):
         result = self._repo.update(logistics_id, ShopOrderLogistics(**logistics_data))
         return dict(data=result, code=200, message="物流信息更新成功")
 
-    def update_logistics_status(self, logistics_id: int, status: str, location: str = None) -> Dict[str, Any]:
-        """
-        更新物流状态
-
-        Args:
-            logistics_id: 物流信息ID
-            status: 新的物流状态
-            location: 当前位置
-
-        Returns:
-            Dict: 包含更新结果的字典
-        """
-        logistics = self._repo.get_by_id(logistics_id)
-        if not logistics:
-            return dict(data=None, code=404, message="物流信息不存在")
-
-        # 更新状态和位置
-        result = self._repo.update_logistics_status(logistics_id, status, location)
-
-        # 记录状态变更到物流轨迹
-        self._add_to_logistics_route(logistics_id, {
-            'time': dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'status': status,
-            'location': location or logistics.current_location,
-            'remark': f'状态更新为: {status}'
-        })
-
-        return dict(data=result, code=200, message="物流状态更新成功")
-
-    def mark_as_shipped(self, logistics_id: int, shipping_time: dt.datetime = None) -> Dict[str, Any]:
-        """
-        标记物流为已发货
-
-        Args:
-            logistics_id: 物流信息ID
-            shipping_time: 发货时间，默认为当前时间
-
-        Returns:
-            Dict: 包含更新结果的字典
-        """
-        logistics = self._repo.get_by_id(logistics_id)
-        if not logistics:
-            return dict(data=None, code=404, message="物流信息不存在")
-
-        # 更新发货信息
-        logistics.shipping_time = shipping_time or dt.datetime.now()
-        logistics.current_status = '已发货'
-        self._set_updater(logistics)
-        self._repo.update(logistics_id, logistics)
-
-        # 记录发货到物流轨迹
-        self._add_to_logistics_route(logistics_id, {
-            'time': logistics.shipping_time.strftime('%Y-%m-%d %H:%M:%S'),
-            'status': '已发货',
-            'location': logistics.current_location,
-            'remark': '订单已发货'
-        })
-
-        return dict(data=logistics, code=200, message="订单已标记为已发货")
-
-    def mark_as_delivered(self, logistics_id: int, receiving_time: dt.datetime = None) -> Dict[str, Any]:
-        """
-        标记物流为已送达
-
-        Args:
-            logistics_id: 物流信息ID
-            receiving_time: 收货时间，默认为当前时间
-
-        Returns:
-            Dict: 包含更新结果的字典
-        """
-        result = self._repo.mark_as_delivered(logistics_id, receiving_time)
-        if not result:
-            return dict(data=None, code=404, message="物流信息不存在")
-
-        # 记录送达到物流轨迹
-        delivery_time = receiving_time or dt.datetime.now()
-        self._add_to_logistics_route(logistics_id, {
-            'time': delivery_time.strftime('%Y-%m-%d %H:%M:%S'),
-            'status': '已送达',
-            'location': result.current_location,
-            'remark': '订单已送达'
-        })
-
-        return dict(data=result, code=200, message="订单已标记为已送达")
-
     def delete_logistics(self, logistics_id: int) -> Dict[str, Any]:
         """
         删除物流信息
@@ -287,35 +201,6 @@ class ShopOrderLogisticsService(CRUDService[ShopOrderLogistics]):
         data = self._repo.get_logistics_by_date_range(start_date, end_date)
         return dict(data=data, code=200, total=len(data))
 
-    def _add_to_logistics_route(self, logistics_id: int, route_item: Dict[str, Any]) -> None:
-        """
-        添加物流轨迹记录
-
-        Args:
-            logistics_id: 物流信息ID
-            route_item: 轨迹项，包含时间、状态、位置和备注
-        """
-        logistics = self._repo.get_by_id(logistics_id)
-        if not logistics:
-            return
-
-        # 解析现有轨迹
-        route = []
-        if logistics.logistics_route:
-            try:
-                route = json.loads(logistics.logistics_route)
-            except:
-                route = []
-
-        # 确保route是列表
-        if not isinstance(route, list):
-            route = []
-
-        # 添加新轨迹
-        route.append(route_item)
-
-        # 更新轨迹
-        self._repo.update_logistics_route(logistics_id, json.dumps(route))
 
     def _set_updater(self, entity: ShopOrderLogistics) -> None:
         """设置更新者"""

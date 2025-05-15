@@ -68,7 +68,6 @@ class ShopOrderCartService(CRUDService[ShopOrderCart]):
         """添加商品到购物车"""
         # 获取当前用户对象
         user = get_current_user()
-        print("user",user)
         open_id = user.openid
         user_id = user.id
         quantity = item_data.get('product_count',)

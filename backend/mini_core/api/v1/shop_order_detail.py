@@ -68,10 +68,7 @@ class OrderDetailByIDAPI(MethodView):
         """更新指定ID的订单详情"""
         return order_detail_service.update_detail(detail_id, detail)
 
-    @blp.response()
-    def delete(self, detail_id: int):
-        """删除指定ID的订单详情"""
-        return order_detail_service.delete_detail(detail_id)
+
 
 
 @blp.route('/orders/<string:order_no>/details')
@@ -107,12 +104,12 @@ class OrderAmountAPI(MethodView):
         return order_detail_service.get_order_amount(order_no)
 
 
-@blp.route('/products/<int:product_id>/orders')
-class ProductOrdersAPI(MethodView):
-    """商品订单API"""
-    decorators = [auth_required()]
-
-    @blp.response(OrderDetailListResponseSchema)
-    def get(self, product_id: int):
-        """获取指定商品的所有订单详情"""
-        return order_detail_service.get_product_orders(product_id)
+# @blp.route('/products/<int:product_id>/orders')
+# class ProductOrdersAPI(MethodView):
+#     """商品订单API"""
+#     decorators = [auth_required()]
+#
+#     @blp.response(OrderDetailListResponseSchema)
+#     def get(self, product_id: int):
+#         """获取指定商品的所有订单详情"""
+#         return order_detail_service.get_product_orders(product_id)

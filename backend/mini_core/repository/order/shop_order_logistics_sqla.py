@@ -1,7 +1,7 @@
 import datetime as dt
 from typing import Type, Tuple, List, Dict, Any
 
-from sqlalchemy import Column, String, Table, Integer, DateTime, Text, and_, or_, desc
+from sqlalchemy import Column, String, Table, Integer, DateTime, Text, and_, or_, desc,JSON
 
 from backend.extensions import mapper_registry
 from backend.mini_core.domain.order.shop_order_logistics import ShopOrderLogistics
@@ -18,17 +18,16 @@ shop_order_logistics_table = Table(
     Column('order_no', String(30), nullable=False, index=True, comment='订单编号'),
     Column('logistics_no', String(50), nullable=False, comment='物流单号'),
     Column('logistics_company', String(50), nullable=False, comment='物流公司'),
-    Column('logistics_code', String(5), nullable=False, comment='物流编码'),
     Column('courier_number', String(20), comment='快递员编号'),
     Column('courier_phone', String(15), comment='快递员电话'),
-    Column('sender_info', Text, comment='发件人信息(JSON格式)'),
-    Column('receiver_info', Text, nullable=False, comment='收件人信息(JSON格式)'),
+    Column('sender_info', JSON, comment='发件人信息(JSON格式)'),
+    Column('receiver_info', JSON, nullable=False, comment='收件人信息(JSON格式)'),
     Column('shipping_time', DateTime, comment='发货时间'),
     Column('estimate_time', DateTime, comment='预计送达时间'),
     Column('receiving_time', DateTime, comment='实际收货时间'),
     Column('current_status', String(30), nullable=False, comment='当前状态'),
     Column('current_location', String(100), comment='当前位置'),
-    Column('logistics_route', Text, comment='物流轨迹(JSON格式)'),
+    Column('logistics_route', JSON, comment='物流轨迹(JSON格式)'),
     Column('remark', String(255), comment='备注'),
     Column('start_date', DateTime, nullable=False, comment='记录开始时间(用于控制表)'),
     Column('end_date', DateTime, comment='记录结束时间(用于控制表)'),
@@ -81,6 +80,40 @@ class ShopOrderLogisticsSQLARepository(SQLARepository):
         """
         return self.find(logistics_no=logistics_no)
 
+    def get_con_logistics(self,kwargs: Dict[str, Any]):
+        from sqlalchemy import and_
+        import datetime as dt
+
+        # 提取并移除特定参数
+        current_status = kwargs.pop('current_status', '已发货')
+        days = kwargs.pop('days', 7)
+
+        # 计算指定天数前的日期
+        days_ago = dt.datetime.now() - dt.timedelta(days=days)
+
+        # 基础查询条件
+        conditions = [
+            # 状态为指定状态
+            self.model.current_status == current_status,
+            # 发货时间在指定天数内
+            self.model.shipping_time >= days_ago,
+        ]
+        logistics_company = kwargs.get('logistics_company', None)
+        order_no =kwargs.get('order_no', None)
+        # 处理其他可选查询条件
+        if logistics_company:
+            conditions.append(self.model.logistics_company == logistics_company)
+
+        if order_no:
+            conditions.append(self.model.order_no == order_no)
+
+        # 构建查询
+        query = self.session.query(self.model).filter(and_(*conditions))
+        query = query.order_by(self.model.shipping_time.desc())
+
+        # 执行查询并返回结果
+        return query.all()
+
     def get_active_logistics(self) -> List[ShopOrderLogistics]:
         """
         获取所有活跃的物流信息（尚未送达的）
@@ -89,31 +122,9 @@ class ShopOrderLogisticsSQLARepository(SQLARepository):
             List[ShopOrderLogistics]: 活跃的物流信息列表
         """
         return self.session.query(ShopOrderLogistics).filter(
-            ShopOrderLogistics.receiving_time.is_(None)
-        ).all()
+            ShopOrderLogistics.receiving_time.is_(None)).all()
 
-    def update_logistics_status(self, logistics_id: int, status: str, location: str = None) -> ShopOrderLogistics:
-        """
-        更新物流状态和位置信息
-
-        Args:
-            logistics_id: 物流记录ID
-            status: 新的物流状态
-            location: 当前位置
-
-        Returns:
-            ShopOrderLogistics: 更新后的物流信息
-        """
-        logistics = self.get_by_id(logistics_id)
-        if logistics:
-            logistics.current_status = status
-            if location:
-                logistics.current_location = location
-            logistics.update_time = dt.datetime.now()
-            self.session.commit()
-        return logistics
-
-    def update_logistics_route(self, logistics_id: int, route_info: str) -> ShopOrderLogistics:
+    def update_logistics_route(self, logistics_id: int, args:dict) -> ShopOrderLogistics:
         """
         更新物流轨迹信息
 
@@ -125,8 +136,19 @@ class ShopOrderLogisticsSQLARepository(SQLARepository):
             ShopOrderLogistics: 更新后的物流信息
         """
         logistics = self.get_by_id(logistics_id)
+        route_info= args.get('route_info', None)
+        current_status = args.get("current_status",None)
+        location = args.get("location")
+        receiving_time =args.get("receiving_time")
         if logistics:
-            logistics.logistics_route = route_info
+            if route_info:
+                logistics.logistics_route = route_info
+            if current_status:
+                logistics.current_status = current_status
+            if location:
+                logistics.current_location = location
+            if receiving_time:
+                logistics.receiving_time = receiving_time
             logistics.update_time = dt.datetime.now()
             self.session.commit()
         return logistics

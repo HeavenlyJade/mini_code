@@ -26,12 +26,11 @@ class ShopOrderAPI(MethodView):
         """查询订单列表"""
         return shop_order_service.get_order_list(args)
 
-    @blp.arguments(OrderCreateSchema)
-    @blp.response(ReShopOrderSchema)
-    def post(self, order_data):
-        """创建订单"""
-        data_secret_key = current_app.config.get('DATA_SECRET_KEY')
-        return shop_order_service.create_order(order_data)
+    # @blp.arguments(OrderCreateSchema)
+    # @blp.response(ReShopOrderSchema)
+    # def post(self, order_data):
+    #     """创建订单"""
+    #     return shop_order_service.create_order(order_data)
 
 
 @blp.route('/shop-order/<int:order_id>')
@@ -141,24 +140,6 @@ class PaymentStatusAPI(MethodView):
         )
 
 
-@blp.route('/shop-order/delivery-status')
-class DeliveryStatusAPI(MethodView):
-    """配送状态API"""
-    decorators = [auth_required()]
-
-    @blp.arguments(DeliveryStatusUpdateArgSchema)
-    @blp.response(ReShopOrderSchema)
-    def post(self, args):
-        """更新配送状态"""
-        return shop_order_service.update_delivery_status(
-            args["id"],
-            args["delivery_status"],
-            args.get("express_company"),
-            args.get("express_no"),
-            args.get("delivery_platform")
-        )
-
-
 @blp.route('/shop-order/refund-status')
 class RefundStatusAPI(MethodView):
     """退款状态API"""
@@ -193,15 +174,15 @@ class ConfirmReceiptAPI(MethodView):
         return shop_order_service.confirm_receipt(order_id)
 
 
-@blp.route('/shop-order/close/<int:order_id>')
-class CloseOrderAPI(MethodView):
-    """关闭订单API"""
-    decorators = [auth_required()]
-
-    @blp.response(ReShopOrderSchema)
-    def post(self, order_id: int):
-        """关闭订单"""
-        return shop_order_service.close_order(order_id)
+# @blp.route('/shop-order/close/<int:order_id>')
+# class CloseOrderAPI(MethodView):
+#     """关闭订单API"""
+#     decorators = [auth_required()]
+#
+#     @blp.response(ReShopOrderSchema)
+#     def post(self, order_id: int):
+#         """关闭订单"""
+#         return shop_order_service.close_order(order_id)
 
 @blp.route('/shop-order/shipping-info')
 class OrderShippingInfoAPI(MethodView):

@@ -26,6 +26,12 @@ class ShopOrder(Entity):
             description='订单号',
         ),
     )
+    product_name: str = field(
+        default=None,
+        metadata=dict(
+            description='商品组合名称',
+        ),
+    )
     user_id: str = field(
         default=None,
         metadata=dict(

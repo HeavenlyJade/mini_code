@@ -26,7 +26,6 @@ class ShopOrderCartAPI(MethodView):
     @blp.response(ShopOrderCartResponseSchema)
     def post(self, cart_item):
         """添加商品到购物车"""
-        print(cart_item)
         return shop_order_cart_service.add_to_cart(cart_item)
 
 

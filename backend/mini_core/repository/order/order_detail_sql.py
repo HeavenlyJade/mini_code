@@ -73,6 +73,9 @@ class OrderDetailSQLARepository(SQLARepository):
         order_sql = """ SELECT * FROM shop_order WHERE order_no = :order_no """
         order_info = self.session.execute(order_sql, {'order_no': order_no}).fetchone()
 
+        order_logistics_sql = """ SELECT * FROM shop_order_logistics WHERE order_no = :order_no """
+        order_logistics_info = self.session.execute(order_logistics_sql, {'order_no': order_no}).fetchone()
+
         # 查询订单操作日志
         log_sql = """ SELECT * FROM shop_order_log WHERE order_no = :order_no ORDER BY operation_time DESC """
         order_logs = self.session.execute(log_sql, {'order_no': order_no}).fetchall()
@@ -88,9 +91,16 @@ class OrderDetailSQLARepository(SQLARepository):
             if new_value and isinstance(new_value, str):
                 re_data["new_value"] = json.loads(new_value)
             re_order_logs.append(re_data)
+        order_logistics_info_dic = dict(order_logistics_info) if order_logistics_info else None
+        logistics_route=[]
+        if order_logistics_info_dic:
+            logistics_route=order_logistics_info_dic.get('logistics_route')
+            if logistics_route and isinstance(logistics_route, str):
+                logistics_route= json.loads(logistics_route)
         result = {
             "order_details": [dict(row) for row in order_details],
             "order_info": dict(order_info) if order_info else None,
+            "logistics_route": logistics_route,
             "order_logs": re_order_logs
         }
 

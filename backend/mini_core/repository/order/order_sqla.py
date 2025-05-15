@@ -27,6 +27,7 @@ shop_order_table = Table(
     Column('refund_status', String(32), comment='退款状态'),
     Column('delivery_status', String(32), comment='配送状态'),
     Column('payment_status', String(32), comment='支付状态'),
+    Column('product_name', String(32), comment='商品名称'),
     Column('product_count', Integer, comment='商品数量'),
     Column('product_amount', DECIMAL(10, 2), comment='商品金额'),
     Column('actual_amount', DECIMAL(10, 2), comment='实收金额'),

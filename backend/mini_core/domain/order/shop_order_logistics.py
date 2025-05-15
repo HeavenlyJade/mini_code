@@ -1,5 +1,5 @@
 from dataclasses import field
-from typing import Optional
+from typing import Optional,Any
 from datetime import datetime
 from marshmallow_dataclass import dataclass
 
@@ -31,12 +31,6 @@ class ShopOrderLogistics(Entity):
             description='物流公司',
         ),
     )
-    logistics_code: str = field(
-        default=None,
-        metadata=dict(
-            description='物流公司编码',
-        ),
-    ),
     courier_number: str = field(
         default=None,
         metadata=dict(
@@ -49,13 +43,13 @@ class ShopOrderLogistics(Entity):
             description='快递员电话',
         ),
     )
-    sender_info: str = field(
+    sender_info:Any = field(
         default=None,
         metadata=dict(
             description='发件人信息(JSON格式)',
         ),
     )
-    receiver_info: str = field(
+    receiver_info: Any = field(
         default=None,
         metadata=dict(
             description='收件人信息(JSON格式)',
@@ -91,7 +85,7 @@ class ShopOrderLogistics(Entity):
             description='当前位置',
         ),
     )
-    logistics_route: str = field(
+    logistics_route: Any = field(
         default=None,
         metadata=dict(
             description='物流轨迹(JSON格式)',
