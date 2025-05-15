@@ -16,6 +16,8 @@ from backend.mini_core.api.v1.shop_user_address import blp as shop_user_address_
 from backend.mini_core.api.v1.shop_order_return import blp as shop_order_return_api
 from backend.mini_core.api.v1.banner import blp as banner_api
 from backend.mini_core.api.v1.shop_order_logistics import blp as shop_order_logistics_api
+from backend.mini_core.api.v1.shop_order_review import  blp as order_review_blp
+
 
 mini_core_v1_blp.register_blueprint(card_api)
 mini_core_v1_blp.register_blueprint(distribution_api)
@@ -34,6 +36,8 @@ mini_core_v1_blp.register_blueprint(shop_user_address_blp)
 mini_core_v1_blp.register_blueprint(shop_order_return_api)
 mini_core_v1_blp.register_blueprint(banner_api)
 mini_core_v1_blp.register_blueprint(shop_order_logistics_api)
+mini_core_v1_blp.register_blueprint(order_review_blp)
+
 
 from backend.mini_core.api.v1.mini_api.app_user import blp as wx_app_user_api
 from backend.mini_core.api.v1.mini_api.app_shop import blp as wx_app_shop_api
