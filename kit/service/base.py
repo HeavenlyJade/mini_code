@@ -50,4 +50,5 @@ class CRUDService(Generic[T], metaclass=ABCMeta):
         return entity
 
     def delete(self, entity_id: int) -> None:
-        self.repo.delete(entity_id)
+        entity =self.repo.delete(entity_id)
+        return dict(code=200,data=entity)
