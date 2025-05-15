@@ -3,7 +3,7 @@ from flask.views import MethodView
 from backend.mini_core.schema.order.order import (
     ShopOrderQueryArgSchema, ReShopOrderSchema, ReShopOrderListSchema,
     OrderStatusUpdateArgSchema, PaymentStatusUpdateArgSchema,
-    DeliveryStatusUpdateArgSchema, RefundStatusUpdateArgSchema,
+    DeliveryStatusUpdateArgSchema,
     OrderCreateSchema, DateRangeQueryArgSchema, WXShopOrderQueryArgSchema,
     ReOrderStatsSchema, ReMonthlySalesSchema, MiniOrderCreateSchema
 )
@@ -86,29 +86,15 @@ class UserOrdersAPI(MethodView):
         """获取用户的所有订单"""
         return shop_order_service.get_user_orders(user_id)
 
-
-@blp.route('/shop-order/stats')
-class OrderStatsAPI(MethodView):
-    """订单统计API"""
+@blp.route('/shop-order/cancel/')
+class CancelOrderAPI(MethodView):
+    """取消订单API"""
     decorators = [auth_required()]
-
-    @blp.response(ReOrderStatsSchema)
-    def get(self):
-        """获取订单统计信息"""
-        return shop_order_service.get_order_stats()
-
-
-@blp.route('/shop-order/monthly-sales')
-class MonthlySalesAPI(MethodView):
-    """月度销售统计API"""
-    decorators = [auth_required()]
-
-    @blp.arguments(DateRangeQueryArgSchema, location='query')
-    @blp.response(ReMonthlySalesSchema)
-    def get(self, args: dict):
-        """获取月度销售统计"""
-        return shop_order_service.get_monthly_sales()
-
+    @blp.arguments(OrderStatusUpdateArgSchema)
+    @blp.response(ReShopOrderSchema)
+    def post(self, args: dict):
+        """取消订单"""
+        return shop_order_service.cancel_order(args)
 
 @blp.route('/shop-order/status')
 class OrderStatusAPI(MethodView):
@@ -119,95 +105,14 @@ class OrderStatusAPI(MethodView):
     @blp.response(ReShopOrderSchema)
     def post(self, args):
         """更新订单状态"""
-        return shop_order_service.update_order_status(args["id"], args["status"])
-
-
-@blp.route('/shop-order/payment-status')
-class PaymentStatusAPI(MethodView):
-    """支付状态API"""
-    decorators = [auth_required()]
-
-    @blp.arguments(PaymentStatusUpdateArgSchema)
-    @blp.response(ReShopOrderSchema)
-    def post(self, args):
-        """更新支付状态"""
-        return shop_order_service.update_payment_status(
-            args["id"],
-            args["payment_status"],
-            args.get("payment_no"),
-            args.get("trade_no")
-        )
-
-
-@blp.route('/shop-order/delivery-status')
-class DeliveryStatusAPI(MethodView):
-    """配送状态API"""
-    decorators = [auth_required()]
-
-    @blp.arguments(DeliveryStatusUpdateArgSchema)
-    @blp.response(ReShopOrderSchema)
-    def post(self, args):
-        """更新配送状态"""
-        return shop_order_service.update_delivery_status(
-            args["id"],
-            args["delivery_status"],
-            args.get("express_company"),
-            args.get("express_no"),
-            args.get("delivery_platform")
-        )
-
-
+        return shop_order_service.update_order_status(args["order_no"], args["status"])
 @blp.route('/shop-order/refund-status')
 class RefundStatusAPI(MethodView):
     """退款状态API"""
     decorators = [auth_required()]
 
-    @blp.arguments(RefundStatusUpdateArgSchema)
+    @blp.arguments(OrderStatusUpdateArgSchema)
     @blp.response(ReShopOrderSchema)
     def post(self, args):
         """更新退款状态"""
-        return shop_order_service.update_refund_status(args["id"], args["refund_status"])
-
-
-@blp.route('/shop-order/cancel/<int:order_id>')
-class CancelOrderAPI(MethodView):
-    """取消订单API"""
-    decorators = [auth_required()]
-
-    @blp.response(ReShopOrderSchema)
-    def post(self, order_id: int):
-        """取消订单"""
-        return shop_order_service.cancel_order(order_id)
-
-
-@blp.route('/shop-order/confirm-receipt/<int:order_id>')
-class ConfirmReceiptAPI(MethodView):
-    """确认收货API"""
-    decorators = [auth_required()]
-
-    @blp.response(ReShopOrderSchema)
-    def post(self, order_id: int):
-        """确认收货"""
-        return shop_order_service.confirm_receipt(order_id)
-
-
-@blp.route('/shop-order/payment/<int:order_id>')
-class PaymentReceiptAPI(MethodView):
-    """付款确认的api"""
-    decorators = [auth_required()]
-
-    @blp.response(ReShopOrderSchema)
-    def post(self, order_id: int):
-        """确认付款"""
-        return shop_order_service.change_order_to_paid(order_id)
-
-
-@blp.route('/shop-order/close/<int:order_id>')
-class CloseOrderAPI(MethodView):
-    """关闭订单API"""
-    decorators = [auth_required()]
-
-    @blp.response(ReShopOrderSchema)
-    def post(self, order_id: int):
-        """关闭订单"""
-        return shop_order_service.close_order(order_id)
+        return shop_order_service.update_refund_status(args["order_no"], args["status"])

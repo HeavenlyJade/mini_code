@@ -41,8 +41,8 @@ class ShopOrderQueryArgSchema(ListQueryArgSchema):
 
 # 订单状态更新参数 Schema
 class OrderStatusUpdateArgSchema(Schema):
-    id = webargs_fields.Int(required=True, description='订单ID')
-    status = webargs_fields.Str(required=True, description='订单状态')
+    order_no = webargs_fields.Str(required=True, description='订单ID')
+    status = webargs_fields.Str(description='订单状态')
 
 
 # 支付状态更新参数 Schema
@@ -62,10 +62,6 @@ class DeliveryStatusUpdateArgSchema(Schema):
     delivery_platform = webargs_fields.Str(description='配送平台')
 
 
-# 退款状态更新参数 Schema
-class RefundStatusUpdateArgSchema(Schema):
-    id = webargs_fields.Int(required=True, description='订单ID')
-    refund_status = webargs_fields.Str(required=True, description='退款状态')
 
 
 # 订单创建参数 Schema

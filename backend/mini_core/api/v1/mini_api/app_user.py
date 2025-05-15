@@ -45,6 +45,7 @@ class WechatLoginAPI(MethodView):
 
         # 通过code获取微信用户信息
         wechat_data = wechat_auth_service.code2verify_info(code)
+        print(wechat_data)
         # 获取或创建用户
         session_key = wechat_data["session_key"]
         openid = wechat_data['openid']

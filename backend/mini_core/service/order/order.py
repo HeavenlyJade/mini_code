@@ -203,9 +203,9 @@ class ShopOrderService(CRUDService[ShopOrder]):
         # 调用事务方法创建订单和相关数据
         return self._repo.order_create(args)
 
-    def update_order_status(self, order_id: int, status: str) -> Dict[str, Any]:
+    def update_order_status(self, order_no: str, status: str) -> Dict[str, Any]:
         """更新订单状态"""
-        order = self._repo.update_order_status(order_id, status)
+        order = self._repo.update_order_status(order_no, status)
         if not order:
             return dict(data=None, code=404, message="订单不存在")
 
@@ -260,9 +260,9 @@ class ShopOrderService(CRUDService[ShopOrder]):
         self._repo.update(order_id, order)
         return dict(data=order, code=200)
 
-    def update_refund_status(self, order_id: int, refund_status: str) -> Dict[str, Any]:
+    def update_refund_status(self, order_no: str, refund_status: str) -> Dict[str, Any]:
         """更新退款状态"""
-        order = self._repo.update_refund_status(order_id, refund_status)
+        order = self._repo.update_order_status(order_no, refund_status)
         if not order:
             return dict(data=None, code=404, message="订单不存在")
 

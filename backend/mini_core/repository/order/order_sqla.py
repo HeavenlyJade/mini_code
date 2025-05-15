@@ -146,9 +146,9 @@ class ShopOrderSQLARepository(SQLARepository):
         """通过订单编号获取订单"""
         return self.find(order_no=order_no)
 
-    def update_order_status(self, order_id: int, status: str) -> ShopOrder:
+    def update_order_status(self, order_no: str, status: str) -> ShopOrder:
         """更新订单状态"""
-        order = self.get_by_id(order_id)
+        order = self.find(order_no=order_no)
         if order:
             order.status = status
             self.session.commit()
@@ -173,14 +173,6 @@ class ShopOrderSQLARepository(SQLARepository):
                 order.ship_time = dt.datetime.now()
             elif delivery_status == '已签收':
                 order.confirm_time = dt.datetime.now()
-            self.session.commit()
-        return order
-
-    def update_refund_status(self, order_id: int, refund_status: str) -> ShopOrder:
-        """更新退款状态"""
-        order = self.get_by_id(order_id)
-        if order:
-            order.refund_status = refund_status
             self.session.commit()
         return order
 

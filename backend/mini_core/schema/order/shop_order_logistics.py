@@ -46,8 +46,8 @@ class AddressInfoSchema(Schema):
 
 # 物流轨迹项 Schema
 class LogisticsTrackItemSchema(Schema):
-    time = webargs_fields.DateTime(required=True, description='时间')
-    status = webargs_fields.Str(required=True, description='状态')
+    time = webargs_fields.Str( description='时间')  # Change from DateTime to Str
+    status = webargs_fields.Str(description='状态')
     location = webargs_fields.Str(description='位置')
     remark = webargs_fields.Str(description='备注')
 
@@ -152,7 +152,7 @@ class LogisticsDetailSchema(Schema):
     update_time = webargs_fields.DateTime(description='更新时间')
 
 
-class LogisticsDetailResponseSchema(EntityIntSchema):
+class LogisticsDetailResponseSchema(Schema):
     data = webargs_fields.Nested(LogisticsDetailSchema())
     code = webargs_fields.Int(description='状态码')
     message = webargs_fields.Str(description='消息')
@@ -170,3 +170,7 @@ class LogisticsStatsResponseSchema(Schema):
     delivered = webargs_fields.Int(description='已送达数量')
     status_stats = webargs_fields.List(webargs_fields.Nested(LogisticsStatusCountSchema), description='状态统计')
     code = webargs_fields.Int(description='状态码')
+
+
+class LogisticsQuerySchema(Schema):
+    order_no =  webargs_fields.Str(description='订单号')

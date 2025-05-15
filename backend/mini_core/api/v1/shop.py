@@ -33,7 +33,6 @@ class ProductCategoryAPI(MethodView):
 @blp.route('/product-category')
 class ProductCategoryAPI(MethodView):
     """商品分类API"""
-    decorators = [auth_required()]
 
     @blp.arguments(ProductCategoryQueryArgSchema, location='query')
     @blp.response(ReProductCategoryListSchema)
@@ -41,6 +40,7 @@ class ProductCategoryAPI(MethodView):
         """查询商品分类列表"""
         return shop_product_category_service.get_list(args)
 
+    @auth_required()
     @blp.arguments(ProductCategorySchema)
     @blp.response(ReProductCategorySchema)
     def post(self, category):
@@ -111,6 +111,7 @@ class ShopProductAPI(MethodView):
         """查询商品列表"""
         return shop_product_service.get_list(args)
 
+    @auth_required()
     @blp.arguments(ShopProductSchema)
     @blp.response(ReShopProductSchema)
     def post(self, product):

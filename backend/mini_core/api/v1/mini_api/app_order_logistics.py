@@ -1,13 +1,12 @@
 from flask.views import MethodView
 
 from backend.mini_core.schema.order.shop_order_logistics import (
-    ShopOrderLogisticsQueryArgSchema, ShopOrderLogisticsResponseSchema,
-    ShopOrderLogisticsListResponseSchema, ShopOrderLogisticsCreateSchema,
-    ShopOrderLogisticsUpdateSchema, LogisticsStatusUpdateSchema,
-    LogisticsShipSchema, LogisticsDeliveredSchema, LogisticsDetailResponseSchema,
-    LogisticsDateRangeQueryArgSchema, LogisticsStatsResponseSchema
+    LogisticsQuerySchema, LogisticsDetailResponseSchema,
 )
+from backend.mini_core.schema.order.order import ( ReShopOrderSchema,OrderStatusUpdateArgSchema)
 from backend.mini_core.service import shop_order_logistics_service
+from backend.mini_core.service import shop_order_service
+
 from backend.business.service.auth import auth_required
 from kit.util.blueprint import APIBlueprint
 
@@ -25,12 +24,14 @@ class ShopOrderLogisticsDetailAPI(MethodView):
         return shop_order_logistics_service.get_logistics_by_id(logistics_id)
 
 
-@blp.route('/by-order-no/<string:order_no>')
+@blp.route('/by-order-no/')
 class LogisticsByOrderNoAPI(MethodView):
     """通过订单编号查询物流API"""
     decorators = [auth_required()]
 
+    @blp.arguments(LogisticsQuerySchema)
     @blp.response(LogisticsDetailResponseSchema)
-    def get(self, order_no: str):
+    def post(self,args:dict):
         """通过订单编号获取物流信息"""
+        order_no = args['order_no']
         return shop_order_logistics_service.get_logistics_by_order_no(order_no)
