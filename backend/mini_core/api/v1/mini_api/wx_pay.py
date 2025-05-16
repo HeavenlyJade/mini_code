@@ -42,19 +42,6 @@ class WxPayNotify(MethodView):
         # 获取请求体数据
         notify_data = request.data
 
-        # 验证签名，解密数据
-        if not WechatPayService.verify_notify_signature(
-            wechatpay_timestamp,
-            wechatpay_nonce,
-            notify_data,
-            wechatpay_signature,
-            wechatpay_serial
-        ):
-            return jsonify({
-                "code": "FAIL",
-                "message": "签名验证失败"
-            }), 401
-
         # 解析请求体数据
         data = json.loads(notify_data)
 

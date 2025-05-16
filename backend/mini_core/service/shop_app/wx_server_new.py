@@ -2,19 +2,16 @@
 import json
 import logging
 import os
-from random import sample
-from string import ascii_letters, digits
+
 import time
 import uuid
 import base64
-
+from loguru import logger
 from flask import Flask, jsonify, request, current_app
 from flask_jwt_extended import get_current_user
 
 from kit.wechatpayv3 import WeChatPay, WeChatPayType
-from Crypto.PublicKey import RSA
-from Crypto.Signature import PKCS1_v1_5
-from Crypto.Hash import SHA256
+
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 # 配置和初始化应用
@@ -150,6 +147,7 @@ class WechatPayService:
         )
 
         result = json.loads(message)
+        logger.info(f"微信字符的api结构，{result}")
         if code in range(200, 300) and "prepay_id" in result:
             prepay_id = result.get("prepay_id")
 
