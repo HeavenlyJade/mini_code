@@ -309,7 +309,21 @@ class ShopOrderService(CRUDService[ShopOrder]):
 
     def change_order_to_paid(self, order_id: int) -> Dict[str, Any]:
         """将订单从待支付状态变更为已支付状态"""
-        order = self._repo.change_to_paid(order_id)
+        from backend.mini_core.service.shop_app.wx_server_new import WechatPayService
+        order = self.get_by_id(order_id)
+        args_dict = dict(out_trade_no=order.order_no)
+        result = WechatPayService.query_order(args_dict)
+        print(result)
+        if order:
+            if order.payment_status == '待支付':
+                order.payment_status = '已支付'
+                order.status = '待发货'
+                order.payment_time = dt.datetime.now()
+                self.session.commit()
+            else:
+                # 订单状态不是待支付，无法变更
+                return None
+
         if not order:
             return dict(data=None, code=400, message="订单不存在或当前状态不允许变更为已支付")
 

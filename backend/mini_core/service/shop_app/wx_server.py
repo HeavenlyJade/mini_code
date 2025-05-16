@@ -254,39 +254,6 @@ class WechatPayService:
             "pay_sign": pay_sign
         }
 
-    @staticmethod
-    def verify_notify_signature(timestamp: str, nonce: str, body: bytes,
-                               signature: str, serial: str) -> bool:
-        """
-        验证微信支付回调通知的签名
-
-        参数:
-            timestamp: 时间戳
-            nonce: 随机字符串
-            body: 请求体
-            signature: 签名
-            serial: 证书序列号
-
-        返回:
-            签名验证结果
-        """
-        try:
-            # 获取微信平台证书
-            # 实际项目中需要实现证书管理，定期更新证书
-            platform_cert = WechatPayService._get_platform_certificate(serial)
-
-            # 构造验签名串
-            message = f"{timestamp}\n{nonce}\n{body.decode('utf-8')}\n"
-
-            # 使用平台证书验证签名
-            # 实际项目中需要实现完整的验签逻辑
-            # 这里仅为示例
-            verify_result = True  # 替换为实际验签结果
-
-            return verify_result
-        except Exception as e:
-            current_app.logger.error(f"验证签名异常: {str(e)}")
-            return False
 
     @staticmethod
     def decrypt_notify_data(resource: Dict[str, Any]) -> Dict[str, Any]:
@@ -371,22 +338,6 @@ class WechatPayService:
         except Exception as e:
             current_app.logger.error(f"处理支付结果异常: {str(e)}")
             return {"success": False, "error": str(e)}
-
-    @staticmethod
-    def _get_platform_certificate(serial: str) -> Any:
-        """
-        获取微信支付平台证书
-        实际项目中需要实现证书管理
-
-        参数:
-            serial: 证书序列号
-
-        返回:
-            平台证书
-        """
-        # TODO: 实现证书获取和管理逻辑
-        return None
-
 
 
 

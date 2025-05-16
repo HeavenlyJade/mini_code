@@ -364,15 +364,4 @@ class ShopOrderSQLARepository(SQLARepository):
     def change_to_paid(self, order_id: int) -> ShopOrder:
         """将订单从待支付变更为已支付状态"""
         order = self.get_by_id(order_id)
-        if not order:
-            return None
-        if order:
-            if order.payment_status == '待支付':
-                order.payment_status = '已支付'
-                order.status = '待发货'
-                order.payment_time = dt.datetime.now()
-                self.session.commit()
-            else:
-                # 订单状态不是待支付，无法变更
-                return None
         return order

@@ -116,3 +116,14 @@ class RefundStatusAPI(MethodView):
     def post(self, args):
         """更新退款状态"""
         return shop_order_service.update_refund_status(args["order_no"], args["status"])
+
+
+@blp.route('/shop-order/payment/<int:order_id>')
+class PaymentReceiptAPI(MethodView):
+    """付款确认的api"""
+    decorators = [auth_required()]
+
+    @blp.response(ReShopOrderSchema)
+    def post(self, order_id: int):
+        """确认付款"""
+        return shop_order_service.change_order_to_paid(order_id)
