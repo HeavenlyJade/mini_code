@@ -147,7 +147,7 @@ class WechatPayService:
         )
 
         result = json.loads(message)
-        logger.info(f"微信字符的api结构，{result}")
+        logger.warning(f"微信字符的api结构，{result}")
         if code in range(200, 300) and "prepay_id" in result:
             prepay_id = result.get("prepay_id")
 

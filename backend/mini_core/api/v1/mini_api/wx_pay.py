@@ -21,6 +21,7 @@ class WxShopPay(MethodView):
         """创建微信支付订单"""
         # 调用支付服务创建订单
         result = WechatPayService.create_jsapi_order(args)
+        print("result",result)
         return result
 
 @blp.route('/wx_pay_notify', methods=['POST'])
