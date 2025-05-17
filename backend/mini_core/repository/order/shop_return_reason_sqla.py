@@ -33,7 +33,7 @@ class ShopReturnReasonSQLARepository(SQLARepository):
         return ShopReturnReason
 
     @property
-    def in_query_params(self) -> Tuple:
+    def query_params(self) -> Tuple:
         return 'is_enabled',
 
     @property
