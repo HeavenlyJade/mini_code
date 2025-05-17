@@ -22,7 +22,6 @@ class ShopOrderService(CRUDService[ShopOrder]):
 
     def get_order_detail_msg(self, args: dict):
         from flask_jwt_extended import get_jwt_identity
-
         user_id = get_jwt_identity()
         return self._repo.get_order_msg(user_id=user_id, args=args)
 
@@ -208,7 +207,6 @@ class ShopOrderService(CRUDService[ShopOrder]):
         order = self._repo.update_order_status(order_no, status)
         if not order:
             return dict(data=None, code=404, message="订单不存在")
-
         return dict(data=order, code=200)
 
     def update_payment_status(self, order_id: int, payment_status: str, payment_no: str = None, trade_no: str = None) -> \

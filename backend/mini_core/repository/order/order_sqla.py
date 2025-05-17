@@ -309,8 +309,11 @@ class ShopOrderSQLARepository(SQLARepository):
             filter_conditions.append(self.model.order_no == order_no)
         if user_id:
             filter_conditions.append(self.model.user_id == user_id)
-        if status:
+        if isinstance(status,str):
             filter_conditions.append(self.model.status == status)
+        elif isinstance(status,list):
+            filter_conditions.append(self.model.status.in_(status))
+
         if not filter_conditions:
             return {"code": 400, "message": "必须提供至少一个查询条件"}
         filter_expr = and_(*filter_conditions)
@@ -333,7 +336,6 @@ class ShopOrderSQLARepository(SQLARepository):
         order_nos = [order.order_no for order in paginated_orders]
 
         # 使用连表查询获取订单和订单详情
-
         results = self.session.query(OrderDetail).filter(OrderDetail.order_no.in_(order_nos)).all()
         order_details={}
         for result in results:
@@ -351,7 +353,6 @@ class ShopOrderSQLARepository(SQLARepository):
                 "order_details": order_details_list,
             }
             result_data.append(order_data)
-
         return {
             "data": result_data,
             "code": 200,

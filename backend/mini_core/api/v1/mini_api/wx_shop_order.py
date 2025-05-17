@@ -11,10 +11,10 @@ from backend.business.service.auth import auth_required
 from backend.mini_core.service import shop_order_service
 from kit.util.blueprint import APIBlueprint
 
-blp = APIBlueprint('wx_shop_order', 'wx_shop_order', url_prefix='/')
+blp = APIBlueprint('wx_shop_order', 'wx_shop_order', url_prefix='/shop-order')
 
 
-@blp.route('/shop-order')
+@blp.route('/')
 class ShopOrderAPI(MethodView):
     """订单API"""
     decorators = [auth_required()]
@@ -32,7 +32,37 @@ class ShopOrderAPI(MethodView):
         return shop_order_service.create_order(order_data)
 
 
-@blp.route('/shop-order/<int:order_id>')
+@blp.route('/status')
+class OrderStatusAPI(MethodView):
+    """订单状态API"""
+    decorators = [auth_required()]
+
+    @blp.arguments(OrderStatusUpdateArgSchema)
+    @blp.response(ReShopOrderSchema)
+    def post(self, args):
+        """更新订单状态"""
+        return shop_order_service.update_order_status(args["order_no"], args["status"])
+
+
+@blp.route('/order_status_data')
+class ShopOrderListAPI(MethodView):
+    decorators = [auth_required()]
+
+    @blp.arguments(WXShopOrderQueryArgSchema)
+    @blp.response()
+    def post(self, order_data):
+        """ 订单退货"""
+        status = order_data["status"]
+        order_data["status"] = status.split(",")
+        return shop_order_service.get_order_detail_msg(order_data)
+
+    @blp.arguments(WXShopOrderQueryArgSchema)
+    @blp.response()
+    def put(self, order_data):
+        return shop_order_service.update_refund_status(order_data)
+
+
+@blp.route('/<int:order_id>')
 class ShopOrderDetailAPI(MethodView):
     """订单详情API"""
     decorators = [auth_required()]
@@ -42,19 +72,8 @@ class ShopOrderDetailAPI(MethodView):
         """获取指定ID的订单"""
         return shop_order_service.get_order_by_id(order_id)
 
-    @blp.arguments(ShopOrderQueryArgSchema)
-    @blp.response(ReShopOrderSchema)
-    def put(self, order_data, order_id: int):
-        """更新指定ID的订单"""
-        return shop_order_service.update(order_id, order_data)
 
-    @blp.response(ReShopOrderSchema)
-    def delete(self, order_id: int):
-        """删除指定ID的订单"""
-        return shop_order_service.delete(order_id)
-
-
-@blp.route('/shop-order/by-order-no/<string:order_no>')
+@blp.route('/by-order-no/<string:order_no>')
 class ShopOrderByOrderNoAPI(MethodView):
     """通过订单编号查询订单API"""
     decorators = [auth_required()]
@@ -65,7 +84,7 @@ class ShopOrderByOrderNoAPI(MethodView):
         return shop_order_service.get_order_by_order_no(order_no)
 
 
-@blp.route('/shop-order/by-order-sn/<string:order_sn>')
+@blp.route('/by-order-sn/<string:order_sn>')
 class ShopOrderByOrderSnAPI(MethodView):
     """通过订单号查询订单API"""
     decorators = [auth_required()]
@@ -76,7 +95,7 @@ class ShopOrderByOrderSnAPI(MethodView):
         return shop_order_service.get_order_by_order_sn(order_sn)
 
 
-@blp.route('/shop-order/user/<int:user_id>')
+@blp.route('/user/<int:user_id>')
 class UserOrdersAPI(MethodView):
     """用户订单API"""
     decorators = [auth_required()]
@@ -86,39 +105,20 @@ class UserOrdersAPI(MethodView):
         """获取用户的所有订单"""
         return shop_order_service.get_user_orders(user_id)
 
-@blp.route('/shop-order/cancel/')
+
+@blp.route('/cancel/')
 class CancelOrderAPI(MethodView):
     """取消订单API"""
     decorators = [auth_required()]
+
     @blp.arguments(OrderStatusUpdateArgSchema)
     @blp.response(ReShopOrderSchema)
     def post(self, args: dict):
         """取消订单"""
         return shop_order_service.cancel_order(args)
 
-@blp.route('/shop-order/status')
-class OrderStatusAPI(MethodView):
-    """订单状态API"""
-    decorators = [auth_required()]
 
-    @blp.arguments(OrderStatusUpdateArgSchema)
-    @blp.response(ReShopOrderSchema)
-    def post(self, args):
-        """更新订单状态"""
-        return shop_order_service.update_order_status(args["order_no"], args["status"])
-@blp.route('/shop-order/refund-status')
-class RefundStatusAPI(MethodView):
-    """退款状态API"""
-    decorators = [auth_required()]
-
-    @blp.arguments(OrderStatusUpdateArgSchema)
-    @blp.response(ReShopOrderSchema)
-    def post(self, args):
-        """更新退款状态"""
-        return shop_order_service.update_refund_status(args["order_no"], args["status"])
-
-
-@blp.route('/shop-order/payment/<int:order_id>')
+@blp.route('/payment/<int:order_id>')
 class PaymentReceiptAPI(MethodView):
     """付款确认的api"""
     decorators = [auth_required()]

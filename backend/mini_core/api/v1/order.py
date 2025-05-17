@@ -26,12 +26,6 @@ class ShopOrderAPI(MethodView):
         """查询订单列表"""
         return shop_order_service.get_order_list(args)
 
-    # @blp.arguments(OrderCreateSchema)
-    # @blp.response(ReShopOrderSchema)
-    # def post(self, order_data):
-    #     """创建订单"""
-    #     return shop_order_service.create_order(order_data)
-
 
 @blp.route('/shop-order/<int:order_id>')
 class ShopOrderDetailAPI(MethodView):

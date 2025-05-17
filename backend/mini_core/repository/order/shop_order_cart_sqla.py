@@ -93,8 +93,11 @@ class ShopOrderCartSQLARepository(SQLARepository):
                     pass
 
             # 计算小计金额
-            if 'price' in row_dict and 'product_count' in row_dict:
-                row_dict['subtotal'] = float(row_dict['price']) * row_dict['product_count']
+            price  =row_dict.get('price')
+            product_count = row_dict.get('product_count')
+
+            if price and product_count:
+                row_dict['subtotal'] = float(price) * product_count
 
             cart_items.append(row_dict)
 

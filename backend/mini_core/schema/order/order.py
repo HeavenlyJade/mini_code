@@ -136,6 +136,7 @@ class ReShopOrderSchema(Schema):
     data = webargs_fields.Nested(ShopOrderSchema())
     code = webargs_fields.Int(description='状态码')
     message = webargs_fields.Str(description='错误信息')
+    total = webargs_fields.Int(description='数量')
 
 
 class ReShopOrderListSchema(ListResultSchema):
@@ -179,7 +180,7 @@ class MiniOrderCreateSchema(Schema):
 class WXShopOrderQueryArgSchema(ListQueryArgSchema):
     user_id = webargs_fields.Int(description='用户ID')
     status = webargs_fields.Str(description='订单状态')
-
+    refund_reason = webargs_fields.Str(description='退款理由')
 
 # 物流信息更新参数 Schema
 class ShippingInfoUpdateArgSchema(Schema):

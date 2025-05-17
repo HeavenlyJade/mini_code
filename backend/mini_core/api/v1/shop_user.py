@@ -7,10 +7,6 @@ from backend.extensions import jwt
 from backend.mini_core.domain.t_user import ShopUser
 from backend.mini_core.message.shop_user import ShopAuthMessage
 from backend.mini_core.schema.shop_user import (
-    ShopLoginSchema,
-    ShopWechatLoginSchema,
-    RefreshTokenSchema,
-    ShopTokenSchema,
     ShopUserCreateSchema,
     ShopUserListSchema,
     ShopUserPatchSchema,
