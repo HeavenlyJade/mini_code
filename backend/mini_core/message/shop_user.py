@@ -19,6 +19,9 @@ class ReturnStatusMapping:
         3: '退款中',
         4: '已完成'
     }
+    STATUS_DATA_TO_TEXT ={
+        0: "退款/退货申请中",
+    }
 
     # 状态文本与状态代码的映射
     STATUS_TEXT_TO_CODE = {
@@ -50,6 +53,9 @@ class ReturnStatusMapping:
             对应的状态文本
         """
         return cls.STATUS_CODE_TO_TEXT.get(status_code, '未知状态')
+    @classmethod
+    def get_status_data_text(cls, status_code):
+        return cls.STATUS_DATA_TO_TEXT.get(status_code)
 
     @classmethod
     def get_operation_type(cls, status):

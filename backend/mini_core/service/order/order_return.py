@@ -114,14 +114,8 @@ class OrderReturnService(CRUDService[OrderReturn]):
             包含创建结果的字典
         """
         from backend.mini_core.service import shop_order_service
-        current_user = get_current_user()
-        username = current_user.username
-
-
         order_no = application.get('order_no')
-
         return_reason = application.get('reason', '客户申请退货')
-
         return_detail = application.get('return_detail', [])
 
         # 从订单表获取订单信息
@@ -209,32 +203,38 @@ class OrderReturnService(CRUDService[OrderReturn]):
         # 设置退款总金额和数量
         return_data['return_amount'] = total_amount
         return_data['return_quantity'] = total_quantity
-        re_data = self._repo.create_return_transaction(return_data, detail_items, order_no,current_user)
+        re_data = self._repo.create_return_transaction(return_data, detail_items, order_no,username)
         # 如果事务执行成功，处理日志
         if re_data.get('code') == 200:
             from backend.mini_core.message.shop_user import ReturnStatusMapping
             from backend.mini_core.utils.redis_utils.log_queue import LogQueue
 
             status_text = ReturnStatusMapping.get_status_text(0)  # 获取"待审核"状态的文本描述
+            new_value_status= ReturnStatusMapping.get_status_data_text(0)
             create_log_dict ={
                     'order_no': order_no,
+                    "old_value":dict(status="已付款",),
+                    "new_value":dict(status=new_value_status,),
                     'operation_type': "申请退货",
                     'operation_desc': f"用户申请退货，原因：{return_reason}，退款金额：{total_amount}",
                     'operator': username,
                     'operation_time': now,
-                    'updater': username
+
                 }
             create_log_dic=dict(op_type="order",data=create_log_dict)
             return_logs_dict ={
-                    'return_id': re_data.get('return_id'),
                     'return_no': return_no,
                     'operation_type': '申请退货',
-                    'operation_desc': f'用户申请退货退款，原因：{return_reason}，退款金额：{total_amount}',
+                    'operation_desc': f'用户:{username},订单号:{return_no},申请退货退款，原因：{return_reason}，退款金额：{total_amount}',
                     'operator': username,
                     'operation_time': now,
                     'new_status': status_text,
-                    'updater': username
+                    # "updater":username,
                 }
+            from backend.mini_core.utils.base import get_client_ip
+            client_ip = get_client_ip()
+            if client_ip:
+                return_logs_dict['operation_ip'] = client_ip
             return_logs_dic = dict(op_type="return_order",data=return_logs_dict)
             LogQueue.push_log_dict(create_log_dic)
             LogQueue.push_log_dict(return_logs_dic)
@@ -382,13 +382,9 @@ class OrderReturnLogService(CRUDService[OrderReturnLog]):
 
         # 设置操作IP
         if 'operation_ip' not in log_data or not log_data['operation_ip']:
-            if request:
-                if request.headers.get('X-Forwarded-For'):
-                    log_data['operation_ip'] = request.headers.get('X-Forwarded-For').split(',')[0].strip()
-                elif request.headers.get('X-Real-IP'):
-                    log_data['operation_ip'] = request.headers.get('X-Real-IP')
-                else:
-                    log_data['operation_ip'] = request.remote_addr or ""
-        log_data["updater"]=log_data.get("operator")
+            from backend.mini_core.utils.base import get_client_ip
+            client_ip = get_client_ip()
+            if client_ip:
+                log_data['client_ip'] = client_ip
         log = OrderReturnLog(**log_data)
         return self.create(log)

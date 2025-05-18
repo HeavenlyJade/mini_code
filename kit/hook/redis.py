@@ -105,7 +105,7 @@ class RedisHook(BaseHook):
         self.client.setex(key_name, exp_time, value)
 
     def push_data(self, queue_name: str, msg: dict):
-        from backend.rtr.utils import datetime_handler
+        from backend.mini_core.utils.base import datetime_handler
         return self.client.lpush(queue_name, json.dumps(msg, default=datetime_handler))
 
     def pop_data(self, queue_name):

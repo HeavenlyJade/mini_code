@@ -12,4 +12,5 @@ task_serializer = 'json'
 result_serializer = 'json'
 timezone = 'Asia/Shanghai'
 enable_utc = False
-imports = ('task.log',)
+imports = ('task.log', 'task.order_log.user_log_processor')
+worker_ready_handlers = ['task.order_log.user_log_processor.start_consumer']

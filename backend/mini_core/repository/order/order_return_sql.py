@@ -70,7 +70,6 @@ order_return_log_table = Table(
     'shop_order_return_log',
     mapper_registry.metadata,
     id_column(),
-    Column('return_id', BigInteger, nullable=False, comment='退货单ID'),
     Column('return_no', String(64), nullable=False, comment='退货单号'),
     Column('operation_type', String(32), nullable=False, comment='操作类型'),
     Column('operation_desc', String(255), nullable=False, comment='操作描述'),
@@ -213,10 +212,9 @@ class OrderReturnSQLARepository(SQLARepository):
         from backend.mini_core.domain.order.order import ShopOrder
         from backend.mini_core.domain.order.order_detail import OrderDetail
         from sqlalchemy.exc import SQLAlchemyError
-
+        from dataclasses import asdict
         # 获取当前时间
         now = dt.datetime.now()
-
         try:
             # 1. 创建退货单
             return_obj = OrderReturn(**return_data)
@@ -229,10 +227,11 @@ class OrderReturnSQLARepository(SQLARepository):
             # 2. 创建退货商品明细
             detail_objects = []
             for item in detail_items:
-                item['return_id'] = return_id
-                detail_obj = OrderReturnDetail(**item)
+                item_copy = item.copy()  # 创建副本，避免修改原始数据
+                item_copy['return_no'] = return_no  # 设置退货单号
+                detail_obj = OrderReturnDetail(**item_copy)
                 self.session.add(detail_obj)
-                detail_objects.append(detail_obj)
+                detail_objects.append(asdict(detail_obj))
 
             # 3. 更新订单状态
             order = self.session.query(ShopOrder).filter(ShopOrder.order_no == order_no).first()
@@ -259,12 +258,11 @@ class OrderReturnSQLARepository(SQLARepository):
 
             # 返回成功结果和创建的退货单对象，以便外部处理日志
             return dict(
-                data=return_obj,
+                order=asdict(order),
                 code=200,
                 message="退货申请提交成功，等待商家审核",
                 return_id=return_id,
                 return_no=return_no,
-                detail_objects=detail_objects
             )
 
         except SQLAlchemyError as e:

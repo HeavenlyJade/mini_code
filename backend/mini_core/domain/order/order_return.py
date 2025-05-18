@@ -242,12 +242,6 @@ class OrderReturnLog(Entity):
 
     用于记录退货单的流程变更记录，包括操作类型、描述、操作人、时间等
     """
-    return_id: int = field(
-        default=None,
-        metadata=dict(
-            description='退货单ID',
-        ),
-    )
     return_no: str = field(
         default=None,
         metadata=dict(

@@ -35,6 +35,7 @@ class LogQueue:
         try:
             # 使用Redis客户端的push_data方法将日志推送到队列
             redis.push_data(cls.LOG_QUEUE_KEY, prepared_data)
+            print("推送日志成功")
             return True
         except Exception as e:
             print(f"推送日志到队列失败: {str(e)}")
