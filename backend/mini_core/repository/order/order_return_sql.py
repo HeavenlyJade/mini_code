@@ -254,7 +254,7 @@ class OrderReturnSQLARepository(SQLARepository):
                     detail.refund_time = now
 
             # 提交事务
-            self.session.commit()
+            # self.session.commit()
 
             # 返回成功结果和创建的退货单对象，以便外部处理日志
             return dict(
