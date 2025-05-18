@@ -5,6 +5,7 @@ from typing import Dict, Any, List, Optional
 from flask import request, g
 from flask_jwt_extended import get_current_user
 from decimal import Decimal
+from flask_jwt_extended import current_user
 
 from kit.domain.entity import Entity
 from kit.service.base import CRUDService
@@ -101,25 +102,27 @@ class OrderReturnService(CRUDService[OrderReturn]):
         data = self._repo.get_monthly_stats()
         return dict(data=data, code=200)
 
-    def create_return(self, return_data: Dict[str, Any], detail_items: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def create_return(self, application) -> Dict[str, Any]:
         """
         创建退货单及其商品明细
-
         从订单表和订单详情表获取数据，处理客户的退货/退款申请
 
         参数:
-            return_data: 退货基础数据
-            detail_items: 退货商品明细列表
+            application: 退货申请信息，包含订单号、退货原因和要退货的商品列表
 
         返回:
             包含创建结果的字典
         """
         from backend.mini_core.service import shop_order_service
+        current_user = get_current_user()
+        username = current_user.username
 
-        # 获取订单信息
-        order_no = return_data.get('order_no')
-        if not order_no:
-            return dict(code=400, message="订单号不能为空")
+
+        order_no = application.get('order_no')
+
+        return_reason = application.get('reason', '客户申请退货')
+
+        return_detail = application.get('return_detail', [])
 
         # 从订单表获取订单信息
         order_result = shop_order_service.get_order_by_order_no(order_no)
@@ -134,112 +137,110 @@ class OrderReturnService(CRUDService[OrderReturn]):
 
         # 获取订单详情信息
         order_details = self.order_detail_service.get_order_details(order_no)
-        if not order_details or not order_details.get('data'):
+        if not order_details or not order_details.get('order_details'):
             return dict(code=404, message="订单商品信息不存在")
 
         # 生成退货单号
         now = dt.datetime.now()
         return_no = f"RT{now.strftime('%Y%m%d%H%M%S')}{str(uuid.uuid4().int)[:6]}"
 
-        # 设置基础信息
-        return_data['return_no'] = return_no
-        return_data['status'] = 0  # 设置为待审核状态
-        return_data['apply_time'] = now
-        return_data['user_id'] = order.user_id  # 从订单中获取用户ID
+        # 获取当前用户
+        current_user = get_current_user()
+        username = current_user.username if hasattr(current_user, 'username') else 'customer'
 
-        # 确保退货类型存在
-        if 'return_type' not in return_data:
-            return_data['return_type'] = '退货退款'  # 默认为退货退款
+        # 将订单详情转换为可查询的字典
+        order_detail_dict = {}
+        for detail in order_details.get('order_details', []):
+            order_detail_dict[detail['order_item_id']] = detail
+
+        # 准备退货单数据
+        return_data = {
+            'return_no': return_no,
+            'order_no': order_no,
+            'user_id': order.user_id,
+            'return_type': '退货退款',  # 默认为退货退款
+            'return_reason': return_reason,
+            'status': 0,  # 设置为待审核状态
+            'apply_time': now,
+            'updater': username,
+            'process_username': username
+        }
 
         # 计算退款总金额和总数量
         total_amount = Decimal('0')
         total_quantity = 0
 
-        # 验证退货商品是否属于订单
-        order_detail_dict = {detail.order_item_id: detail for detail in order_details.get('data', [])}
+        # 准备退货商品详情
+        detail_items = []
+        for item in return_detail:
+            order_item_id = item.get('order_item_id')
+            if not order_item_id or order_item_id not in order_detail_dict:
+                return dict(code=400, message=f"商品明细ID不存在于订单中: {order_item_id}")
 
-        for item in detail_items:
-            order_detail_id = item.get('order_detail_id')
-            if not order_detail_id or order_detail_id not in order_detail_dict:
-                return dict(code=400, message=f"商品明细ID不存在于订单中: {order_detail_id}")
+            order_detail = order_detail_dict[order_item_id]
 
-            detail = order_detail_dict[order_detail_id]
-
-            # 验证退货数量不超过购买数量
-            if item.get('quantity', 0) > detail.num:
-                return dict(code=400, message=f"退货数量不能超过购买数量: {detail.product_name}")
-
-            # 使用订单中的价格信息
-            item['price'] = detail.actual_price
-            item['product_name'] = detail.product_name
-            item['product_img'] = detail.product_img
-            item['product_spec'] = detail.product_spec
-            item['sku_id'] = detail.sku_id
-            item['product_id'] = detail.product_id
+            # 默认退货数量等于原订单购买数量
+            quantity = order_detail.get('num', 1)
 
             # 计算小计金额
-            item_price = Decimal(str(detail.actual_price))
-            item_quantity = int(item['quantity'])
-            item_subtotal = item_price * item_quantity
+            item_price = Decimal(str(order_detail.get('actual_price', 0)))
+            item_subtotal = item_price * quantity
 
-            item['subtotal'] = item_subtotal
-            item['return_no'] = return_no
-            item['order_no'] = order_no
+            # 构建退货明细数据
+            detail_item = {
+                'return_no': return_no,
+                'order_item_id': order_item_id,
+                'order_no': order_no,
+                'product_id': order_detail.get('product_id'),
+                'sku_id': order_detail.get('sku_id'),
+                'product_name': order_detail.get('product_name'),
+                'product_img': order_detail.get('product_img'),
+                'product_spec': order_detail.get('product_spec'),
+                'price': item_price,
+                'quantity': quantity,
+                'subtotal': item_subtotal,
+                'reason': return_reason
+            }
 
+            detail_items.append(detail_item)
             total_amount += item_subtotal
-            total_quantity += item_quantity
+            total_quantity += quantity
 
         # 设置退款总金额和数量
         return_data['return_amount'] = total_amount
         return_data['return_quantity'] = total_quantity
+        re_data = self._repo.create_return_transaction(return_data, detail_items, order_no,current_user)
+        # 如果事务执行成功，处理日志
+        if re_data.get('code') == 200:
+            from backend.mini_core.message.shop_user import ReturnStatusMapping
+            from backend.mini_core.utils.redis_utils.log_queue import LogQueue
 
-        # 创建退货单
-        current_user = get_current_user()
-        if hasattr(current_user, 'username'):
-            return_data['updater'] = current_user.username
-            return_data['process_username'] = current_user.username
+            status_text = ReturnStatusMapping.get_status_text(0)  # 获取"待审核"状态的文本描述
+            create_log_dict ={
+                    'order_no': order_no,
+                    'operation_type': "申请退货",
+                    'operation_desc': f"用户申请退货，原因：{return_reason}，退款金额：{total_amount}",
+                    'operator': username,
+                    'operation_time': now,
+                    'updater': username
+                }
+            create_log_dic=dict(op_type="order",data=create_log_dict)
+            return_logs_dict ={
+                    'return_id': re_data.get('return_id'),
+                    'return_no': return_no,
+                    'operation_type': '申请退货',
+                    'operation_desc': f'用户申请退货退款，原因：{return_reason}，退款金额：{total_amount}',
+                    'operator': username,
+                    'operation_time': now,
+                    'new_status': status_text,
+                    'updater': username
+                }
+            return_logs_dic = dict(op_type="return_order",data=return_logs_dict)
+            LogQueue.push_log_dict(create_log_dic)
+            LogQueue.push_log_dict(return_logs_dic)
+        return re_data
 
-        return_obj = OrderReturn(**return_data)
-        result = self.create(return_obj)
 
-        # 创建退货商品明细
-        detail_objects = []
-        for item in detail_items:
-            item['return_id'] = result.id
-            detail_objects.append(OrderReturnDetail(**item))
-
-        self._detail_service.create_details(detail_objects)
-
-        # 记录操作日志
-        from backend.mini_core.message.shop_user import ReturnStatusMapping
-        status_text = ReturnStatusMapping.get_status_text(0)  # 获取"待审核"状态的文本描述
-
-        self._log_service.create_log({
-            'return_id': result.id,
-            'return_no': return_no,
-            'operation_type': '申请退货',
-            'operation_desc': f'用户申请{return_data["return_type"]}，退款金额：{total_amount}',
-            'operator': current_user.username if hasattr(current_user, 'username') else 'system',
-            'operation_time': now,
-            'old_status': None,
-            'new_status': status_text
-        })
-
-        # 更新订单相关商品的退款状态
-        try:
-            for item in detail_items:
-                order_detail_id = item.get('order_detail_id')
-                if order_detail_id and order_detail_id in order_detail_dict:
-                    # 设置商品为退款中状态
-                    detail = order_detail_dict[order_detail_id]
-                    detail.refund_status = 1  # 设置为退款中状态
-                    detail.refund_time = now
-                    self.order_detail_service.update_detail(detail.id, asdict(detail))
-        except Exception as e:
-            # 记录错误但不中断退货单创建流程
-            print(f"更新订单商品退款状态失败: {str(e)}")
-
-        return dict(data=result, code=200, message="退货申请提交成功，等待商家审核")
     def update_return_status(self, order_no: str, status: str, **kwargs) -> Dict[str, Any]:
         from backend.mini_core.message.shop_user import ReturnStatusMapping
         from backend.mini_core.service import  order_return_log_service

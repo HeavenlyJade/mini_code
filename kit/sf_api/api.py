@@ -2,9 +2,9 @@
 # @Time    : 2019-08-21
 # @Author  : Kevin Kong (kfx2007@163.com)
 
-from sf.comm import Comm
-from sf.order import Order
-from sf.order import Sheet
+from .comm import Comm
+from .order import Order
+from .order import Sheet
 import os
 import csv
 

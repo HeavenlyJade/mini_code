@@ -55,43 +55,24 @@ class OrderReturnLogQueryArgSchema(ListQueryArgSchema):
 # 创建退货单参数 Schema
 class CreateReturnSchema(Schema):
     order_no = webargs_fields.Str(required=True, description='关联订单编号')
-    user_id = webargs_fields.Int(required=True, description='用户ID')
-    return_type = webargs_fields.Str(required=True, description='退货类型(退货退款/仅退款)')
-    return_reason_id = webargs_fields.Int(description='退货原因ID')
-    return_reason = webargs_fields.Str(required=True, description='退货原因描述')
-    description = webargs_fields.Str(description='问题描述')
-    images = webargs_fields.Str(description='图片凭证(JSON格式)')
-    refund_way = webargs_fields.Str(description='退款方式')
-    refund_account = webargs_fields.Str(description='退款账号')
+    id = webargs_fields.Int(required=True, description='订单ID')
+    order_item_id = webargs_fields.Str(required=True, description='订单详情下的子分类id')
 
 
-# 创建退货商品明细参数 Schema
-class CreateReturnDetailSchema(Schema):
-    order_detail_id = webargs_fields.Int(required=True, description='订单详情ID')
-    product_id = webargs_fields.Int(required=True, description='商品ID')
-    sku_id = webargs_fields.Str(description='SKU ID')
-    product_name = webargs_fields.Str(required=True, description='商品名称')
-    product_img = webargs_fields.Str(description='商品图片')
-    product_spec = webargs_fields.Str(description='商品规格')
-    price = webargs_fields.Decimal(required=True, description='商品单价')
-    quantity = webargs_fields.Int(required=True, description='退货数量')
-    reason = webargs_fields.Str(description='该商品退货原因')
-
-
-# 完整的退货申请参数 Schema
 class ReturnApplicationSchema(Schema):
-    return_info = webargs_fields.Nested(CreateReturnSchema)
-    return_items = webargs_fields.List(webargs_fields.Nested(CreateReturnDetailSchema), required=True)
+    order_no = webargs_fields.Str(allow_none=True, description='订单号')
+    return_detail = webargs_fields.List(webargs_fields.Nested(CreateReturnSchema()), description='退货订单详情')
+    reason = webargs_fields.Str(allow_none=True, description='退货理由')
 
 
-# 审核退货单参数 Schema
 class AuditReturnSchema(Schema):
     status = webargs_fields.Int(required=True, description='退货状态(0待审核/1已同意/2已拒绝/3退款中/4已完成)',
-                               validate=validate.OneOf([0, 1, 2, 3, 4]))
+                                validate=validate.OneOf([0, 1, 2, 3, 4]))
     refuse_reason = webargs_fields.Str(allow_none=True, description='拒绝原因')
     admin_remark = webargs_fields.Str(allow_none=True, description='管理员备注')
     process_user_id = webargs_fields.Int(dump_only=True, description='处理人ID')
     process_username = webargs_fields.Str(dump_only=True, description='处理人用户名')
+
 
 # 更新物流信息参数 Schema
 class UpdateShippingInfoSchema(Schema):

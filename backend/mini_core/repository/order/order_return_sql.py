@@ -193,6 +193,84 @@ class OrderReturnSQLARepository(SQLARepository):
     def query(self):
         return self.session
 
+    def create_return_transaction(self, return_data: dict, detail_items: list, order_no: str, username: str) -> Dict[
+        str, Any]:
+        """
+        创建退货单及所有相关数据的事务操作
+
+        将退货单创建、退货明细创建、订单状态更新等操作包含在一个事务中
+        日志操作将被分离出来，由调用方单独处理
+
+        参数:
+            return_data: 退货单数据
+            detail_items: 退货明细数据列表
+            order_no: 订单编号
+            username: 操作用户名
+
+        返回:
+            Dict: 包含操作结果的字典
+        """
+        from backend.mini_core.domain.order.order import ShopOrder
+        from backend.mini_core.domain.order.order_detail import OrderDetail
+        from sqlalchemy.exc import SQLAlchemyError
+
+        # 获取当前时间
+        now = dt.datetime.now()
+
+        try:
+            # 1. 创建退货单
+            return_obj = OrderReturn(**return_data)
+            self.session.add(return_obj)
+            self.session.flush()  # 获取ID
+
+            return_id = return_obj.id
+            return_no = return_obj.return_no
+
+            # 2. 创建退货商品明细
+            detail_objects = []
+            for item in detail_items:
+                item['return_id'] = return_id
+                detail_obj = OrderReturnDetail(**item)
+                self.session.add(detail_obj)
+                detail_objects.append(detail_obj)
+
+            # 3. 更新订单状态
+            order = self.session.query(ShopOrder).filter(ShopOrder.order_no == order_no).first()
+            if order:
+                order.status = "退款中"
+                order.refund_status = "退货中"
+                order.updater = username
+
+            # 4. 更新订单明细的退款状态
+            for item in detail_items:
+                order_item_id = item.get('order_item_id')
+                # 找到对应的订单明细并更新状态
+                detail = self.session.query(OrderDetail).filter(
+                    OrderDetail.order_no == order_no,
+                    OrderDetail.order_item_id == order_item_id
+                ).first()
+
+                if detail:
+                    detail.refund_status = 1  # 设置为退款中状态
+                    detail.refund_time = now
+
+            # 提交事务
+            self.session.commit()
+
+            # 返回成功结果和创建的退货单对象，以便外部处理日志
+            return dict(
+                data=return_obj,
+                code=200,
+                message="退货申请提交成功，等待商家审核",
+                return_id=return_id,
+                return_no=return_no,
+                detail_objects=detail_objects
+            )
+
+        except SQLAlchemyError as e:
+            # 发生异常时回滚事务
+            self.session.rollback()
+            return dict(code=500, message=f"退货申请提交失败: {str(e)}")
 
 class OrderReturnDetailSQLARepository(SQLARepository):
     @property

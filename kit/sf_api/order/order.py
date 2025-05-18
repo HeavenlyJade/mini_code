@@ -2,7 +2,7 @@
 # @Time    : 2019-08-21
 # @Author  : Kevin Kong (kfx2007@163.com)
 
-from sf.comm import Comm
+from kit.sf_api.comm import Comm
 
 QUERY_URL = "https://www.sf-express.com/we/ow/chn/sc/waybill/waybill-detail/"
 
@@ -183,7 +183,7 @@ class Order(Comm):
 
         return self.post("EXP_RECE_FILTER_ORDER_BSP", data)
 
-    
+
     def query_delivery(self, businessType,destAddress,srcAddress, weight=None,volume=None,consignedTime=None,searchPrice=0):
         """
         时效标准及价格查询接口-速运类API

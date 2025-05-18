@@ -2,8 +2,8 @@
 # @Time    : 2022-12-04
 # @Author  : Kevin Kong (kfx2007@163.com)
 
-from sf.comm import Comm
-from sf.comm import SheetException
+from kit.sf_api.comm import Comm
+from kit.sf_api.comm import SheetException
 import requests
 
 

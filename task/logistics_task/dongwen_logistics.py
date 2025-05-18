@@ -22,7 +22,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger('logistics_tracking')
 
-from sf.api import SF
+from kit.sf_api.api import SF
 
 class LogisticsTrackingTask:
     """物流轨迹更新定时任务"""
