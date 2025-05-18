@@ -262,11 +262,10 @@ class OrderReturnService(CRUDService[OrderReturn]):
         operation_type = ReturnStatusMapping.get_operation_type(status)
         status_text = ReturnStatusMapping.get_status_text(status)  # 返回 '已拒绝'
         old_status_text  = ReturnStatusMapping.get_status_text(old_status)  # 返回 '已拒绝'
-        operation_desc = f'退货单状态从"{old_status}"变更为"{status_text}"'
+        operation_desc = f'退货单状态从"{old_status_text}"变更为"{status_text}"'
         if status_text == '已拒绝' and 'refuse_reason' in kwargs:
             operation_desc += f'，拒绝原因：{kwargs["refuse_reason"]}'
         order_return_log_service.create_log({
-            'return_id': return_obj.id,
             'return_no': return_obj.return_no,
             'operation_type': operation_type,
             'operation_desc': operation_desc,
@@ -379,12 +378,5 @@ class OrderReturnLogService(CRUDService[OrderReturnLog]):
         # 设置操作时间
         if 'operation_time' not in log_data or not log_data['operation_time']:
             log_data['operation_time'] = dt.datetime.now()
-
-        # 设置操作IP
-        if 'operation_ip' not in log_data or not log_data['operation_ip']:
-            from backend.mini_core.utils.base import get_client_ip
-            client_ip = get_client_ip()
-            if client_ip:
-                log_data['client_ip'] = client_ip
         log = OrderReturnLog(**log_data)
         return self.create(log)
