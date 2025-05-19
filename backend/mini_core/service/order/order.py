@@ -314,16 +314,22 @@ class ShopOrderService(CRUDService[ShopOrder]):
         data = result.get("data",{})
         transaction_id = data.get('transaction_id')
         trade_state_desc = data.get('trade_state_desc')
-        if not transaction_id and trade_state_desc!="支付成功":
+        trade_state = data.get('trade_state')
+        trade_type = data.get("trade_type")
+        current_user = get_current_user()
+        current_user_id = current_user.user_id
+        print(current_user)
+        if not transaction_id and trade_state!="SUCCESS":
             return dict(data=None, code=400, message="微信查询的订单不是支付成功，请联系客服")
-        if order:
-            if order.payment_status == '待支付':
-                order.payment_status = '已支付'
-                order.status = '待发货'
-                order.payment_time = dt.datetime.now()
-                self._repo.session.commit()
-            else:
-                return None
+        if order and order.user_id==current_user_id:
+            order_user_id = order.user_id
+            # if order.payment_status == '待支付':
+            order.payment_status = '已支付'
+            order.status = '待发货'
+            order.payment_no= transaction_id
+            order.pay_method =trade_type
+            order.payment_time = dt.datetime.now()
+            self._repo.session.commit()
 
         if not order:
             return dict(data=None, code=400, message="订单不存在或当前状态不允许变更为已支付")
