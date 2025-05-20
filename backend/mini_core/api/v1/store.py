@@ -7,6 +7,7 @@ from backend.mini_core.schema.store.store import (
     WifiSettingsUpdateArgSchema, ReShopStoreStatsSchema, ReNearbyStoreListSchema,KeywordSearchSchema,
 ShopStoreSchema
 )
+from backend.mini_core.schema.banner import BannerIDSchema
 from backend.mini_core.domain.store import ShopStore
 from backend.business.service.auth import auth_required
 from backend.mini_core.service import shop_store_service
@@ -64,6 +65,16 @@ class ShopStoreDetailAPI(MethodView):
     def delete(self, store_id: int):
         """删除指定ID的商店"""
         return shop_store_service.delete_store(store_id)
+
+@blp.route('/shop-store/batch_delete_store')
+class ShopStoreBatchDeleteAPI(MethodView):
+
+    @blp.arguments(BannerIDSchema)
+    @blp.response()
+    def post(self,args:dict):
+        """批量删除"""
+        ids = args.get('ids')
+        return shop_store_service.store_batch_delete(ids)
 
 
 @blp.route('/shop-store/category/<int:category_id>')

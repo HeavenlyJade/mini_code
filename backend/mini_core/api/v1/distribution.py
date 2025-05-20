@@ -1,13 +1,13 @@
 from flask.views import MethodView
+from flask_jwt_extended import get_current_user
 
+from backend.business.service.auth import auth_required
 from backend.mini_core.schema.distribution import (
-    DistributionQueryArgSchema, ReDistributionSchema,ReDistributionSchemaList,
-    DistributionConfigQueryArgSchema, ReDistributionConfigSchema,
-    DistributionGradeQueryArgSchema, ReDistributionGradeSchema,
+    DistributionQueryArgSchema, ReDistributionSchema, DistributionConfigQueryArgSchema, DistributionGradeQueryArgSchema,
+    ReDistributionGradeSchema, DistributionConfigSchema,
     DistributionGradeUpdateQueryArgSchema, DistributionIncomeQueryArgSchema,
-    ReDistributionIncomeSchema, DistributionLogQueryArgSchema,DistributionSchema,
-ReDistributionGradeListSchema,DistributionGradeSchema,DistributionGradeUpdateSchema,
-    Distribution, DistributionConfig, DistributionGrade,DistributionGradSchema,
+    DistributionLogQueryArgSchema, ReDistributionGradeListSchema, DistributionGradeSchema, Distribution,
+    ReDistributionConfigDataSchema,ReDistributionConfigSchema,
     DistributionGradeUpdate, DistributionIncome, DistributionLog
 )
 from backend.mini_core.service import (
@@ -16,8 +16,6 @@ from backend.mini_core.service import (
     distribution_income_service, distribution_log_service
 )
 from kit.util.blueprint import APIBlueprint
-from backend.business.service.auth import auth_required
-from flask_jwt_extended import get_current_user
 
 blp = APIBlueprint('distribution', 'distribution', url_prefix='/')
 
@@ -42,6 +40,7 @@ class DistributionWXView(MethodView):
 
         return dict(data=dict(income=income, income_d_m_a=income_d_m_a, distribution=distribution_data), code=200)
 
+
 @blp.route('/distribution')
 class DistributionAPI(MethodView):
     """分销API"""
@@ -58,6 +57,7 @@ class DistributionAPI(MethodView):
         """新增分销信息"""
         return distribution_service.update(distribution["user_id"], distribution)
 
+
 @blp.route('/distribution-config')
 class DistributionConfigAPI(MethodView):
     """分销配置API"""
@@ -66,13 +66,18 @@ class DistributionConfigAPI(MethodView):
     @blp.response(ReDistributionConfigSchema)
     def get(self, args: dict):
         """查看分销配置"""
-        return distribution_config_service.get(args)
 
-    @blp.arguments(DistributionConfig)
-    @blp.response(ReDistributionConfigSchema)
-    def post(self, config):
+        data, total = distribution_config_service.config_data_list(**args)
+        return dict(total=total, data=data, code=200)
+
+
+@blp.route('/distribution-config/<int:data_id>')
+class DistributionGradePatchAPI(MethodView):
+    @blp.arguments(DistributionConfigSchema)
+    @blp.response(ReDistributionConfigDataSchema)
+    def put(self, config, data_id):
         """更新分销配置"""
-        return distribution_config_service.update(config["key"], config)
+        return distribution_config_service.update(data_id, config)
 
 
 @blp.route('/distribution-grade')
@@ -83,7 +88,7 @@ class DistributionGradeAPI(MethodView):
     @blp.response(ReDistributionGradeListSchema)
     def get(self, args: dict):
         """查看分销等级"""
-        return distribution_grade_service.data_list(args)
+        return distribution_grade_service.grader_data_list(args)
 
     @blp.arguments(DistributionGradeSchema)
     @blp.response(ReDistributionGradeSchema)
@@ -98,15 +103,15 @@ class DistributionGradeAPI(MethodView):
 
     @blp.arguments(DistributionGradeSchema)
     @blp.response(ReDistributionGradeSchema)
-    def put(self, args,data_id):
+    def put(self, args, data_id):
         """修改分销等级"""
-
-        return distribution_grade_service.update(data_id,args)
+        return distribution_grade_service.update(data_id, args)
 
     @blp.response()
     def delete(self, data_id):
         """删除分销等级配置"""
         return distribution_grade_service.delete(data_id)
+
 
 @blp.route('/distribution-grade-update')
 class DistributionGradeUpdateAPI(MethodView):

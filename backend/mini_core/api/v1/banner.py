@@ -9,7 +9,7 @@ from backend.mini_core.schema.banner import (
     BannerQueryArgSchema,
     BannerSchema,
     BannerStatusSchema,
-    BannerUpdateSchema,
+    BannerUpdateSchema,BannerIDSchema
 )
 from backend.mini_core.service import banner_service
 from backend.business.service.auth import auth_required
@@ -59,6 +59,15 @@ class BannerByIDAPI(MethodView):
         return banner_service.delete(banner_id)
 
 
+@blp.route('/batch-delete')
+class BannerBatchDeleteAPI(MethodView):
+
+    @blp.arguments(BannerIDSchema)
+    @blp.response()
+    def post(self,args:dict):
+        """批量删除"""
+        ids = args.get('ids')
+        return banner_service.batch_delete(ids)
 @blp.route('/<int:banner_id>/status')
 class BannerStatusAPI(MethodView):
     decorators = [auth_required()]

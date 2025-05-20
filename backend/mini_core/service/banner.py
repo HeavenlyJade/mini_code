@@ -43,6 +43,8 @@ class BannerService(CRUDService[Banner]):
         _validate_banner(banner)
         return super().create(banner)
 
+    def batch_delete(self,ids: List[int]) -> None:
+        return  self._repo.batch_delete(ids)
     def update(self, banner_id: int, banner: Banner) -> Optional[Banner]:
         """更新Banner"""
         _set_updater(banner)

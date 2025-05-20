@@ -5,8 +5,9 @@ from backend.mini_core.schema.store.store import (
     ShopStoreStatusUpdateArgSchema, NearbyStoreQueryArgSchema, ServiceModeToggleArgSchema,
     BusinessHoursUpdateArgSchema, DeliverySettingsUpdateArgSchema, ContactInfoUpdateArgSchema,
     WifiSettingsUpdateArgSchema, ReShopStoreStatsSchema, ReNearbyStoreListSchema,KeywordSearchSchema,
-ShopStoreSchema
+    ShopStoreSchema
 )
+from backend.mini_core.schema.banner import (BannerIDSchema)
 from backend.mini_core.domain.store import ShopStore
 from backend.business.service.auth import auth_required
 from backend.mini_core.service import shop_store_service

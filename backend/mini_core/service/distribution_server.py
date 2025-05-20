@@ -200,7 +200,7 @@ class DistributionConfigService(CRUDService[DistributionConfig]):
         return self._repo.find(key=key)
 
     def update(self, id: int, config: DistributionConfig) -> Dict[str, Any]:
-        result = super().update(id, config)
+        result = self._repo.update(id, config)
         return dict(data=result, code=200)
 
     def create(self, config: DistributionConfig) -> Dict[str, Any]:

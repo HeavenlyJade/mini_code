@@ -8,6 +8,7 @@ from backend.mini_core.schema.shop import (
     ReShopProductStockUpdateSchema, ReProductCategoryTreeSchema,ProductCategorySchema,ShopProductSchema,
     ProductCategoryBatchDeleteSchema
 )
+from backend.mini_core.schema.banner import (BannerIDSchema)
 from kit.schema.base import  FieldQuerySchema
 from backend.mini_core.domain.shop import ShopProduct, ShopProductCategory
 from backend.business.service.auth import auth_required

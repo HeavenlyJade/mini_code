@@ -65,6 +65,9 @@ class ShopStoreService(CRUDService[ShopStore]):
         """删除商店"""
         result = super().delete(store_id)
         return dict(data=result, code=200)
+    def store_batch_delete(self,ids):
+        self._repo.batch_delete(ids)
+        return dict(data={}, code=200)
 
     def update_status(self, store_id: int, status: str) -> Dict[str, Any]:
         """更新商店状态（正常/停用）"""

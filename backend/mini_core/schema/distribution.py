@@ -121,6 +121,11 @@ class ReDistributionSchema(EntityIntSchema):
 
 
 class ReDistributionConfigSchema(EntityIntSchema):
+    data = fields.List(fields.Nested(DistributionConfigSchema()))
+    # data = fields.Nested(DistributionConfigSchema())
+    code = fields.Int(description='状态')
+
+class ReDistributionConfigDataSchema(EntityIntSchema):
     data = fields.Nested(DistributionConfigSchema())
     code = fields.Int(description='状态')
 

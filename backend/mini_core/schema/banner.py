@@ -64,3 +64,7 @@ class BannerUpdateSchema(BannerSchema):
 
 class BannerStatusSchema(ArgSchema):
     status = fields.Int(required=True, description='状态值(1-显示,0-隐藏)')
+
+class BannerIDSchema(ArgSchema):
+    ids = fields.List(fields.Int(), missing=[])
+
