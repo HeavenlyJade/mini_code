@@ -147,7 +147,7 @@ class DistributionService(CRUDService[Distribution]):
         return dict(data=result, code=200)
 
     def create(self, distribution: Distribution) -> Dict[str, Any]:
-        result = super().create(distribution)
+        result =self._repo.create(distribution)
         return dict(data=result, code=200)
 
     def delete(self, id: int) -> Dict[str, Any]:

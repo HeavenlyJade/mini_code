@@ -208,6 +208,7 @@ class ShopUserService(CRUDService[ShopUser]):
         Returns:
             ShopUser: 返回找到或新创建的用户对象
         """
+        from backend.mini_core.service import  distribution_service
         # 首先尝试通过openid查找用户
         openid = user_data.get('openid')
         if not openid:
@@ -219,24 +220,25 @@ class ShopUserService(CRUDService[ShopUser]):
         if user:
             user.last_login_time = dt.datetime.now()
             self.repo.update(user.id, user)
-            return user
-
-        # 用户不存在，创建新用户
-        new_user = ShopUser(
-            openid=openid,
-            user_id=_generate_user_id(),  # 生成用户ID
-            username=user_data.get('username', f"wx_user_{openid[-8:]}"),  # 生成默认用户名
-            nickname=user_data.get('nickName', '微信用户'),
-            unionid=user_data.get('appid', ''),
-            avatar=user_data.get('avatar', ''),
-            status=1,  # 默认启用状态
-            register_channel='微信小程序',
-            register_time=dt.datetime.now(),
-            mini_program_name=user_data.get('appid', '')  # 存储appid到mini_program_name字段
-        )
-
-        # 创建用户
-        return self.create(new_user)
+        else:
+            new_user = ShopUser(
+                openid=openid,
+                user_id=_generate_user_id(),  # 生成用户ID
+                username=user_data.get('username', f"wx_user_{openid[-8:]}"),  # 生成默认用户名
+                nickname=user_data.get('nickName', '微信用户'),
+                unionid=user_data.get('appid', ''),
+                avatar=user_data.get('avatar', ''),
+                status=1,  # 默认启用状态
+                register_channel='微信小程序',
+                register_time=dt.datetime.now(),
+                mini_program_name=user_data.get('appid', '')  # 存储appid到mini_program_name字段
+            )
+            user = self.create(new_user)
+        dis_user_data = distribution_service.get({"sn": openid}).get("data")
+        if not dis_user_data:
+            create_data = dict(sn=openid, total_amount=0, lv_id=2, user_id=user.user_id)
+            distribution_service.create(create_data)
+        return user
 
     @classmethod
     def _verify_password(cls, pw_hash: str, password: str) -> bool:

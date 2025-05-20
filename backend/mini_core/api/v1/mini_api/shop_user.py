@@ -1,15 +1,14 @@
 from flask import jsonify
 from flask.views import MethodView
-from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from backend.business.service.auth import auth_required
 from backend.extensions import jwt
 from backend.mini_core.domain.t_user import ShopUser
-from backend.mini_core.message.shop_user import ShopAuthMessage
+
 from backend.mini_core.schema.shop_user import (
     ShopUserCreateSchema,
     ShopUserListSchema,
-    ShopUserPatchSchema,
+
     ShopUserQueryArgSchema,
     ShopUserSchema,
     ShopUserStatusSchema,
