@@ -1,17 +1,17 @@
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, Dict, Any
 
-from kit.service.base import CRUDService
+from flask_jwt_extended import get_current_user
+
 from backend.mini_core.domain.distribution import (Distribution, DistributionConfig, DistributionGrade,
                                                    DistributionGradeUpdate, DistributionIncome, DistributionLog)
-
 from backend.mini_core.repository.distribution.distribution_sqla import (DistributionSQLARepository,
                                                                          DistributionConfigSQLARepository,
                                                                          DistributionGradeSQLARepository,
                                                                          DistributionGradeUpdateSQLARepository,
                                                                          DistributionIncomeSQLARepository,
                                                                          DistributionLogSQLARepository)
-from kit.util.datetime import datetime_str_to_ts,convert_timestamps_to_datetime,timestamp_to_datetime
-from anytree import Node, RenderTree
+from kit.service.base import CRUDService
+from kit.util.datetime import datetime_str_to_ts, convert_timestamps_to_datetime, timestamp_to_datetime
 
 __all__ = ['DistributionService', 'DistributionConfigService', 'DistributionGradeService',
            'DistributionGradeUpdateService', 'DistributionIncomeService', 'DistributionLogService']
@@ -31,7 +31,7 @@ class DistributionService(CRUDService[Distribution]):
         ser_args = {key: value for key, value in args.items()
                     if key in ["sn", "user_id"] and value is not None}
         if not ser_args:
-            return dict(data={},code=200)
+            return dict(data={}, code=200)
         data = self._repo.find(**ser_args)
         if data:
             data = convert_timestamps_to_datetime(data)
@@ -138,6 +138,7 @@ class DistributionService(CRUDService[Distribution]):
 
         # 也可以保留原始数据，方便前端处理
         return dict(code=200, data=tree_data)
+
     def get_by_user_id(self, user_id: int) -> Optional[Any]:
         return self._repo.find(user_id=user_id)
 
@@ -162,6 +163,20 @@ class DistributionService(CRUDService[Distribution]):
         result = self._repo.update(distribution)
         return dict(data=result, code=200)
 
+    def get_distribution(self, ):
+        from backend.mini_core.service import distribution_grade_service, distribution_config_service
+        from dataclasses import asdict
+        current_user = get_current_user()
+        current_user_openid = current_user.openid
+        distribution_user_data = self._repo.find(sn=current_user_openid)
+        dis_data = distribution_grade_service.grader_data_list({})
+        grade_data = dis_data.get("data")
+        config_data, _ = distribution_config_service.config_data_list()
+        distribution_user_data = asdict(distribution_user_data)
+        config_data=[dict(content=i.content,title=i.title) for i in config_data ]
+        grade_data = [asdict(i) for  i in grade_data]
+        return dict(config_data=config_data, grade_data=grade_data, distribution_user_data=distribution_user_data)
+
 
 class DistributionConfigService(CRUDService[DistributionConfig]):
     def __init__(self, repo: DistributionConfigSQLARepository):
@@ -171,6 +186,10 @@ class DistributionConfigService(CRUDService[DistributionConfig]):
     @property
     def repo(self) -> DistributionConfigSQLARepository:
         return self._repo
+
+    def config_data_list(self, **kwargs):
+        data = self._repo.list()
+        return data
 
     def get(self, args: dict) -> Dict[str, Any]:
         key = args.get("key")
@@ -208,6 +227,10 @@ class DistributionGradeService(CRUDService[DistributionGrade]):
     def repo(self) -> DistributionGradeSQLARepository:
         return self._repo
 
+    def grader_data_list(self, args: dict):
+        data, total = self._repo.list(**args)
+        return dict(data=data, total=total, code=200)
+
     def get(self, args: dict) -> Dict[str, Any]:
         name = args.get("name")
         data = self._repo.find(name=name)
@@ -233,17 +256,18 @@ class DistributionGradeService(CRUDService[DistributionGrade]):
         return dict(data=result, code=200)
 
     def update(self, id: int, grade: DistributionGrade) -> Dict[str, Any]:
-        result = super().update(id, grade)
+        print("grade", grade)
+        result = self._repo.update(id, grade)
         return dict(data=result, code=200)
 
     def create(self, grade: DistributionGrade) -> Dict[str, Any]:
-        result = super().create(grade)
+        result = self._repo.create(grade)
         return dict(data=result, code=200)
 
     def delete(self, id: int) -> Dict[str, Any]:
         # 先删除关联的条件
-        self._grade_update_repo.delete_by(grade_id=id)
-        result = super().delete(id)
+        # self._grade_update_repo.delete_by(grade_id=id)
+        result = self._repo.delete(id)
         return dict(data=result, code=200)
 
 
@@ -312,14 +336,14 @@ class DistributionIncomeService(CRUDService[DistributionIncome]):
             query_args["user_id"] = user_id
         if order_id:
             query_args["order_id"] = order_id
-        if status is not None and int(status) !=-1 :
+        if status is not None and int(status) != -1:
             query_args["status"] = status
         if end_date and start_date:
             start_date = datetime_str_to_ts(start_date)
             end_date = datetime_str_to_ts(end_date)
-            if status in [0,2]:
+            if status in [0, 2]:
                 query_args["create_time"] = [start_date, end_date]
-            elif start_date ==1:
+            elif start_date == 1:
                 query_args["settlement_time"] = [start_date, end_date]
         data, total = self._repo.list(**query_args)
         from dataclasses import asdict
@@ -327,7 +351,7 @@ class DistributionIncomeService(CRUDService[DistributionIncome]):
         for i in data:
             i = convert_timestamps_to_datetime(i)
             re_data.append(asdict(i))
-        return dict(data=re_data, code=200,total=total)
+        return dict(data=re_data, code=200, total=total)
 
     def get_summary_by_user(self, user_id: int) -> Dict[str, Any]:
         """
@@ -358,12 +382,12 @@ class DistributionIncomeService(CRUDService[DistributionIncome]):
         }
         return {"data": result, "code": 200}
 
-
-    def get_income_d_m_a_summary(self,user_id: int) -> Dict[str, Any]:
+    def get_income_d_m_a_summary(self, user_id: int) -> Dict[str, Any]:
         if not user_id:
-            return dict(data=dict(today_income=0,month_income=0,total_income=0), code=400)
+            return dict(data=dict(today_income=0, month_income=0, total_income=0), code=400)
         result = self._repo.get_income_summary(user_id=user_id)
         return dict(data=result, code=200)
+
     def update(self, id: int, income: DistributionIncome) -> Dict[str, Any]:
         result = super().update(id, income)
         return dict(data=result, code=200)

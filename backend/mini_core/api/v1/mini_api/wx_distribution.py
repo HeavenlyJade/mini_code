@@ -6,7 +6,7 @@ from backend.mini_core.schema.distribution import (
     DistributionGradeQueryArgSchema, ReDistributionGradeSchema,
     DistributionGradeUpdateQueryArgSchema, DistributionIncomeQueryArgSchema,
     ReDistributionIncomeSchema, DistributionLogQueryArgSchema,
-    Distribution, DistributionConfig, DistributionGrade,
+    Distribution, DistributionConfig, DistributionGrade,ReDistributionWxDataSchema,
     DistributionGradeUpdate, DistributionIncome, DistributionLog
 )
 from backend.mini_core.service import (
@@ -158,6 +158,11 @@ class DistributionMembersAPI(MethodView):
         income = distribution_service.get_summary_build_tree(args)
 
         return income
+@blp.route('/wx_distribution_data')
+class DistributionRulesAPI(MethodView):
+    decorators = [auth_required()]
+    @blp.arguments(DistributionQueryArgSchema)
+    @blp.response()
+    def post(self,args: dict):
+        return distribution_service.get_distribution()
 
-    def post(self):
-        pass

@@ -86,8 +86,18 @@ class DistributionGradeDetailSchema(EntityIntSchema):
     self_ratio = fields.Decimal(description='自购比例')
     first_ratio = fields.Decimal(description='一级分拥比例')
     second_ratio = fields.Decimal(description='二级分拥比例')
+    conditions = fields.Decimal(description="条件")
     update_relation = fields.Int(description='分销关系')
-    conditions = fields.List(fields.Nested(DistributionGradeUpdateSchema()), description='等级条件')
+    remark =fields.Str(description='等级描述')
+
+
+class DistributionGradSchema(EntityIntSchema):
+    name = fields.Str(description='等级名称')
+    weight = fields.Int(description='权重')
+    self_ratio = fields.Decimal(description='自购比例')
+    first_ratio = fields.Decimal(description='一级分拥比例')
+    second_ratio = fields.Decimal(description='二级分拥比例')
+    update_relation = fields.Int(description='分销关系')
 
 
 # 分销收入汇总 Schema
@@ -120,6 +130,16 @@ class ReDistributionGradeSchema(EntityIntSchema):
     code = fields.Int(description='状态')
 
 
+class ReDistributionGradeListSchema(EntityIntSchema):
+    data = fields.List(fields.Nested(DistributionGradeDetailSchema()))
+    code = fields.Int(description='状态')
+
 class ReDistributionIncomeSchema(ListResultSchema):
     data = fields.List(fields.Nested(DistributionIncomeSchema()))
     code = fields.Int(description='状态')
+
+
+class ReDistributionWxDataSchema(EntitySchema):
+    config_data =fields.List(fields.Nested(DistributionConfigSchema()))
+    grade_data = fields.List(fields.Nested(DistributionGradeSchema()))
+    distribution_user_data = fields.Nested(DistributionSchema())

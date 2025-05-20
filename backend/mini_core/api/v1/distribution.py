@@ -5,8 +5,9 @@ from backend.mini_core.schema.distribution import (
     DistributionConfigQueryArgSchema, ReDistributionConfigSchema,
     DistributionGradeQueryArgSchema, ReDistributionGradeSchema,
     DistributionGradeUpdateQueryArgSchema, DistributionIncomeQueryArgSchema,
-    ReDistributionIncomeSchema, DistributionLogQueryArgSchema,
-    Distribution, DistributionConfig, DistributionGrade,
+    ReDistributionIncomeSchema, DistributionLogQueryArgSchema,DistributionSchema,
+ReDistributionGradeListSchema,DistributionGradeSchema,DistributionGradeUpdateSchema,
+    Distribution, DistributionConfig, DistributionGrade,DistributionGradSchema,
     DistributionGradeUpdate, DistributionIncome, DistributionLog
 )
 from backend.mini_core.service import (
@@ -57,7 +58,6 @@ class DistributionAPI(MethodView):
         """新增分销信息"""
         return distribution_service.update(distribution["user_id"], distribution)
 
-
 @blp.route('/distribution-config')
 class DistributionConfigAPI(MethodView):
     """分销配置API"""
@@ -80,17 +80,33 @@ class DistributionGradeAPI(MethodView):
     """分销等级API"""
 
     @blp.arguments(DistributionGradeQueryArgSchema, location='query')
-    @blp.response(ReDistributionGradeSchema)
+    @blp.response(ReDistributionGradeListSchema)
     def get(self, args: dict):
         """查看分销等级"""
-        return distribution_grade_service.get(args)
+        return distribution_grade_service.data_list(args)
 
-    @blp.arguments(DistributionGrade)
+    @blp.arguments(DistributionGradeSchema)
     @blp.response(ReDistributionGradeSchema)
     def post(self, grade):
         """更新分销等级"""
-        return distribution_grade_service.update(grade["id"], grade)
+        return distribution_grade_service.create(grade)
 
+
+@blp.route('/distribution-grade/<int:data_id>')
+class DistributionGradeAPI(MethodView):
+    """ 分析修改和删除API"""
+
+    @blp.arguments(DistributionGradeSchema)
+    @blp.response(ReDistributionGradeSchema)
+    def put(self, args,data_id):
+        """修改分销等级"""
+
+        return distribution_grade_service.update(data_id,args)
+
+    @blp.response()
+    def delete(self, data_id):
+        """删除分销等级配置"""
+        return distribution_grade_service.delete(data_id)
 
 @blp.route('/distribution-grade-update')
 class DistributionGradeUpdateAPI(MethodView):

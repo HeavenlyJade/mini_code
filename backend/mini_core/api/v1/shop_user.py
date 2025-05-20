@@ -39,33 +39,6 @@ def expire_token_callback(jwt_header: dict, jwt_payload: dict):
     return jsonify(message=AuthMessage.TOKEN_EXPIRES,code=401), 401
 
 
-# @blp.route('/login')
-# class ShopLoginAPI(MethodView):
-#     @blp.arguments(ShopLoginSchema)
-#     @blp.response(ShopTokenSchema)
-#     def post(self, args: dict):
-#         """商城用户 用户登录"""
-#         return shop_user_service.login(args)
-
-
-# @blp.route('/wechat/login')
-# class ShopWechatLoginAPI(MethodView):
-#     @blp.arguments(ShopWechatLoginSchema)
-#     @blp.response(ShopTokenSchema)
-#     def post(self, args: dict):
-#         """商城用户 微信用户登录"""
-#         return shop_user_service.wechat_login(args)
-
-
-# @blp.route('/refresh')
-# class ShopTokenRefreshAPI(MethodView):
-#     @jwt_required(refresh=True)
-#     @blp.response(RefreshTokenSchema)
-#     def post(self):
-#         """商城用户 刷新Token"""
-#         return shop_user_service.refresh_token()
-#
-
 @blp.route('/')
 class ShopUserAPI(MethodView):
     """商城用户管理API"""
