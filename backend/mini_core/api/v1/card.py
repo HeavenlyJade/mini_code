@@ -36,17 +36,16 @@ class CardAPI(MethodView):
     def post(self, card):
         """新增个人名片"""
         return card_service.create(card)
-
+@blp.route('/card/<int:card_id>')
+class CardPutAPI(MethodView):
     @blp.arguments(CardSchema)
     @blp.response(ReCardSchema)
-    def put(self, card):
+    def put(self, card,card_id):
         """修改个人名片"""
-        card_id = request.json.get('id')
+
         return card_service.update(card_id, card)
 
-    @blp.arguments(CardQueryArgSchema)
     @blp.response(ReCardSchema)
-    def delete(self, args):
+    def delete(self, card_id):
         """删除个人名片"""
-        card_id = request.json.get('id')
         return card_service.delete(card_id)
