@@ -33,6 +33,7 @@ class DistributionService(CRUDService[Distribution]):
         if not ser_args:
             return dict(data={}, code=200)
         data = self._repo.find(**ser_args)
+
         if data:
             data = convert_timestamps_to_datetime(data)
 
@@ -338,13 +339,10 @@ class DistributionIncomeService(CRUDService[DistributionIncome]):
             query_args["order_id"] = order_id
         if status is not None and int(status) != -1:
             query_args["status"] = status
-        if end_date and start_date:
-            start_date = datetime_str_to_ts(start_date)
-            end_date = datetime_str_to_ts(end_date)
-            if status in [0, 2]:
-                query_args["create_time"] = [start_date, end_date]
-            elif start_date == 1:
-                query_args["settlement_time"] = [start_date, end_date]
+        # if end_date and start_date:
+        #     start_date = datetime_str_to_ts(start_date)
+        #     end_date = datetime_str_to_ts(end_date)
+        print("query_args",query_args)
         data, total = self._repo.list(**query_args)
         from dataclasses import asdict
         re_data = []
@@ -365,9 +363,9 @@ class DistributionIncomeService(CRUDService[DistributionIncome]):
         """
         if not user_id:
             return dict(data={}, code=400)
-        incomes = self._repo.get_money_sum_by_status(user_id)
+        incomes = self._repo.get_money_sum_by_status()
 
-        status_money = {0: 0, 1: 0, 2: 0}  # 0:待结算, 1:已结算, 2:已冻结
+        status_money = {3: 0, 1: 0, 2: 0}  # 0:待结算, 1:已结算, 2:已冻结
         for income in incomes:
             if income.status in status_money:
                 status_money[income.status] = income.total_money
@@ -388,16 +386,77 @@ class DistributionIncomeService(CRUDService[DistributionIncome]):
         result = self._repo.get_income_summary(user_id=user_id)
         return dict(data=result, code=200)
 
+    def get_income_statistics(self, args: dict = None) -> dict:
+        """
+        获取收入统计数据，返回格式化的字典结果
+
+        参数:
+            args: 包含查询条件的字典，可以包含以下键:
+                - user_id: 用户ID
+                - order_id: 订单ID
+                - status: 状态码
+                - start_time: 创建时间开始范围
+                - end_time: 创建时间结束范围
+
+        返回:
+            包含各状态收入统计的字典
+        """
+        # 确保args是一个字典
+        args = args or {}
+
+        # 获取按状态分组的统计数据
+        stats = self._repo.get_money_sum_by_status(args)
+
+        # 初始化结果字典，确保即使没有数据也有默认值
+        result = {
+            "total_income": 0,
+            "pending_income": 0,  # 状态 0：待结算
+            "settled_income": 0,  # 状态 1：已结算
+            "frozen_income": 0,  # 状态 2：已冻结
+            "total_order_count": 0,
+            "pending_order_count": 0,
+            "settled_order_count": 0,
+            "frozen_order_count": 0
+        }
+
+        # 计算总收入和总订单数
+        total_income = 0
+        total_orders = 0
+
+        for stat in stats:
+            status_code = stat[0]
+            amount = float(stat[1]) if stat[1] else 0
+            order_count = int(stat[2]) if stat[2] else 0
+
+            total_income += amount
+            total_orders += order_count
+
+            # 根据状态码填充相应的字段
+            if status_code == 3:
+                result["pending_income"] = amount
+                result["pending_order_count"] = order_count
+            elif status_code == 1:
+                result["settled_income"] = amount
+                result["settled_order_count"] = order_count
+            elif status_code == 2:
+                result["frozen_income"] = amount
+                result["frozen_order_count"] = order_count
+
+        result["total_income"] = total_income
+        result["total_order_count"] = total_orders
+        return result
+
+
     def update(self, id: int, income: DistributionIncome) -> Dict[str, Any]:
-        result = super().update(id, income)
+        result = self._repo.update(id, income)
         return dict(data=result, code=200)
 
     def create(self, income: DistributionIncome) -> Dict[str, Any]:
-        result = super().create(income)
+        result = self._repo.create(income)
         return dict(data=result, code=200)
 
     def delete(self, id: int) -> Dict[str, Any]:
-        result = super().delete(id)
+        result = self._repo.delete(id)
         return dict(data=result, code=200)
 
     def update_status(self, id: int, status: int) -> Dict[str, Any]:

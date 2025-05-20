@@ -6,7 +6,6 @@ from backend.mini_core.schema.shop_specification import (
     DeleteIdsSchema, ReSpecificationWithAttributesSchema,
     ShopSpecificationSchema, ShopSpecificationAttributeSchema
 )
-from backend.mini_core.domain.specification import ShopSpecification, ShopSpecificationAttribute
 from backend.business.service.auth import auth_required
 from backend.mini_core.service import shop_specification_service, shop_specification_attribute_service
 from kit.util.blueprint import APIBlueprint

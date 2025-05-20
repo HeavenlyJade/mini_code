@@ -346,27 +346,66 @@ class DistributionIncomeSQLARepository(SQLARepository):
         return DistributionIncome
     @property
     def query_params(self):
-        return 'user_id',
+        return 'user_id',"status","product_name"
     @property
     def range_query_params(self):
         return "settlement_time", "create_time"
 
-    def get_money_sum_by_status(self, user_id: int) -> list:
+    def get_money_sum_by_status(self, args: dict = None) -> list:
         """
-        使用ORM按状态分组统计指定用户的总收入金额
+        使用ORM按状态分组统计收入金额和订单数，支持多种筛选条件
 
         参数:
-            user_id: 用户ID
+            args: 包含查询条件的字典，可以包含以下键:
+                - user_id: 用户ID
+                - order_id: 订单ID
+                - status: 状态码
+                - start_time: 创建时间开始范围
+                - end_time: 创建时间结束范围
 
         返回:
-            包含状态和对应总金额的列表
+            包含状态、总金额和订单数的列表
         """
-        result = self.session.query(DistributionIncome.status,
-                                    func.sum(DistributionIncome.money).label('total_money')) \
-            .filter(DistributionIncome.user_id == user_id) \
-            .group_by(DistributionIncome.status).all()
-        return result
+        # 确保args是一个字典
+        args = args or {}
 
+        # 构建基础查询 - 包括状态、总金额和订单数
+        query = self.session.query(
+            DistributionIncome.status,
+            func.sum(DistributionIncome.money).label('total_money'),
+            func.count(DistributionIncome.order_id).label('order_count')
+        )
+
+        # 添加过滤条件
+        conditions = []
+
+        # 用户ID筛选
+        if 'user_id' in args and args['user_id']:
+            conditions.append(DistributionIncome.user_id == args['user_id'])
+
+        # 订单ID筛选
+        if 'order_id' in args and args['order_id']:
+            conditions.append(DistributionIncome.order_id == args['order_id'])
+
+        # 状态筛选
+        if 'status' in args and args['status'] is not None:
+            conditions.append(DistributionIncome.status == args['status'])
+
+        # 创建时间范围筛选
+        if 'start_time' in args and args['start_time']:
+            conditions.append(DistributionIncome.create_time >= args['start_time'])
+        if 'end_time' in args and args['end_time']:
+            conditions.append(DistributionIncome.create_time <= args['end_time'])
+
+        # 将所有条件应用到查询
+        if conditions:
+            from sqlalchemy import and_
+            query = query.filter(and_(*conditions))
+
+        # 按状态分组并执行查询
+        result = query.group_by(DistributionIncome.status).all()
+
+        return result
     def get_income_summary(self, user_id: int) -> dict:
         """
         获取用户的收益统计数据，包括今日收益、本月收益和累计收益

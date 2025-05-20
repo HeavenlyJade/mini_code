@@ -20,25 +20,17 @@ from kit.util.blueprint import APIBlueprint
 blp = APIBlueprint('distribution', 'distribution', url_prefix='/')
 
 
-@blp.route('/distribution_wx')
+@blp.route('/distribution_web')
 class DistributionWXView(MethodView):
-    """微信接口 分销中心初始界面"""
+    """ 分销数据初始化"""
     decorators = [auth_required()]
 
     @blp.arguments(DistributionQueryArgSchema, location='query')
     @blp.response()
     def get(self, args: dict):
-        """查看分销集体信息"""
-        user = get_current_user()
-        user_id = str(user.id)
-        income = distribution_income_service.get_summary_by_user(user_id=user_id)
-        income_d_m_a = distribution_income_service.get_income_d_m_a_summary(user_id=user_id)
-        distribution_data = distribution_service.get(args)["data"]
-
-        from dataclasses import asdict
-        distribution_data = asdict(distribution_data)
-
-        return dict(data=dict(income=income, income_d_m_a=income_d_m_a, distribution=distribution_data), code=200)
+        """查询分销页面的数据"""
+        income = distribution_income_service.get_income_statistics(args)
+        return dict(data=dict(income=income,), code=200)
 
 
 @blp.route('/distribution')
@@ -70,6 +62,10 @@ class DistributionConfigAPI(MethodView):
         data, total = distribution_config_service.config_data_list(**args)
         return dict(total=total, data=data, code=200)
 
+    @blp.arguments(DistributionConfigSchema)
+    @blp.response(ReDistributionConfigDataSchema)
+    def post(self,args):
+        return distribution_config_service.create(args)
 
 @blp.route('/distribution-config/<int:data_id>')
 class DistributionGradePatchAPI(MethodView):
@@ -78,6 +74,9 @@ class DistributionGradePatchAPI(MethodView):
     def put(self, config, data_id):
         """更新分销配置"""
         return distribution_config_service.update(data_id, config)
+    @blp.response(ReDistributionConfigDataSchema)
+    def delete(self, data_id):
+        return distribution_config_service.delete(data_id)
 
 
 @blp.route('/distribution-grade')

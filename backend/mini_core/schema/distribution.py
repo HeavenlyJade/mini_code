@@ -24,7 +24,7 @@ class DistributionQueryArgSchema(EntityIntSchema):
     mobile = fields.Str(description='手机号')
     # user_id = fields.Str(description='用户ID')
     grade_id = fields.Int(description='等级ID')
-    status = fields.Int(description='状态', validate=validate.OneOf([0, 1]))
+    status = fields.Int(description='状态',)
 
 
 # 分销配置查询参数 Schema
@@ -48,6 +48,7 @@ class DistributionIncomeQueryArgSchema(EntityIntSchema):
     user_id = fields.Str(description='用户ID')
     order_id = fields.Str(description='订单ID')
     product_id = fields.Str(description='产品ID')
+    product_name = fields.Str(description='产品名称')
     grade_id = fields.Int(description='分销等级ID')
     start_date = fields.Str(description='开始时间')
     end_date = fields.Str(description='结束时间')
