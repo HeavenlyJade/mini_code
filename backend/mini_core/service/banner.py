@@ -54,7 +54,6 @@ class BannerService(CRUDService[Banner]):
         existing_banner = self.get(banner_id)
         if not existing_banner:
             raise ServiceBadRequest("Banner不存在")
-
         return super().update(banner_id, banner)
 
     def update_status(self, banner_id: int, status: int) -> Optional[Banner]:
