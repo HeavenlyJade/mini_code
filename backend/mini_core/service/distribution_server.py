@@ -374,7 +374,7 @@ class DistributionIncomeService(CRUDService[DistributionIncome]):
         result = {
             "user_id": user_id,
             "total_money": total_money,
-            "pending_money": status_money[0],
+            "pending_money": status_money[3],
             "settled_money": status_money[1],
             "frozen_money": status_money[2]
         }

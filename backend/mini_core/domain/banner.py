@@ -34,6 +34,12 @@ class Banner(Entity):
         metadata=dict(
             description='上传图片路径',
         ),
+    ),
+    upload_video: str = field(
+        default=None,
+        metadata=dict(
+            description='上传视频路径',
+        ),
     )
     expand_image: str = field(
         default=None,

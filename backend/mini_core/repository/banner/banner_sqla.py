@@ -19,6 +19,7 @@ banner = Table(
     Column('business_code', String(50), default='0', comment='业务编号'),
     Column('name', String(100), nullable=False, comment='横幅名称'),
     Column('upload_image', String(255), comment='上传图片路径'),
+    Column('upload_video', String(500), comment='上传视频路径'),
     Column('expand_image', String(255), comment='扩展图片路径'),
     Column('link_type', String(20), comment='链接类型'),
     Column('link_url', String(255), comment='链接地址'),

@@ -26,10 +26,9 @@ class DistributionWXView(MethodView):
     """微信接口 分销中心初始界面"""
     decorators = [auth_required()]
 
-    @blp.arguments(DistributionQueryArgSchema, location='query')
     @blp.response()
-    def get(self, args: dict):
-        """查看分销集体信息"""
+    def get(self):
+        """ 查看分销个人用户数据"""
         user = get_current_user()
         user_id = str(user.id)
 

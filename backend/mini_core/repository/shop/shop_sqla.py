@@ -22,6 +22,7 @@ product_category_table = Table(
     Column('code', String(32), comment='编号'),
     Column('icon', Text, comment='图标路径'),
     Column('image', Text, comment='图片路径'),
+    Column("upload_video",Text,comment="upload_video"),
     Column('sort_order', Integer, comment='排序'),
     Column('status', Enum('正常', '停用'), comment='状态'),
     Column('is_audit', Boolean, default=False, comment='是否审核'),

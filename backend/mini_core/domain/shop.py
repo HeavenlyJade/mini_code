@@ -15,6 +15,7 @@ class ShopProductCategory(Entity):
     code: str = field(default=None, metadata=dict(description='编号'))
     icon: str = field(default=None, metadata=dict(description='图标路径'))
     image: str = field(default=None, metadata=dict(description='图片路径'))
+    upload_video:str = field(default=None, metadata=dict(description='图片路径'))
     sort_order: int = field(default=None, metadata=dict(description='排序'))
     status: str = field(default=None, metadata=dict(description='状态'))
     is_audit: bool = field(default=False, metadata=dict(description='是否审核'))
