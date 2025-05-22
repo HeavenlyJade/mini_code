@@ -363,7 +363,8 @@ class DistributionIncomeService(CRUDService[DistributionIncome]):
         """
         if not user_id:
             return dict(data={}, code=400)
-        incomes = self._repo.get_money_sum_by_status()
+        args = dict(user_id=user_id)
+        incomes = self._repo.get_money_sum_by_status(args)
 
         status_money = {3: 0, 1: 0, 2: 0}  # 0:待结算, 1:已结算, 2:已冻结
         for income in incomes:

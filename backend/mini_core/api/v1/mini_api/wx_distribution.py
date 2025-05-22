@@ -30,7 +30,7 @@ class DistributionWXView(MethodView):
     def get(self):
         """ 查看分销个人用户数据"""
         user = get_current_user()
-        user_id = str(user.id)
+        user_id = str(user.user_id)
 
         income = distribution_income_service.get_summary_by_user(user_id=user_id)
         income_d_m_a = distribution_income_service.get_income_d_m_a_summary(user_id=user_id)

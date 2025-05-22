@@ -9,7 +9,7 @@ blp = APIBlueprint('dashboard', 'dashboard', url_prefix='/dashboard')
 @blp.route('/overview')
 class DashboardOverviewAPI(MethodView):
     """仪表盘总览API"""
-    # decorators = [auth_required()]
+    decorators = [auth_required()]
 
     def get(self):
         """获取仪表盘总览数据"""
