@@ -30,6 +30,7 @@ from .banner import BannerService
 from .order.shop_order_cart import ShopOrderCartService
 from .order.shop_order_logistics import ShopOrderLogisticsService
 from .order.order_review import OrderReviewService
+from .dashboard import DashboardService
 # 个人卡牌
 card_service = CardService(log_sqla_repo)
 # 分销系统
@@ -73,3 +74,11 @@ shop_order_cart_service = ShopOrderCartService(shop_order_cart_sqla_repo)
 # 订单的物流服务
 shop_order_logistics_service = ShopOrderLogisticsService(shop_order_logistics_sqla_repo)
 order_review_service = OrderReviewService(shop_order_review_repo)
+
+# 仪表盘
+# 创建仪表盘服务实例
+dashboard_service = DashboardService(order_service=shop_order_service,
+    user_service=shop_user_service,
+    product_service=shop_product_service,
+    return_service=order_return_service
+)

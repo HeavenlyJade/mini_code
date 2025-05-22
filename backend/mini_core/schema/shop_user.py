@@ -92,6 +92,7 @@ class ShopUserUpdateSchema(ShopUserSchema):
             'tags',
             'remark',
             'status',
+            "username",
         )
 
 
