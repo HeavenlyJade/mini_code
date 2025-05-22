@@ -14,6 +14,7 @@ from backend.mini_core.schema.shop_user import (
     ShopUserSchema,
     ShopUserStatusSchema,
     ShopUserUpdateSchema,
+    ShopUserSchemaRe,
 )
 from backend.mini_core.service import shop_user_service
 from kit.schema.base import RespSchema
@@ -97,19 +98,12 @@ class ShopUserStatusAPI(MethodView):
         return shop_user_service.update_status(user_id, args['status'])
 
 
-@blp.route('/profile')
+@blp.route('/profile/<int:user_id>')
 class ShopUserProfileAPI(MethodView):
     decorators = [jwt_required()]
 
-    @blp.response(ShopUserSchema)
-    def get(self):
-        """商城用户管理 查看当前登录用户信息"""
-        user_id = get_jwt_identity()
-        return shop_user_service.get(user_id)
-
     @blp.arguments(ShopUserUpdateSchema)
-    @blp.response(ShopUserSchema)
-    def put(self, user: ShopUser):
+    @blp.response(ShopUserSchemaRe)
+    def put(self, user: ShopUser,user_id):
         """商城用户管理 修改当前用户信息"""
-        user_id = get_jwt_identity()
-        return shop_user_service.update(user_id, user)
+        return shop_user_service.admin_update(user_id, user)

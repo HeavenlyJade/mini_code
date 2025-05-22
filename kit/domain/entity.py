@@ -26,9 +26,9 @@ class Entity:
 @dataclass
 class EntityInt(Entity):
     id: int = field(init=False,metadata=dict(dump_only=True,),)
-    create_time: int = field(default=None, metadata=dict(description='创建时间'))
-    update_time: int = field(default=None, metadata=dict(description='更新时间'))
-    delete_time: int = field(default=None, metadata=dict(description='删除时间'))
+    create_time: dt.datetime = field(default=None, metadata=dict(description='创建时间'))
+    update_time: dt.datetime = field(default=None, metadata=dict(description='更新时间'))
+    delete_time: dt.datetime = field(default=None, metadata=dict(description='删除时间'))
 
 
 @dataclass

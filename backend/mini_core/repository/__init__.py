@@ -21,6 +21,7 @@ from .banner.banner_sqla import BannerSQLARepository
 from .order.shop_order_cart_sqla import ShopOrderCartSQLARepository
 from .order.shop_order_logistics_sqla import ShopOrderLogisticsSQLARepository
 from .order.order_review import OrderReviewSQLARepository
+from .shop.member_level_config import MemberLevelConfigSQLARepository
 
 
 # TODO replace this with DI
@@ -66,3 +67,5 @@ shop_order_cart_sqla_repo = ShopOrderCartSQLARepository(db.session)
 shop_order_logistics_sqla_repo = ShopOrderLogisticsSQLARepository(db.session)
 # 订单评价表
 shop_order_review_repo = OrderReviewSQLARepository(db.session)
+# 会员等级表
+member_level_config_sqla_repo = MemberLevelConfigSQLARepository(db.session)

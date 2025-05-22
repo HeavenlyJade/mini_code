@@ -22,15 +22,12 @@ class CustomJSONEncoder(json.JSONEncoder):
             return float(obj)
         elif isinstance(obj, datetime.datetime):
             return obj.strftime('%Y-%m-%d %H:%M:%S')
-        # 处理其他可能需要的类型
-        # 例如：如果有 date 类型
         elif isinstance(obj, datetime.date):
             return obj.strftime('%Y-%m-%d')
-        # 如果有 Distribution 类或其他自定义对象
-        from backend.mini_core.domain.distribution import Distribution
-        if isinstance(obj, Distribution):
-            from dataclasses import asdict
-            return asdict(obj)
+        # 移除这部分，因为可能导致循环导入或其他问题
+        # elif isinstance(obj, Distribution):
+        #     from dataclasses import asdict
+        #     return asdict(obj)
         return super().default(obj)
 def create_app() -> Flask:
     """创建Flask Application 实例"""

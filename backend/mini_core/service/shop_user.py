@@ -71,11 +71,20 @@ class ShopUserService(CRUDService[ShopUser]):
             user.creator = "admin"
         return   self._repo.create(user)
 
+    def admin_update(self,entity_id, user: ShopUser):
+        # 记录更新者
+        current_user = get_current_user()
+        if current_user:
+            user.updater = current_user.username
+        re_data = self._repo.update(entity_id, user)
+        return dict(data=re_data,code=200)
+
     def update(self, entity_id: int, user: ShopUser) -> Optional[ShopUser]:
         """更新商城用户信息"""
         # 如果提供了密码，对其进行哈希处理
         user_cache = get_current_user()
         user_id_cache = user_cache.id
+        print("user_id_cache",entity_id,user_id_cache)
         if user_id_cache != entity_id:
             raise ServiceBadRequest("错误的请求用户")
         if user.password:

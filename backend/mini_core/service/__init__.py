@@ -11,7 +11,7 @@ from backend.mini_core.repository import (log_sqla_repo, distribution_sqla_repo,
                                           shop_order_return_sqla_repo, shop_order_return_detail_sqla_repo,
                                           shop_order_return_log_sqla_repo,banner_sqla_repo,shop_order_cart_sqla_repo,
                                           shop_order_logistics_sqla_repo,
-                                          shop_order_review_repo)
+                                          shop_order_review_repo,member_level_config_sqla_repo)
 from .card_server import CardService
 from .distribution_server import (DistributionService, DistributionConfigService,
                                   DistributionGradeService, DistributionGradeUpdateService,
@@ -31,6 +31,7 @@ from .order.shop_order_cart import ShopOrderCartService
 from .order.shop_order_logistics import ShopOrderLogisticsService
 from .order.order_review import OrderReviewService
 from .dashboard import DashboardService
+from .member_level_config_service import MemberLevelConfigService
 # 个人卡牌
 card_service = CardService(log_sqla_repo)
 # 分销系统
@@ -82,3 +83,6 @@ dashboard_service = DashboardService(order_service=shop_order_service,
     product_service=shop_product_service,
     return_service=order_return_service
 )
+
+# 会员系列
+member_level_config_service = MemberLevelConfigService(member_level_config_sqla_repo)
