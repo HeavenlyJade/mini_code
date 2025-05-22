@@ -40,6 +40,8 @@ class WechatLoginAPI(MethodView):
         """
         code = args['code']
         nickName = args['nickName']
+        share_openid = args.get('share_openid')
+        share_user_id = args.get("share_user_id")
         # 识别平台类型 - 可从请求中获取或通过参数传递
         platform_type = args.get('platform_type', 'wx_mini_program')  # 默认为小程序
 
@@ -53,7 +55,9 @@ class WechatLoginAPI(MethodView):
             nickName=nickName,
             avatarurl=args["avatarUrl"],
             openid=openid,
+            share_user_id=share_user_id,
             appid=wechat_data['appid'],
+            share_openid=share_openid,
             platform_type=platform_type  # 记录平台类型
         )
 

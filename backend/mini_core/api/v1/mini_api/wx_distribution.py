@@ -152,7 +152,7 @@ class DistributionMembersAPI(MethodView):
     def get(self, args: dict):
         """ 分销成员的成员树状 """
         user = get_current_user()
-        user_id = str(user.id)
+        user_id = user.user_id
         args["user_id"] = user_id
         income = distribution_service.get_summary_build_tree(args)
 

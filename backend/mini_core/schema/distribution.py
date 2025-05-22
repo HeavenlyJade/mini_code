@@ -74,7 +74,7 @@ class DistributionUserSchema(EntityIntSchema):
     mobile = fields.Str(description='手机号')
     identity = fields.Int(description='身份')
     user_id = fields.Str(description='用户ID')
-    user_father_id = fields.Int(description='上级ID')
+    user_father_id = fields.Str(description='上级ID')
     grade_id = fields.Int(description='等级ID')
     grade_name = fields.Str(description='等级名称')
     status = fields.Int(description='状态')

@@ -15,6 +15,8 @@ class WechatLoginSchema(ArgSchema):
     code = fields.Str(required=True, description='微信临时登录凭证')
     nickName = fields.Str(required=True, description='微信用户')
     avatarUrl = fields.Str(required=True, description='用户图片')
+    share_user_id = fields.Str(description='来自分享用户的用户id')
+    share_openid = fields.Str(description='来自分享用户的用户的微信小程序id')
 
 
 class ShopAppSchema(BaseSchema):

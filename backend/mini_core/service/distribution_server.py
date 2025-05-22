@@ -93,34 +93,67 @@ class DistributionService(CRUDService[Distribution]):
         return {"data": data, "total": total, "code": 200}
 
     def get_summary_build_tree(self, args) -> Dict[str, Any]:
+        """
+        构建分销成员的树形结构，整合用户信息和分销信息
+
+        Args:
+            args: 包含查询参数的字典
+
+        Returns:
+            包含树形结构数据的字典
+        """
         # 获取数据
         user_id = args['user_id']
-        sql_data = self._repo.get_summary_tree(args)
+        print("user_id", user_id)
 
-        # 确保数据是字典格式
-        if sql_data and not isinstance(sql_data[0], dict):
-            columns = ['id', 'sn', 'real_name', 'mobile', 'identity', 'reason', 'user_id',
-                       'user_father_id', 'grade_id', 'remark', 'status', 'audit_time',
-                       'create_time', 'update_time', 'delete_time']
-            sql_data = [dict(zip(columns, row)) for row in sql_data]
+        # 从数据库获取层级数据
+        sql_data = self._repo.get_summary_tree(args)
+        print("sql_data", sql_data)
 
         # 转换为树状结构数据格式 (适合前端渲染)
-        def convert_to_tree_format(data, parent_id):
+        def convert_to_tree_format(data, parent_id, current_level=1):
+            """
+            递归构建树形结构
+
+            Args:
+                data: 所有用户数据列表
+                parent_id: 父级用户ID
+                current_level: 当前层级
+
+            Returns:
+                树形节点列表
+            """
             tree_nodes = []
+            # 筛选出当前父级下的直接子级
             children = [item for item in data if str(item['user_father_id']) == str(parent_id)]
 
             for child in children:
-                user_id = str(child['user_id'])
+                child_user_id = str(child['user_id'])
+
+                # 构建节点信息，整合分销信息和用户信息
                 node = {
-                    'id': user_id,
-                    'name': child['real_name'],
-                    'mobile': child['mobile'],
-                    'remark': child['remark'],
-                    'status': child['status'],
+                    'id': child_user_id,
+                    'distribution_id': child.get('distribution_id'),
+                    'name': child.get('real_name') or child.get('nickname') or child.get('username', '未知用户'),
+                    'real_name': child.get('real_name'),
+                    'nickname': child.get('nickname'),
+                    'username': child.get('username'),
+                    'mobile': child.get('mobile'),
+                    'avatar': child.get('avatar'),
+                    'remark': child.get('remark'),
+                    'status': child.get('status'),
+                    'user_status': child.get('user_status'),
+                    'grade_id': child.get('grade_id'),
+                    'identity': child.get('identity'),
+                    'level': current_level,
+                    'sn': child.get('sn'),
+                    'last_login_time': child.get('last_login_time'),
+                    'audit_time': child.get('audit_time'),
+                    'create_time': child.get('distribution_create_time'),
                     'isLeaf': True,  # 默认为叶子节点，后续会更新
-                    'data': child,  # 保留原始数据
-                    'children': convert_to_tree_format(data, user_id)
+                    'children': convert_to_tree_format(data, child_user_id, current_level + 1)
                 }
+
                 # 如果有子节点，则不是叶子节点
                 if node['children']:
                     node['isLeaf'] = False
@@ -133,12 +166,30 @@ class DistributionService(CRUDService[Distribution]):
         tree_data = {
             'id': str(user_id),
             'name': '分销成员',
+            'level': 0,
             'isLeaf': False,
             'children': convert_to_tree_format(sql_data, user_id)
         }
 
-        # 也可以保留原始数据，方便前端处理
-        return dict(code=200, data=tree_data)
+        # 统计信息
+        total_members = len(sql_data)
+        active_members = len([item for item in sql_data if item.get('status') == 1])
+
+        # 计算各层级数量
+        level_stats = {}
+        for item in sql_data:
+            level = item.get('level', 1)
+            level_stats[level] = level_stats.get(level, 0) + 1
+
+        return dict(
+            code=200,
+            data=tree_data,
+            statistics={
+                'total_members': total_members,
+                'active_members': active_members,
+                'level_stats': level_stats
+            }
+        )
 
     def get_by_user_id(self, user_id: int) -> Optional[Any]:
         return self._repo.find(user_id=user_id)

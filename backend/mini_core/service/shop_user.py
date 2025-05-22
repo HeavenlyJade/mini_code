@@ -245,7 +245,10 @@ class ShopUserService(CRUDService[ShopUser]):
             user = self.create(new_user)
         dis_user_data = distribution_service.get({"sn": openid}).get("data")
         if not dis_user_data:
+            share_user_id = user_data.get('share_user_id')
             create_data = dict(sn=openid, total_amount=0, lv_id=2, user_id=user.user_id)
+            if share_user_id != user.user_id:
+                create_data['user_father_id'] = share_user_id
             distribution_service.create(create_data)
         return user
 

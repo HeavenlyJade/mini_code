@@ -28,8 +28,8 @@ distribution_table = Table(
     Column('wait_amount', Float, comment='已提现金额'),
     Column('total_amount', Float, comment='待提现金额'),
     Column('withdrawn_amount', Float, comment='总金额'),
-    Column('user_id', String(255), comment='用户ID'),
-    Column('user_father_id', Integer, comment='上级ID'),
+    Column('user_id', String(50), comment='用户ID'),
+    Column('user_father_id', String(50), comment='上级ID'),
     Column('grade_id', Integer, comment='等级ID'),
     Column('remark', String(255), comment='备注'),
     Column('status', Integer, comment='状态 (0-未审核, 1-已审核)'),
@@ -150,6 +150,17 @@ class DistributionSQLARepository(SQLARepository):
         return 'sn', 'real_name', 'mobile', 'user_id', 'grade_id', 'status'
 
     def get_summary_tree(self, args):
+        """
+        通过 t_shop_user 表获取分销成员的树形结构数据
+
+        Args:
+            args: 包含查询参数的字典
+                - user_id: 父级用户ID
+                - ser_name: 搜索的用户名称（可选）
+
+        Returns:
+            包含用户信息和分销信息的字典列表
+        """
         user_id = args["user_id"]
         ser_name = args.get("ser_name")
 
@@ -157,37 +168,143 @@ class DistributionSQLARepository(SQLARepository):
             # 如果没有搜索条件，返回完整的树结构
             sql = """
                 WITH RECURSIVE UserHierarchy AS (
-                    SELECT *
-                    FROM la_distribution
-                    WHERE user_father_id = :user_id
+                    -- 查找直接子级用户
+                    SELECT
+                        d.id as distribution_id,
+                        d.sn,
+                        d.real_name,
+                        d.mobile as distribution_mobile,
+                        d.identity,
+                        d.reason,
+                        d.user_id,
+                        d.user_father_id,
+                        d.grade_id,
+                        d.remark as distribution_remark,
+                        d.status as distribution_status,
+                        d.audit_time,
+                        d.create_time as distribution_create_time,
+                        d.update_time as distribution_update_time,
+                        u.id as shop_user_id,
+                        u.username,
+                        u.nickname,
+                        u.phone as user_phone,
+                        u.avatar,
+                        u.status as user_status,
+                        u.create_time as user_create_time,
+                        u.last_login_time,
+                        1 as level
+                    FROM la_distribution d
+                    LEFT JOIN t_shop_user u ON d.user_id = u.user_id
+                    WHERE d.user_father_id = :user_id
+
                     UNION ALL
-                    SELECT child.*
-                    FROM la_distribution child
-                    JOIN UserHierarchy parent ON child.user_father_id = parent.user_id
+
+                    -- 递归查找子级的子级
+                    SELECT
+                        d.id as distribution_id,
+                        d.sn,
+                        d.real_name,
+                        d.mobile as distribution_mobile,
+                        d.identity,
+                        d.reason,
+                        d.user_id,
+                        d.user_father_id,
+                        d.grade_id,
+                        d.remark as distribution_remark,
+                        d.status as distribution_status,
+                        d.audit_time,
+                        d.create_time as distribution_create_time,
+                        d.update_time as distribution_update_time,
+                        u.id as shop_user_id,
+                        u.username,
+                        u.nickname,
+                        u.phone as user_phone,
+                        u.avatar,
+                        u.status as user_status,
+                        u.create_time as user_create_time,
+                        u.last_login_time,
+                        parent.level + 1 as level
+                    FROM la_distribution d
+                    LEFT JOIN t_shop_user u ON d.user_id = u.user_id
+                    JOIN UserHierarchy parent ON d.user_father_id = parent.user_id
+                    WHERE parent.level < 10  -- 防止无限递归，限制层级深度
                 )
                 SELECT DISTINCT *
                 FROM UserHierarchy
-                ORDER BY user_father_id, id;
-                """
+                ORDER BY level, user_father_id, distribution_id;
+            """
             result = self.session.execute(sql, {'user_id': user_id}).fetchall()
         else:
             # 搜索匹配节点并获取其父节点路径
             sql = """
                 WITH RECURSIVE UserHierarchy AS (
                     -- 获取所有子节点
-                    SELECT *
-                    FROM la_distribution
-                    WHERE user_father_id = :user_id
+                    SELECT
+                        d.id as distribution_id,
+                        d.sn,
+                        d.real_name,
+                        d.mobile as distribution_mobile,
+                        d.identity,
+                        d.reason,
+                        d.user_id,
+                        d.user_father_id,
+                        d.grade_id,
+                        d.remark as distribution_remark,
+                        d.status as distribution_status,
+                        d.audit_time,
+                        d.create_time as distribution_create_time,
+                        d.update_time as distribution_update_time,
+                        u.id as shop_user_id,
+                        u.username,
+                        u.nickname,
+                        u.phone as user_phone,
+                        u.avatar,
+                        u.status as user_status,
+                        u.create_time as user_create_time,
+                        u.last_login_time,
+                        1 as level
+                    FROM la_distribution d
+                    LEFT JOIN t_shop_user u ON d.user_id = u.user_id
+                    WHERE d.user_father_id = :user_id
+
                     UNION ALL
-                    SELECT child.*
-                    FROM la_distribution child
-                    JOIN UserHierarchy parent ON child.user_father_id = parent.user_id
+
+                    SELECT
+                        d.id as distribution_id,
+                        d.sn,
+                        d.real_name,
+                        d.mobile as distribution_mobile,
+                        d.identity,
+                        d.reason,
+                        d.user_id,
+                        d.user_father_id,
+                        d.grade_id,
+                        d.remark as distribution_remark,
+                        d.status as distribution_status,
+                        d.audit_time,
+                        d.create_time as distribution_create_time,
+                        d.update_time as distribution_update_time,
+                        u.id as shop_user_id,
+                        u.username,
+                        u.nickname,
+                        u.phone as user_phone,
+                        u.avatar,
+                        u.status as user_status,
+                        u.create_time as user_create_time,
+                        u.last_login_time,
+                        parent.level + 1 as level
+                    FROM la_distribution d
+                    LEFT JOIN t_shop_user u ON d.user_id = u.user_id
+                    JOIN UserHierarchy parent ON d.user_father_id = parent.user_id
+                    WHERE parent.level < 10
                 ),
-                -- 找出匹配名称的节点
+                -- 找出匹配名称的节点（在真实姓名或昵称中搜索）
                 MatchedNodes AS (
                     SELECT *
                     FROM UserHierarchy
                     WHERE real_name LIKE :ser_name
+                       OR nickname LIKE :ser_name
+                       OR username LIKE :ser_name
                 ),
                 -- 找出匹配节点的所有父级ID（路径）
                 ParentPaths AS (
@@ -203,16 +320,49 @@ class DistributionSQLARepository(SQLARepository):
                 SELECT DISTINCT h.*
                 FROM UserHierarchy h
                 WHERE h.real_name LIKE :ser_name
+                   OR h.nickname LIKE :ser_name
+                   OR h.username LIKE :ser_name
                    OR h.user_id IN (SELECT user_father_id FROM ParentPaths)
-                ORDER BY h.user_father_id, h.id;
-                """
+                ORDER BY h.level, h.user_father_id, h.distribution_id;
+            """
             result = self.session.execute(sql, {
                 'user_id': user_id,
                 'ser_name': f"%{ser_name}%"
             }).fetchall()
 
-        return [dict(i) for i in result]
+        # 将结果转换为字典列表，合并分销信息和用户信息
+        formatted_result = []
+        for row in result:
+            row_dict = dict(row)
+            # 合并用户信息到一个更清晰的结构中
+            user_info = {
+                'distribution_id': row_dict.get('distribution_id'),
+                'sn': row_dict.get('sn'),
+                'real_name': row_dict.get('real_name'),
+                'mobile': row_dict.get('distribution_mobile') or row_dict.get('user_phone'),
+                'identity': row_dict.get('identity'),
+                'reason': row_dict.get('reason'),
+                'user_id': row_dict.get('user_id'),
+                'user_father_id': row_dict.get('user_father_id'),
+                'grade_id': row_dict.get('grade_id'),
+                'remark': row_dict.get('distribution_remark'),
+                'status': row_dict.get('distribution_status'),
+                'audit_time': row_dict.get('audit_time'),
+                'level': row_dict.get('level'),
+                # 用户表信息
+                'shop_user_id': row_dict.get('shop_user_id'),
+                'username': row_dict.get('username'),
+                'nickname': row_dict.get('nickname'),
+                'avatar': row_dict.get('avatar'),
+                'user_status': row_dict.get('user_status'),
+                'last_login_time': row_dict.get('last_login_time'),
+                'user_create_time': row_dict.get('user_create_time'),
+                'distribution_create_time': row_dict.get('distribution_create_time'),
+                'distribution_update_time': row_dict.get('distribution_update_time'),
+            }
+            formatted_result.append(user_info)
 
+        return formatted_result
     def list_with_parent_info(self, **kwargs) -> Tuple[List[Dict], int]:
         """
         获取分销用户列表，并包含上级用户的名称信息
