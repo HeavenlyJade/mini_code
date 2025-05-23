@@ -12,7 +12,6 @@ class ExtensionMessage:
     SQLALCHEMY_DATABASE_URI_ERROR = '未配置数据库连接'
     REDIS_CONNECT_ERROR = 'Redis连接异常，程序退出'
     RABBITMQ_URL_ERROR = 'RabbitMQ链接未配置'
-    CASBIN_MODEL_PATH_ERROR = 'Casbin model未配置'
 
 
 class RequestMessage:

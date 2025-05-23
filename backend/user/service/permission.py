@@ -4,7 +4,7 @@ from flask_jwt_extended import current_user
 
 from backend.extensions import casbin_enforcer
 from backend.user.domain.permission import Permission
-from backend.user.repository.permission.sqla import PermissionRepository
+from backend.user.repository.permission.sqla import PermissionSQLARepository
 from backend.user.message import PERMISSION_HAS_CHILDREN, PERMISSION_IN_USE
 from kit.exceptions import ServiceBadRequest
 from kit.service.base import CRUDService
@@ -15,6 +15,10 @@ __all__ = ['PermissionService']
 
 class PermissionService(CRUDService[Permission]):
     """权限服务实现"""
+
+    def __init__(self, repo: PermissionSQLARepository, ):
+        super().__init__(repo)
+        self._repo = repo
 
     def create(self, permission: Permission) -> Permission:
         """
@@ -45,67 +49,6 @@ class PermissionService(CRUDService[Permission]):
 
         return result
 
-    def update(self, permission_id: int, permission: Permission) -> Optional[Permission]:
-        """
-        更新权限
-
-        Args:
-            permission_id: 权限ID
-            permission: 更新的权限对象
-
-        Returns:
-            更新后的权限对象
-        """
-        # 设置修改者
-        permission.modifier = current_user.username
-
-        # 获取原有权限信息
-        original = self.get(permission_id)
-        if not original:
-            return None
-
-        # 如果权限标识发生变化，需要更新Casbin策略
-        if original.perms != permission.perms:
-            if original.perms:
-                # 移除旧的资源权限
-                self._remove_permission_resource(original)
-
-            if permission.perms:
-                # 添加新的资源权限
-                self._register_permission_resource(permission)
-
-        # 更新权限
-        return super().update(permission_id, permission)
-
-    def delete(self, permission_id: int) -> None:
-        """
-        删除权限
-
-        Args:
-            permission_id: 权限ID
-        """
-        # 获取权限信息
-        permission = self.get(permission_id)
-        if not permission:
-            return
-
-        # 检查是否有子权限
-        children = self.repo.get_children(permission_id)
-        if children:
-            raise ServiceBadRequest(PERMISSION_HAS_CHILDREN)
-
-        # 检查是否被角色使用
-        is_used = self._check_permission_in_use(permission)
-        if is_used:
-            raise ServiceBadRequest(PERMISSION_IN_USE)
-
-        # 如果有权限标识，从Casbin删除
-        if permission.perms:
-            self._remove_permission_resource(permission)
-
-        # 逻辑删除权限
-        self.repo.logical_delete(permission_id)
-
     def get_permission_tree(self) -> List[dict]:
         """
         获取权限树结构
@@ -113,7 +56,7 @@ class PermissionService(CRUDService[Permission]):
         Returns:
             权限树结构
         """
-        return self.repo.build_permission_tree()
+        return self._repo.build_permission_tree()
 
     def get_menu_permissions(self) -> List[dict]:
         """

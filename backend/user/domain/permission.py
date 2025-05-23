@@ -90,15 +90,3 @@ class Permission(Entity):
             description='是否删除(0:否,1:是)',
         ),
     )
-    creator: StrField = field(
-        default=None,
-        metadata=dict(
-            description='创建者',
-        ),
-    )
-    modifier: StrField = field(
-        default=None,
-        metadata=dict(
-            description='修改者',
-        ),
-    )

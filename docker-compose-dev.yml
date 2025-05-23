@@ -6,7 +6,7 @@ services:
       - web-logs:/app/logs
       - ${LOCAL_STORAGE_PATH}:${LOCAL_STORAGE_PATH}
     env_file:
-      - .env
+      - .env_jj
     environment:
       - TZ=Asia/Shanghai
     ports:
@@ -25,7 +25,7 @@ services:
     volumes:
       - web-logs:/app/logs
     env_file:
-      - .env
+      - .env_jj
     environment:
       - TZ=Asia/Shanghai
       - PYTHONPATH=/app

@@ -64,9 +64,6 @@ class Config:
     AREAS = env.list('AREAS', list())
 
     # Casbin
-    CASBIN_MODEL_PATH = str(
-        Path(filename.CONF_FOLDER, 'casbin/rbac_with_resource_roles_model.conf')
-    )
     ENABLE_WATCHER = env.bool('ENABLE_WATCHER', False)
 
     # JWT

@@ -5,7 +5,7 @@ from flask_jwt_extended import jwt_required
 
 from backend.role.domain import Role
 from backend.role.schema.role import (
-    PermissionSchema,
+
     RoleCreateSchema,
     RoleListSchema,
     RoleQueryArgSchema,
@@ -58,16 +58,3 @@ class RoleByIDAPI(MethodView):
         """角色管理 删除角色信息"""
         return role_service.delete(role_id)
 
-
-@blp.route('/<int:role_id>/permissions')
-class RolePermissionAPI(MethodView):
-    # decorators = [jwt_required()]
-    @blp.response(PermissionSchema())
-    def get(self, role_id: int):
-        """系统管理 查看角色权限信息"""
-        return role_service.get_permissions(role_id)
-
-    @blp.arguments(PermissionSchema(many=True))
-    def post(self, args: List[dict], role_id: int):
-        """系统管理 分配角色权限信息"""
-        return role_service.assign_permissions(role_id, args)

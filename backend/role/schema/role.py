@@ -34,8 +34,11 @@ class RoleCreateSchema(RoleSchema):
         )
 
 
-class RoleUpdateSchema(RoleSchema):
-    pass
+
+
+class RoleUpdateSchema(ArgSchema):
+    role_number = fields.Str(description='角色编码')
+    permission_ids = fields.List(fields.Int,description='权限ids')
     # class Meta:
     #     unknown = EXCLUDE
     #     fields = (
@@ -44,9 +47,7 @@ class RoleUpdateSchema(RoleSchema):
     #         'operation_terminal',
     #         'allowed_department_ids',
     #         'areas',
+    #         'permission_ids',  # 添加这一行
+    #         'creator',
+    #         'modifier',
     #     )
-
-
-class PermissionSchema(ArgSchema):
-    obj = RequiredStr(description='访问资源')
-    act = RequiredStr(description='访问方法')

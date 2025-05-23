@@ -7,7 +7,7 @@ services:
       - /var/log/backend:/app/backend/tmp
       - ${LOCAL_STORAGE_PATH}:${LOCAL_STORAGE_PATH}
     env_file:
-      - .env
+      - .env_jj
     environment:
       - TZ=Asia/Shanghai
     ports:
@@ -26,7 +26,7 @@ services:
     volumes:
       - web-logs:/app/logs
     env_file:
-      - .env
+      - .env_jj
     environment:
       - TZ=Asia/Shanghai
       - C_FORCE_ROOT=true
@@ -37,7 +37,7 @@ services:
     volumes:
       - web-logs:/app/logs
     env_file:
-      - .env
+      - .env_jj
     environment:
       - TZ=Asia/Shanghai
     restart: always
@@ -47,7 +47,7 @@ services:
   equipment-mock:
     image: backend:0.1.0
     env_file:
-      - .env
+      - .env_jj
     environment:
       - TZ=Asia/Shanghai
       - PYTHONPATH=/app
@@ -58,7 +58,7 @@ services:
   equipment-sio:
     image: backend:0.1.0
     env_file:
-      - .env
+      - .env_jj
     environment:
       - TZ=Asia/Shanghai
       - PYTHONPATH=/app
@@ -71,7 +71,7 @@ services:
   eap-listener:
     image: backend:0.1.0
     env_file:
-      - .env
+      - .env_jj
     environment:
       - TZ=Asia/Shanghai
       - PYTHONPATH=/app
@@ -80,7 +80,7 @@ services:
   ama-listener:
     image: backend:0.1.0
     env_file:
-      - .env
+      - .env_jj
     environment:
       - TZ=Asia/Shanghai
       - PYTHONPATH=/app
@@ -89,7 +89,7 @@ services:
   strategy_naalysis_listener:
       image: backend:0.1.0
       env_file:
-        - .env
+        - .env_jj
       environment:
         - TZ=Asia/Shanghai
         - PYTHONPATH=/app
@@ -98,7 +98,7 @@ services:
   backend_xyn_mq:
     image: backend:0.1.0
     env_file:
-      - .env
+      - .env_jj
     environment:
       - TZ=Asia/Shanghai
       - PYTHONPATH=/app
@@ -107,7 +107,7 @@ services:
   backend_lot_history:
     image: backend:0.1.0
     env_file:
-      - .env
+      - .env_jj
     environment:
       - TZ=Asia/Shanghai
       - PYTHONPATH=/app

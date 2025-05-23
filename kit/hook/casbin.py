@@ -201,17 +201,12 @@ class CasbinEnforcer:
     def init_app(self, app: Flask) -> None:
         self.app = app
         assert self.app is not None
-        model = self.app.config.get('CASBIN_MODEL_PATH')
-        if model is None:
-            raise ServiceConfigException(ExtensionMessage.CASBIN_MODEL_PATH_ERROR)
 
-        self._e = Enforcer(model, self._a or self._default_adapter())
         if self.app.config.get('ENABLE_WATCHER'):
             from backend.extensions import redis
             options = WatcherOptions()
             options.optional_update_callback = self.update_callback
             w = new_watcher(redis.client, options)
-            self._e.set_watcher(w)
 
     @property
     def e(self) -> Enforcer:

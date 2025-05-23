@@ -56,6 +56,9 @@ class Role(Entity):
         ),
         default=None,
     )
+    permission_ids:List[int] = field(
+        default_factory=list,
+    )
     allowed_department_ids: List[int] = field(
         metadata=dict(
             description='允许访问的部门ID列表',

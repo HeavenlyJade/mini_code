@@ -22,6 +22,7 @@ role = Table(
     Column('access_level', String(255), comment=AccessLevel.desc()),
     Column('operation_terminal', String(255), comment='操作端'),
     Column('allowed_department_ids', JsonText),
+    Column('permission_ids', JsonText),
     Column('areas', JsonText),
     Column('creator', String(255), comment='创建者'),
     Column('modifier', String(255), comment='修改者'),
@@ -30,30 +31,6 @@ role = Table(
 )
 
 mapper_registry.map_imperatively(Role, role)
-
-
-class CasbinRule(db.Model):
-    __tablename__ = 'casbin_rule'
-
-    id = id_column()
-    ptype = db.Column(db.String(255))
-    v0 = db.Column(db.String(255))
-    v1 = db.Column(db.String(255))
-    v2 = db.Column(db.String(255))
-    v3 = db.Column(db.String(255))
-    v4 = db.Column(db.String(255))
-    v5 = db.Column(db.String(255))
-
-    def __str__(self):
-        arr = [self.ptype]
-        for v in (self.v0, self.v1, self.v2, self.v3, self.v4, self.v5):
-            if v is None:
-                break
-            arr.append(v)
-        return ', '.join(arr)
-
-    def __repr__(self):
-        return '<CasbinRule {}: "{}">'.format(self.id, str(self))
 
 
 class RoleSQLARepository(SQLARepository):
@@ -75,6 +52,46 @@ class RoleSQLARepository(SQLARepository):
         ).filter(
             self.model.role_number.in_(role_numbers)
         ).all()
+
+    def update_data(self, role_id: int, role_dict: dict):
+        """
+        更新角色数据
+
+        Args:
+            role_id: 角色ID
+            role_dict: 要更新的角色数据字典
+
+        Returns:
+            更新后的角色对象，如果角色不存在则返回None
+        """
+        try:
+            # 查询要更新的角色
+            role = self.session.query(self.model).filter(
+                self.model.id == role_id
+            ).first()
+
+            if not role:
+                return None
+
+            # 更新角色字段
+            for key, value in role_dict.items():
+                if hasattr(role, key):
+                    setattr(role, key, value)
+
+            # 设置更新时间
+            if hasattr(role, 'update_time'):
+                import datetime as dt
+                role.update_time = dt.datetime.now()
+
+            # 提交更改
+            self.session.commit()
+
+            return role
+
+        except Exception as e:
+            # 发生错误时回滚事务
+            self.session.rollback()
+            raise e
 
 
 @event.listens_for(Role, 'before_insert')

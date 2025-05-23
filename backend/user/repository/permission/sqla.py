@@ -1,19 +1,3 @@
-"""
-权限仓储模块
-"""
-
-# base.py
-from abc import ABCMeta
-
-from backend.user.domain.permission import Permission
-from kit.repository.generic import GenericRepository
-
-__all__ = ['PermissionRepository']
-
-
-class PermissionRepository(GenericRepository[Permission], metaclass=ABCMeta):
-    """权限仓储基类定义"""
-    ...
 
 
 # sqla.py
@@ -49,8 +33,6 @@ permission = Table(
     Column('sort_order', Integer, default=0, comment='排序号'),
     Column('description', String(255), comment='权限描述'),
     Column('is_deleted', Integer, default=0, comment='是否删除(0:否,1:是)'),
-    Column('creator', String(255), comment='创建者'),
-    Column('modifier', String(255), comment='修改者'),
     Column('create_time', DateTime, default=dt.datetime.now),
     Column('update_time', DateTime, default=dt.datetime.now, onupdate=dt.datetime.now),
 )
@@ -130,15 +112,8 @@ class PermissionSQLARepository(SQLARepository):
             permission_dict = {
                 'id': permission.id,
                 'name': permission.name,
-                'number': permission.number,
-                'level': permission.level,
                 'path': permission.path,
-                'component': permission.component,
-                'icon': permission.icon,
-                'menu_type': permission.menu_type,
                 'perms': permission.perms,
-                'status': permission.status,
-                'sort_order': permission.sort_order,
                 'children': children
             }
             result.append(permission_dict)
@@ -156,21 +131,4 @@ class PermissionSQLARepository(SQLARepository):
         if permission:
             permission.is_deleted = 1
             self.session.commit()
-
-
-@event.listens_for(Permission, 'before_insert')
-def unique_permission(mapper, connection, target: Permission):
-    """确保权限编号唯一性的触发器"""
-    conditions = [Permission.number == target.number, Permission.is_deleted == 0]
-    if db.session.query(Permission).filter(*conditions).first():
-        raise ServiceBadRequest(PERMISSION_EXISTS)
-
-
-@event.listens_for(Permission, 'before_update')
-def unique_permission_update(mapper, connection, target: Permission):
-    """更新时确保权限编号唯一性的触发器"""
-    conditions = [Permission.number == target.number, Permission.id != target.id, Permission.is_deleted == 0]
-    if db.session.query(Permission).filter(*conditions).first():
-        raise ServiceBadRequest(PERMISSION_EXISTS)
-
 
