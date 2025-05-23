@@ -84,7 +84,6 @@ class ShopUserService(CRUDService[ShopUser]):
         # 如果提供了密码，对其进行哈希处理
         user_cache = get_current_user()
         user_id_cache = user_cache.id
-        print("user_id_cache",entity_id,user_id_cache)
         if user_id_cache != entity_id:
             raise ServiceBadRequest("错误的请求用户")
         if user.password:
