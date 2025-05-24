@@ -23,6 +23,8 @@ user = Table(
     Column('password', String(255), nullable=False, comment='密码'),
     Column('department_id', BigInteger, index=True, comment='部门ID'),
     Column('job_title', String(255), comment='职务'),
+    Column('role_id', BigInteger, index=True, comment='角色ID'),
+
     Column('mobile', String(255), comment='电话'),
     Column('email', String(255), comment='邮箱'),
     Column('creator', String(255), comment='创建人'),

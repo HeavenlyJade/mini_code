@@ -62,6 +62,7 @@ class UserUpdateSchema(UserSchema):
             'job_title',
             'mobile',
             'email',
+            'role_id',
             'role_numbers',
         )
 
@@ -76,10 +77,18 @@ class LoginSchema(ArgSchema):
     username = fields.Str(required=True, description='用户名')
     password = fields.Str(required=True, description='密码')
 
+    # department_id = fields.Int(description='部门ID')
 
+class ReUserSchema(ArgSchema):
+    id = fields.Int(description='唯一id')
+    username = fields.Str(description='用户名')
+    role_id = fields.Int(description='角色id')
+    role_name = fields.Str(description='角色名字')
+    permission_ids = fields.List(fields.Int)
 class TokenSchema(BaseSchema):
     access_token = fields.Str()
     refresh_token = fields.Str()
+    user = fields.Nested(ReUserSchema())
     msg = fields.Str()
     code = fields.Int()
 

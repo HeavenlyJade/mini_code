@@ -24,7 +24,6 @@ class RoleService(CRUDService[Role]):
 
     def update(self, role_id: int, role: Role) -> Optional[Role]:
         role.modifier = current_user.username
-        print("role",role)
         return self._repo.update_data(role_id, role)
 
     def delete(self, record_id: int):

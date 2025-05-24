@@ -37,6 +37,16 @@ class RoleAPI(MethodView):
         """角色管理 创建角色"""
         return role_service.create(role)
 
+@blp.route('/role_list')
+class RoleListAPI(MethodView):
+    """角色管理API"""
+
+    decorators = [jwt_required()]
+
+    @blp.response()
+    def get(self, ):
+        """角色管理 查看角色列表"""
+        return role_service.role_list()
 
 @blp.route('/<int:role_id>')
 class RoleByIDAPI(MethodView):

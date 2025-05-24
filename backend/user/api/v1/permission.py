@@ -20,7 +20,7 @@ blp = APIBlueprint('permissions', 'permissions', url_prefix='/')
 class PermissionAPI(MethodView):
     """权限管理API"""
 
-    # decorators = [jwt_required()]
+    decorators = [jwt_required()]
 
     @blp.arguments(PermissionQueryArgSchema, location='query')
     @blp.response(PermissionListSchema)
@@ -44,7 +44,7 @@ class PermissionByIDAPI(MethodView):
 class PermissionTreeAPI(MethodView):
     """权限树API"""
 
-    # decorators = [jwt_required()]
+    decorators = [jwt_required()]
 
     @blp.response(PermissionTreeSchema)
     def get(self):

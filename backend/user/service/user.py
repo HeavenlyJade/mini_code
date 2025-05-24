@@ -35,10 +35,10 @@ class UserService(CRUDService[User]):
 
     def get(self, user_id: int) -> Optional[User]:
         user = super().get(user_id)
-        from backend.user.service import department_service
-        department = department_service.get(user.department_id)
-        if department:
-            user.department = department.name
+        # from backend.user.service import department_service
+        # department = department_service.get(user.department_id)
+        # if department:
+        #     user.department = department.name
         return self._get_user_detail(user)
 
     def get_user_center(self, user_id: int) -> Optional[User]:
@@ -55,19 +55,7 @@ class UserService(CRUDService[User]):
         return user
 
     def list(self, args: dict) -> dict:
-        if args.get('department_id'):
-            from backend.user.service import department_service
-            department_id = args.pop('department_id')
-            departments = department_service.get_sub_departments(department_id)
-            args['department_id'] = [department.id for department in departments]
-
-        if hasattr(g, 'allowed_department_ids'):
-            args['department_id'] = list(
-                set(args['department_id']) & set(g.allowed_department_ids)
-            )
-
         users, total = self.repo.list(**args)
-        casbin_enforcer.e.load_policy()
         items = list()
         for user in users:
             print(user)
@@ -112,7 +100,12 @@ class UserService(CRUDService[User]):
         refresh_token = create_refresh_token(user.id)
         user.last_login_time = dt.datetime.now()
         db.session.commit()
-        return dict(access_token=access_token, refresh_token=refresh_token)
+        from backend.role.service import role_service
+        role = role_service.repo.find(id=user.role_id)
+        re_user =dict(username=user.username, role_id=role.id,
+                      role_name=role.role_number,permission_ids=role.permission_ids,
+                      id=user.id)
+        return dict(access_token=access_token, refresh_token=refresh_token,user=re_user)
 
     def user_summary(self, department_id) -> list:
         users = self.repo.find_all(department_id=department_id)

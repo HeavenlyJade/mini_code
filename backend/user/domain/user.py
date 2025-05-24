@@ -52,7 +52,7 @@ class User(Entity):
     last_login_time: DateTimeField = field(
         default=None, metadata=dict(dump_only=True, description='上次登录时间')
     )
-
+    role_id: int= field(default=None, metadata=dict(description='角色ID'))
     role_numbers: str = field(default=None, metadata=dict(description='角色编码列表'))
     permissions: List[Permission] = field(
         default=None, metadata=dict(dump_only=True, description='权限列表')
@@ -61,9 +61,4 @@ class User(Entity):
         default=None,
         metadata=dict(description='区域列表', dump_only=True),
     )
-    # allowed_department_ids: List[int] = field(
-    #     default_factory=list,
-    #     metadata=dict(
-    #         dump_only=True,
-    #     )
-    # )
+

@@ -26,9 +26,6 @@ from kit.util.blueprint import APIBlueprint
 
 blp = APIBlueprint('users', 'users', url_prefix='/')
 
-
-
-
 @blp.route('/login')
 class LoginAPI(MethodView):
     @blp.arguments(LoginSchema)
@@ -76,6 +73,8 @@ class UserAPI(MethodView):
 
 @blp.route('/<int:user_id>')
 class UserByIDAPI(MethodView):
+    decorators = [auth_required()]
+
     @blp.response(UserSchema)
     def get(self, user_id: int):
         """用户管理 查看用户详情"""

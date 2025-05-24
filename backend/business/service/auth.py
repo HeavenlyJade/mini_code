@@ -52,9 +52,9 @@ def auth_required():
                         g.allowed_department_ids = role.allowed_department_ids
                     elif role.access_level == AccessLevel.OWN_DEPT.value:
                         g.allowed_department_ids = [user.department_id]
-                    elif role.access_level == AccessLevel.OWN_SUB_DEPT.value:
-                        departments = department_service.get_sub_departments(user.department_id)
-                        g.allowed_department_ids = [department.id for department in departments]
+                    # elif role.access_level == AccessLevel.OWN_SUB_DEPT.value:
+                    #     departments = department_service.get_sub_departments(user.department_id)
+                    #     g.allowed_department_ids = [department.id for department in departments]
                     elif role.access_level == AccessLevel.ONESELF.value:
                         g.creator = user.username
                 else:

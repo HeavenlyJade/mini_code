@@ -27,6 +27,14 @@ class CRUDService(Generic[T], metaclass=ABCMeta):
         items, total = self.repo.list(**args)
         return dict(items=items, total=total)
 
+    def role_list(self, ) -> dict:
+        items= self.repo.find_all()
+        re_data =[]
+        for i in items:
+            data_dict =dict(id=i.id, name=i.role_number)
+            re_data.append(data_dict)
+        return dict(items=re_data,)
+
     def get(self, entity_id: int) -> Optional[T]:
         """Return an entity based on the given primary key identifier, or ``abort 404`` if not found."""
         entity = self.repo.get_by_id(entity_id)

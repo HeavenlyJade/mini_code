@@ -6,16 +6,15 @@ from backend.extensions import jwt
 from backend.mini_core.domain.t_user import ShopUser
 
 from backend.mini_core.schema.shop_user import (
-    ShopUserCreateSchema,
     ShopUserListSchema,
 
     ShopUserQueryArgSchema,
     ShopUserSchema,
-    ShopUserStatusSchema,
+
     ShopUserUpdateSchema,
 )
 from backend.mini_core.service import shop_user_service
-from kit.schema.base import RespSchema
+
 from kit.util.blueprint import APIBlueprint
 from backend.user.service import user_service
 from backend.user.message import AuthMessage
@@ -25,6 +24,7 @@ blp = APIBlueprint('shop_users', 'shop_users', url_prefix='/shop_users')
 
 @jwt.user_lookup_loader
 def user_loader_callback(jwt_header: dict, jwt_data: dict) -> User:
+    print("jwt_data",jwt_data)
     openid = jwt_data.get("openid")
     platform = jwt_data.get("platform")
     if openid :
