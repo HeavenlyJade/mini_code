@@ -4,11 +4,12 @@ from backend.mini_core.schema.order.order import (ReShopOrderSchema, OrderStatus
                                                   WXShopOrderQueryArgSchema, MiniOrderCreateSchema)
 
 from backend.mini_core.schema.order.order_return import (
-    OrderReturnQueryArgSchema, ReOrderReturnSchema, ReOrderReturnListSchema,
+    OrderReturnQueryArgSchema, ReOrderReturnSchema, ReOrderReturnListSchema,AuditReturnSchema,
     ReturnApplicationSchema)
 from backend.business.service.auth import auth_required
-from backend.mini_core.service import shop_order_service,order_return_service
+from backend.mini_core.service import shop_order_service, order_return_service
 from kit.util.blueprint import APIBlueprint
+from flask_jwt_extended import get_current_user
 
 blp = APIBlueprint('wx_shop_order', 'wx_shop_order', url_prefix='/shop-order')
 
@@ -41,19 +42,6 @@ class OrderStatusAPI(MethodView):
     def post(self, args):
         """更新订单状态"""
         return shop_order_service.update_order_status(args["order_no"], args["status"])
-
-
-@blp.route('/order_status_data')
-class ShopOrderListAPI(MethodView):
-    decorators = [auth_required()]
-
-    @blp.arguments(WXShopOrderQueryArgSchema)
-    @blp.response()
-    def post(self, order_data):
-        """ 订单退货列表查询"""
-        status = order_data["status"]
-        order_data["status"] = status.split(",")
-        return shop_order_service.get_order_detail_msg(order_data)
 
 
 @blp.route('/cancel/')
@@ -89,19 +77,38 @@ class ShopOrderByOrderNoAPI(MethodView):
         """通过订单编号获取订单信息"""
         return shop_order_service.get_order_by_order_no(order_no)
 
+
+@blp.route('/order-return-data')
+class ShopOrderListAPI(MethodView):
+    decorators = [auth_required()]
+
+    @blp.arguments(WXShopOrderQueryArgSchema)
+    @blp.response()
+    def post(self, args: dict):
+        """查询退货单列表"""
+        return order_return_service.get_return_order_messages(args)
+
+
 @blp.route('/shop-order-return')
 class OrderReturnAPI(MethodView):
     """订单退货API"""
     decorators = [auth_required()]
-
-    @blp.arguments(OrderReturnQueryArgSchema, location='query')
-    @blp.response(ReOrderReturnListSchema)
-    def get(self, args: dict):
-        """查询退货单列表"""
-        return order_return_service.get_return_list(args)
 
     @blp.arguments(ReturnApplicationSchema)
     @blp.response()
     def post(self, application):
         """创建退货申请"""
         return order_return_service.create_return(application)
+
+
+# @blp.route('/shop-order-return/<string:order_no>/audit')
+# class AuditOrderReturnAPI(MethodView):
+#     """审核退货单API"""
+#     decorators = [auth_required()]
+#
+#     @blp.arguments(AuditReturnSchema)
+#     @blp.response(ReOrderReturnSchema)
+#     def put(self, args, order_no: str):
+#         """审核退货单"""
+#         status = args.pop("status")
+#         return order_return_service.update_return_status(order_no, status, **args)

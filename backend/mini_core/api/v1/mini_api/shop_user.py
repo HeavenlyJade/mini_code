@@ -24,7 +24,6 @@ blp = APIBlueprint('shop_users', 'shop_users', url_prefix='/shop_users')
 
 @jwt.user_lookup_loader
 def user_loader_callback(jwt_header: dict, jwt_data: dict) -> User:
-    print("jwt_data",jwt_data)
     openid = jwt_data.get("openid")
     platform = jwt_data.get("platform")
     if openid :

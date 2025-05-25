@@ -46,14 +46,10 @@ class CardService(CRUDService[Card]):
 
     def get(self, args: dict) -> Dict[str, Any]:
         """根据openid获取特定名片"""
-        openid = args.get("openid")
-        if not openid:
-            return dict(data=None, code=400, message="未提供openid参数")
-
-        data = self._repo.find(openid=openid)
+        user_id = args.get("user_id")
+        data = self._repo.find(user_id=user_id)
         if not data:
             return dict(data=None, code=404, message="未找到该名片")
-
         return dict(data=data, code=200)
 
     def update(self, card_id: int, card: Card) -> Dict[str, Any]:

@@ -34,6 +34,31 @@ class OrderReturnService(CRUDService[OrderReturn]):
         from backend.mini_core.service import order_detail_service
         return order_detail_service
 
+    def get_return_order_messages(self, args: dict) -> Dict[str, Any]:
+        """
+        获取用户的退货订单消息数据，包含退货订单和详情信息
+
+        Args:
+            args: 查询参数字典，包含:
+                - return_no: 退货单号
+                - order_no: 原订单号
+                - status: 退货状态
+                - return_type: 退货类型
+                - page: 页码
+                - size: 每页条数
+
+        Returns:
+            Dict: 包含退货订单和详情的响应数据
+        """
+
+        # 获取当前用户
+        current_user = get_current_user()
+        user_id = current_user.id
+        if not user_id:
+            return {"code": 401, "message": "用户未登录"}
+        # 调用repository的连表查询方法
+        return self._detail_service.get_return_order_msg(user_id, args)
+
     def get_return_list(self, args: dict) -> Dict[str, Any]:
         """获取退货单列表"""
         # 处理时间范围查询
@@ -125,9 +150,9 @@ class OrderReturnService(CRUDService[OrderReturn]):
         order = order_result.get('data')
 
         # 验证是否已经存在该订单的退货单
-        existing_return = self._repo.find(order_no=order_no)
-        if existing_return:
-            return dict(code=400, message="该订单已有退货申请，请勿重复提交")
+        # existing_return = self._repo.find(order_no=order_no)
+        # if existing_return:
+        #     return dict(code=400, message="该订单已有正在进行的退货申请，前往售后查看")
 
         # 获取订单详情信息
         order_details = self.order_detail_service.get_order_details(order_no)

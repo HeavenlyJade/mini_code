@@ -160,11 +160,8 @@ class OrderReturnSQLARepository(SQLARepository):
         return_obj = self.find(order_no=order_no)
         if return_obj:
             return_obj.status = status
-
-            # 根据状态更新相关时间
-            if status == '已同意' or status == '已拒绝':
-                return_obj.audit_time = dt.datetime.now()
-            elif status == '已完成':
+            return_obj.audit_time = dt.datetime.now()
+            if status == 1:
                 return_obj.complete_time = dt.datetime.now()
 
             # 更新其他字段
@@ -236,8 +233,8 @@ class OrderReturnSQLARepository(SQLARepository):
             # 3. 更新订单状态
             order = self.session.query(ShopOrder).filter(ShopOrder.order_no == order_no).first()
             if order:
-                order.status = "退款中"
-                order.refund_status = "退货中"
+                # order.status = "退款中"
+                order.refund_status = "退款中"
                 order.updater = username
 
             # 4. 更新订单明细的退款状态
@@ -294,6 +291,108 @@ class OrderReturnDetailSQLARepository(SQLARepository):
     def create_details(self, details: List[OrderReturnDetail]) -> None:
         """批量创建退货商品明细"""
         self.create_many(details)
+
+    def get_return_order_msg(self, user_id, args: dict):
+        """
+        获取订单退货消息数据，通过连表查询同时获取退货订单和退货详情数据
+
+        Args:
+            user_id (str): 用户ID，可以查询用户的所有退货订单
+            args (dict): 包含查询参数的字典，可包含:
+                - return_no: 退货单号
+                - order_no: 原订单号
+                - status: 退货状态
+                - return_type: 退货类型
+                - size: 每页条数
+                - page: 页码
+
+        Returns:
+            Dict: 包含退货订单信息和退货详情的字典
+        """
+        from backend.mini_core.domain.order.order_return import OrderReturn
+        from sqlalchemy import and_, or_, desc, func
+        from dataclasses import asdict
+
+        # 添加查询条件
+        return_no = args.get('return_no')
+        order_no = args.get('order_no')
+        status = args.get('status')
+        return_type = args.get('return_type')
+        size = args.get('size', 10)
+        page = args.get('page', 1)
+
+        filter_conditions = []
+
+        # 构建查询条件
+        if return_no:
+            filter_conditions.append(OrderReturn.return_no == return_no)
+        if order_no:
+            filter_conditions.append(OrderReturn.order_no == order_no)
+        if user_id:
+            filter_conditions.append(OrderReturn.user_id == user_id)
+        if isinstance(status, int):
+            filter_conditions.append(OrderReturn.status == status)
+        elif isinstance(status, list):
+            filter_conditions.append(OrderReturn.status.in_(status))
+        if return_type:
+            filter_conditions.append(OrderReturn.return_type == return_type)
+
+        if not filter_conditions:
+            return {"code": 400, "message": "必须提供至少一个查询条件"}
+
+        filter_expr = and_(*filter_conditions)
+
+        # 查询退货订单总数
+        total_count = self.session.query(func.count(OrderReturn.id)).filter(filter_expr).scalar()
+
+        # 如果没有退货订单，直接返回空结果
+        if total_count == 0:
+            return {"data": [], "code": 200, "total": 0, "page": page, "size": size}
+
+        # 计算分页参数
+        offset = (page - 1) * size
+
+        # 查询分页后的退货订单数据
+        paginated_returns = self.session.query(OrderReturn).filter(filter_expr).order_by(
+            desc(OrderReturn.apply_time)).offset(offset).limit(size).all()
+
+        # 获取这些退货订单的退货单号列表
+        return_nos = [return_order.return_no for return_order in paginated_returns]
+
+        # 查询退货详情数据
+        return_details_results = self.session.query(self.model).filter(
+            self.model.return_no.in_(return_nos)
+        ).all()
+
+        # 按退货单号分组退货详情
+        return_details_dict = {}
+        for detail in return_details_results:
+            if detail.return_no not in return_details_dict:
+                return_details_dict[detail.return_no] = [asdict(detail)]
+            else:
+                return_details_dict[detail.return_no].append(asdict(detail))
+
+        # 组装最终结果
+        result_data = []
+        for return_order in paginated_returns:
+            return_details_list = return_details_dict.get(return_order.return_no, [])
+
+            # 构建退货订单数据
+            return_order_data = {
+                "return_info": asdict(return_order),
+                "return_details": return_details_list,
+                "details_count": len(return_details_list)  # 退货商品数量
+            }
+            result_data.append(return_order_data)
+
+        return {
+            "data": result_data,
+            "code": 200,
+            "total": total_count,
+            "page": page,
+            "size": size,
+            "pages": (total_count + size - 1) // size  # 总页数
+        }
 
 
 class OrderReturnLogSQLARepository(SQLARepository):

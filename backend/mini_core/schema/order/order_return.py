@@ -67,7 +67,7 @@ class ReturnApplicationSchema(Schema):
 
 class AuditReturnSchema(Schema):
     status = webargs_fields.Int(required=True, description='退货状态(0待审核/1已同意/2已拒绝/3退款中/4已完成)',
-                                validate=validate.OneOf([0, 1, 2, 3, 4]))
+                                validate=validate.OneOf([0, 1, 2, 3, 4,5]))
     refuse_reason = webargs_fields.Str(allow_none=True, description='拒绝原因')
     admin_remark = webargs_fields.Str(allow_none=True, description='管理员备注')
     process_user_id = webargs_fields.Int(dump_only=True, description='处理人ID')
