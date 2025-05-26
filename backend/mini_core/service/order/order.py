@@ -320,7 +320,8 @@ class ShopOrderService(CRUDService[ShopOrder]):
         current_user_id = current_user.id
         if not transaction_id and trade_state!="SUCCESS":
             return dict(data=None, code=400, message="微信查询的订单不是支付成功，请联系客服")
-        if order and order.user_id==current_user_id:
+
+        if order and str(order.user_id) == str(current_user_id):
             order_user_id = order.user_id
             # if order.payment_status == '待支付':
             order.payment_status = '已支付'
