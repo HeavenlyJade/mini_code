@@ -75,9 +75,6 @@ class ShopProductDetailAPI(MethodView):
         return dict(code=200,data=data)
 
 
-
-
-
 @blp.route('/shop-product/category/<int:category_id>')
 class ShopProductByCategoryAPI(MethodView):
     """按分类查询商品API"""

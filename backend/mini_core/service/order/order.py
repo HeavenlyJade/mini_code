@@ -93,8 +93,8 @@ class ShopOrderService(CRUDService[ShopOrder]):
         amount = Decimal(order_data['amount'])
         # 解析用户信息
         user_detail = json.loads(order_data.get('userDetail', '{}'))
-        user_id = user_detail.get('id')
-
+        user = get_current_user()
+        user_id = str(user.user_id)
         if not user_id:
             return dict(data=None, code=400, message="用户信息不完整")
 
@@ -187,7 +187,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
         if discount_amount:
             order_data_to_save['actual_amount'] = product_amount - discount_amount
 
-        # 处理运费
+        # # 处理运费
         freight_amount = order_data.get('postage', Decimal('0'))
         if freight_amount:
             order_data_to_save['actual_amount'] = order_data_to_save['actual_amount'] + freight_amount
@@ -205,6 +205,15 @@ class ShopOrderService(CRUDService[ShopOrder]):
     def update_order_status(self, order_no: str, status: str) -> Dict[str, Any]:
         """更新订单状态"""
         order = self._repo.update_order_status(order_no, status)
+        if not order:
+            return dict(data=None, code=404, message="订单不存在")
+        return dict(data=order, code=200)
+
+
+    def wx_update_order_status(self, order_no: str, status: str) -> Dict[str, Any]:
+        """更新订单状态"""
+        order = self._repo.update_order_status(order_no, status)
+
         if not order:
             return dict(data=None, code=404, message="订单不存在")
         return dict(data=order, code=200)
@@ -317,7 +326,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
         trade_state = data.get('trade_state')
         trade_type = data.get("trade_type")
         current_user = get_current_user()
-        current_user_id = current_user.id
+        current_user_id = current_user.user_id
         if not transaction_id and trade_state!="SUCCESS":
             return dict(data=None, code=400, message="微信查询的订单不是支付成功，请联系客服")
 
