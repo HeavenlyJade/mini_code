@@ -317,8 +317,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
         trade_state = data.get('trade_state')
         trade_type = data.get("trade_type")
         current_user = get_current_user()
-        current_user_id = current_user.user_id
-        print(current_user)
+        current_user_id = current_user.id
         if not transaction_id and trade_state!="SUCCESS":
             return dict(data=None, code=400, message="微信查询的订单不是支付成功，请联系客服")
         if order and order.user_id==current_user_id:
