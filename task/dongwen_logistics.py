@@ -14,6 +14,7 @@ import logging
 from loguru import logger
 from backend.app import create_app
 from task import celery
+from celery.signals import worker_ready
 
 # 设置日志
 
@@ -149,6 +150,10 @@ def main():
     # except Exception as e:
     #     logger.critical(f"执行物流轨迹更新任务失败: {str(e)}")
 
+@worker_ready.connect
+def start_logistics_task(sender, **kwargs):
+    logger.info("Worker 启动，立即执行一次物流轨迹更新任务")
+    update_logistics_task.delay()
 
 if __name__ == "__main__":
     main()

@@ -13,7 +13,7 @@ task_serializer = 'json'
 result_serializer = 'json'
 timezone = 'Asia/Shanghai'
 enable_utc = False
-imports = ('task.log', 'task.user_log_processor')
+imports = ('task.log', 'task.user_log_processor', 'task.dongwen_logistics')
 worker_ready_handlers = ['task.user_log_processor.start_consumer']
 
 beat_schedule = {
