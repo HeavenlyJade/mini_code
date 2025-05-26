@@ -39,7 +39,8 @@ class UserService(CRUDService[User]):
         # department = department_service.get(user.department_id)
         # if department:
         #     user.department = department.name
-        return self._get_user_detail(user)
+        # self._get_user_detail(user)
+        return user
 
     def get_user_center(self, user_id: int) -> Optional[User]:
         from backend.role.service import role_service
@@ -122,14 +123,14 @@ class UserService(CRUDService[User]):
 
     @classmethod
     def _get_user_detail(cls, user: User) -> User:
-        permission_list = []
-        if user.role_numbers:
-            permission_list.extend(
-                casbin_enforcer.e.get_implicit_permissions_for_user(
-                    casbin_util.get_casbin_role_number(user.role_numbers)
-                )
-            )
-        user.permissions = casbin_util.get_system_permissions(permission_list)
+        # permission_list = []
+        # if user.role_numbers:
+        #     permission_list.extend(
+        #         casbin_enforcer.e.get_implicit_permissions_for_user(
+        #             casbin_util.get_casbin_role_number(user.role_numbers)
+        #         )
+        #     )
+        # user.permissions = casbin_util.get_system_permissions(permission_list)
         return user
 
     @classmethod
