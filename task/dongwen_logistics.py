@@ -12,9 +12,9 @@ import datetime as dt
 import requests
 import logging
 from loguru import logger
-from backend.app import create_app
 from task import celery
 from celery.signals import worker_ready
+from flask import current_app
 
 # 设置日志
 
@@ -26,9 +26,7 @@ class LogisticsTrackingTask:
 
     def __init__(self):
         """初始化任务"""
-        from backend.app import create_app
-        self.app = create_app()
-        # self.app.app_context().push()  # 已由celery_worker统一管理上下文，这里不需要再push
+        self.app = current_app
 
         # 从配置中获取顺丰API凭证
         self.sf_client_code = self.app.config.get('SF_CLIENT_CODE')
@@ -42,7 +40,7 @@ class LogisticsTrackingTask:
         logger.info("======开始执行物流轨迹更新任务======")
         # 获取所有需要更新的物流订单
         from backend.mini_core.repository import shop_order_logistics_sqla_repo
-        data_args= {   'current_status': '已发货','days': 7}
+        data_args= {   'current_status': ['已发货','运送中'],'days': 7}
         logistics_orders = shop_order_logistics_sqla_repo.get_con_logistics(kwargs=data_args)
         logger.info(f"找到 {len(logistics_orders)} 个需要更新的物流订单")
 
@@ -133,27 +131,9 @@ def update_logistics_task():
     task = LogisticsTrackingTask()
     task.run()
 
-def main():
-    """主函数"""
-    #try:
-    import time
-    import platform,os
-
-    os_name = platform.system()
-    if os_name == 'Windows':
-        os.chdir("../..")
-
-    app = create_app()
-    app.app_context().push()
-    task = LogisticsTrackingTask()
-    task.run()
-    # except Exception as e:
-    #     logger.critical(f"执行物流轨迹更新任务失败: {str(e)}")
 
 @worker_ready.connect
 def start_logistics_task(sender, **kwargs):
     logger.info("Worker 启动，立即执行一次物流轨迹更新任务")
     update_logistics_task.delay()
 
-if __name__ == "__main__":
-    main()

@@ -85,7 +85,7 @@ class ShopOrderLogisticsSQLARepository(SQLARepository):
         import datetime as dt
 
         # 提取并移除特定参数
-        current_status = kwargs.pop('current_status', '已发货')
+        current_status = kwargs.pop('current_status', ['已发货'])
         days = kwargs.pop('days', 7)
 
         # 计算指定天数前的日期
@@ -94,7 +94,7 @@ class ShopOrderLogisticsSQLARepository(SQLARepository):
         # 基础查询条件
         conditions = [
             # 状态为指定状态
-            self.model.current_status == current_status,
+            self.model.current_status.in_(current_status),
             # 发货时间在指定天数内
             self.model.shipping_time >= days_ago,
         ]
