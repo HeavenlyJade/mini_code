@@ -1,4 +1,5 @@
 from environs import Env
+from celery.schedules import crontab
 
 env = Env()
 env.read_env(override=True)
@@ -14,3 +15,10 @@ timezone = 'Asia/Shanghai'
 enable_utc = False
 imports = ('task.log', 'task.user_log_processor')
 worker_ready_handlers = ['task.user_log_processor.start_consumer']
+
+beat_schedule = {
+    'update-logistics-every-hour': {
+        'task': 'task.dongwen_logistics.update_logistics_task',
+        'schedule': crontab(minute=0, hour='*'),
+    },
+}

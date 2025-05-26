@@ -11,16 +11,12 @@
 import datetime as dt
 import requests
 import logging
-
+from loguru import logger
 from backend.app import create_app
+from task import celery
 
 # 设置日志
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    filename='logistics_tracking_task.log'
-)
-logger = logging.getLogger('logistics_tracking')
+
 
 from kit.sf_api.api import SF
 
@@ -130,6 +126,11 @@ class LogisticsTrackingTask:
 
 
 
+
+@celery.task
+def update_logistics_task():
+    task = LogisticsTrackingTask()
+    task.run()
 
 def main():
     """主函数"""
