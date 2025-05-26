@@ -28,7 +28,7 @@ class LogisticsTrackingTask:
         """初始化任务"""
         from backend.app import create_app
         self.app = create_app()
-        self.app.app_context().push()
+        # self.app.app_context().push()  # 已由celery_worker统一管理上下文，这里不需要再push
 
         # 从配置中获取顺丰API凭证
         self.sf_client_code = self.app.config.get('SF_CLIENT_CODE')
