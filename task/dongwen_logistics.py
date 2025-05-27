@@ -70,6 +70,7 @@ class LogisticsTrackingTask:
                 trackingNumber=logistics_no,
                 checkPhoneNo=phone_last_four,)
             print(self.sf_client_code,self.sf_check_word,logistics_no,phone_last_four)
+
             routes = order_result.get("msgData", {}).get("routeResps", [{}])[0].get("routes", [])
 
             # if not routes:
@@ -85,7 +86,6 @@ class LogisticsTrackingTask:
             # 准备新的轨迹数据以及当前状态
             new_route_items = []
             for route in routes:
-                print(route)
                 new_route_items.append({
                     "time": route.get("acceptTime", ""),
                     "status": f"{route.get('firstStatusName', '')}-{route.get('secondaryStatusName', '')}",
@@ -96,40 +96,37 @@ class LogisticsTrackingTask:
             # 更新物流数据
             current_status = latest_route.get("firstStatusName", "运输中")
             current_location = latest_route.get("acceptAddress", "")
+            current_accept_time = latest_route.get("acceptTime", "")
+            logistics_route_data = logistics.logistics_route
+            if logistics_route_data:
+                logistics_cur_route = logistics_route_data[0]
+                lo_time =logistics_cur_route["time"]
+                if current_accept_time == lo_time:
+                    logger.info(f"物流订单 {logistics.order_no} 的轨迹信息没有更新{current_accept_time},{lo_time}")
+                    continue
+            args = dict(route_info=new_route_items, current_status=current_status,
+                        current_location=current_location, )
+            if current_status == "已签收":
+                receiving_time = latest_route.get("acceptTime", )
+                args["receiving_time"] = receiving_time
 
-            # 判断是否需要更新
-            need_update = False
+            shop_order_logistics_sqla_repo.update_logistics_route(
+                logistics.id,
+                args=args)
 
+            logger.info(f"成功更新物流订单 {logistics.order_no} 的轨迹信息")
 
-            # 检查状态是否有变化
-            if current_status != logistics.current_status:
-                need_update = True
-
-            if need_update:
-                # 更新物流状态
-                # 如果已签收，更新收货时间\
-                args = dict(route_info=new_route_items, current_status=current_status,
-                            current_location=current_location, )
-                if current_status == "已签收":
-                    receiving_time = latest_route.get("acceptTime", )
-                    args["receiving_time"] = receiving_time
-
-                shop_order_logistics_sqla_repo.update_logistics_route(
-                    logistics.id,
-                    args=args)
-
-
-                logger.info(f"成功更新物流订单 {logistics.order_no} 的轨迹信息")
-            else:
-                logger.info(f"物流订单 {logistics.order_no} 的轨迹信息无变化，跳过更新")
 
 
 
 
 @celery.task
 def update_logistics_task():
+
     task = LogisticsTrackingTask()
     task.run()
+    # task = LogisticsTrackingTask()
+    # task.run()
 
 
 @worker_ready.connect
