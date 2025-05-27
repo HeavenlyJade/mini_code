@@ -69,8 +69,6 @@ class OrderDetailByIDAPI(MethodView):
         return order_detail_service.update_detail(detail_id, detail)
 
 
-
-
 @blp.route('/orders/<string:order_no>/details')
 class OrderDetailsByOrderAPI(MethodView):
     """订单的详情API"""
@@ -102,14 +100,3 @@ class OrderAmountAPI(MethodView):
     def get(self, order_no: str):
         """计算订单总金额信息"""
         return order_detail_service.get_order_amount(order_no)
-
-
-# @blp.route('/products/<int:product_id>/orders')
-# class ProductOrdersAPI(MethodView):
-#     """商品订单API"""
-#     decorators = [auth_required()]
-#
-#     @blp.response(OrderDetailListResponseSchema)
-#     def get(self, product_id: int):
-#         """获取指定商品的所有订单详情"""
-#         return order_detail_service.get_product_orders(product_id)

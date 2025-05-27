@@ -210,6 +210,7 @@ class ShopOrderSQLARepository(SQLARepository):
                 - order_data_to_save: 订单数据
                 - cart_items: 购物车项列表
                 - order_no: 订单编号
+                - user_data : 用户数据
 
         Returns:
             Dict: 包含操作结果的字典
@@ -219,10 +220,13 @@ class ShopOrderSQLARepository(SQLARepository):
         from backend.mini_core.domain.shop import ShopProduct
         from sqlalchemy.exc import SQLAlchemyError
         from backend.mini_core.utils.redis_utils.order_queue import RedisOrderQueue
+        from backend.mini_core.domain.t_user import ShopUser
+        from backend.mini_core.service import shop_user_service
 
         order_data_to_save = args["order_data_to_save"]
         cart_items = args["cart_items"]
         order_no = args["order_no"]
+        user_data = args["user_data"]
 
         # 开始事务
         try:
@@ -274,6 +278,14 @@ class ShopOrderSQLARepository(SQLARepository):
                 )
             # 提交事务
             RedisOrderQueue.add_pending_order(order_no, order_data_to_save)
+
+            points_used = user_data["points_used"]
+            user_int_id = user_data["user_int_id"]
+            remaining_points = user_data["remaining_points"]
+            if points_used>0:
+                user = shop_user_service.get(user_int_id)
+                user.points = remaining_points
+                shop_user_service.repo.update(user_int_id, user, commit=False)
 
             self.session.commit()
             return dict(data=order, code=200, message="订单创建成功")

@@ -51,7 +51,8 @@ class MemberLevelConfigService(CRUDService[MemberLevelConfig]):
         data = self._repo.get_enabled_levels()
         return dict(data=data, code=200, total=len(data))
 
-
+    def find_level_data(self,args):
+        return self._repo.find(**args)
     def get_level_by_id(self, level_id: int) -> Dict[str, Any]:
         """
         根据ID获取等级配置

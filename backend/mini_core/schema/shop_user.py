@@ -95,6 +95,25 @@ class ShopUserUpdateSchema(ShopUserSchema):
             "username",
         )
 
+class WXShopUserUpdateSchema(ShopUserSchema):
+    class Meta:
+        unknown = EXCLUDE
+        fields = (
+            'nickname',
+            'phone',
+            'email',
+            'avatar',
+            'real_name',
+            'gender',
+            'birthday',
+            'address',
+            'member_card_no',
+            'is_distributor',
+            'tags',
+            'remark',
+            "username",
+        )
+
 
 class ShopUserPatchSchema(ShopUserSchema):
     class Meta:

@@ -236,6 +236,7 @@ class ShopUserService(CRUDService[ShopUser]):
                 nickname=user_data.get('nickName', '微信用户'),
                 unionid=user_data.get('appid', ''),
                 avatar=avatar,
+                member_level="LV0",
                 status=1,  # 默认启用状态
                 register_channel='微信小程序',
                 register_time=dt.datetime.now(),
@@ -245,7 +246,7 @@ class ShopUserService(CRUDService[ShopUser]):
         dis_user_data = distribution_service.get({"sn": openid}).get("data")
         if not dis_user_data:
             share_user_id = user_data.get('share_user_id')
-            create_data = dict(sn=openid, total_amount=0, lv_id=2, user_id=user.user_id)
+            create_data = dict(sn=openid, total_amount=0, user_id=user.user_id)
             if share_user_id != user.user_id:
                 create_data['user_father_id'] = share_user_id
             distribution_service.create(create_data)

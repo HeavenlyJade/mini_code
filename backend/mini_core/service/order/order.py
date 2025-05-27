@@ -85,16 +85,30 @@ class ShopOrderService(CRUDService[ShopOrder]):
         import datetime as dt
         import uuid
         from backend.mini_core.repository import  shop_product_sqla_repo
+        from backend.mini_core.service import member_level_config_service
 
         # 生成订单编号和订单号
         now = dt.datetime.now()
         order_no = f"ORD{now.strftime('%Y%m%d%H%M%S')}{str(uuid.uuid4().int)[:6]}"
         order_sn = f"SN{now.strftime('%Y%m%d')}{str(uuid.uuid4().int)[:8]}"
-        amount = Decimal(order_data['amount'])
+        final_amount = Decimal(order_data['final_amount'])
+        points_used = order_data.get("points_used",0)
+        points_deduct_amount = order_data.get("points_deduct_amount",0)
         # 解析用户信息
         user_detail = json.loads(order_data.get('userDetail', '{}'))
         user = get_current_user()
+        user_int_id = user.id
         user_id = str(user.user_id)
+        user_points = user.points
+        member_level = user.member_level
+        member_level_config = member_level_config_service.find_level_data({"level_code": member_level})
+        remaining_points = user_points - points_used
+        if remaining_points< 0:
+            return dict(data=None, code=400, message="实际积分数量不足")
+
+        if not member_level_config:
+            return dict(data=None, code=400, message="没有会员的等级信息")
+        discount_rate =member_level_config.discount_rate
         if not user_id:
             return dict(data=None, code=400, message="用户信息不完整")
 
@@ -146,8 +160,13 @@ class ShopOrderService(CRUDService[ShopOrder]):
 
         # 解析收货地址
         address_info = json.loads(order_data.get('address', '{}'))
-        if bac_amount != amount:
-            return dict(data=None, code=400, message=f"价格订单和: 商城订单不一致")
+
+        dis_bac_amount = bac_amount * (discount_rate / 100)
+        discount_amount = bac_amount-dis_bac_amount
+        dis_bac_amount = dis_bac_amount - points_used
+        print("dis_bac_amount",dis_bac_amount,final_amount)
+        if dis_bac_amount != final_amount:
+            return dict(data=None, code=400, message=f"实际订单价格不一致")
         # 设置订单基础信息
         order_data_to_save = {
             'order_no': order_no,
@@ -164,8 +183,9 @@ class ShopOrderService(CRUDService[ShopOrder]):
             'refund_status': '无退款',
             'product_count': product_count,
             'product_amount': product_amount,
-            'actual_amount': product_amount,
-            'discount_amount': order_data.get('benefit', Decimal('0')),
+            'actual_amount': final_amount,
+            'discount_amount': discount_amount,
+            'point_amount':points_used,
             'freight_amount': order_data.get('postage', Decimal('0')),
             'receiver_name': address_info.get('name', ''),
             'receiver_phone': address_info.get('mobile', ''),
@@ -182,21 +202,13 @@ class ShopOrderService(CRUDService[ShopOrder]):
             'transaction_time': now
         }
 
-        # 处理折扣金额
-        discount_amount = order_data.get('benefit', Decimal('0'))
-        if discount_amount:
-            order_data_to_save['actual_amount'] = product_amount - discount_amount
-
-        # # 处理运费
-        freight_amount = order_data.get('postage', Decimal('0'))
-        if freight_amount:
-            order_data_to_save['actual_amount'] = order_data_to_save['actual_amount'] + freight_amount
-
+        user_data = dict(user_int_id=user_int_id,remaining_points=remaining_points,points_used=points_used)
         # 创建订单，使用事务操作
         args = {
             "order_data_to_save": order_data_to_save,
             "cart_items": cart_items,
-            "order_no": order_no
+            "order_no": order_no,
+            "user_data":user_data
         }
 
         # 调用事务方法创建订单和相关数据

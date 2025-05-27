@@ -165,8 +165,13 @@ class GoodsItemSchema(Schema):
 
 class MiniOrderCreateSchema(Schema):
     """Schema for mini program order creation"""
-    amount = fields.Decimal(required=True, description='订单总金额')
+    final_amount = fields.Decimal(required=True, description='订单总金额')
+    member_level = fields.Str(required=True, description='等级的id字段')
+    original_amount = fields.Decimal(required=True, description='折扣前金额')
+    member_discount = fields.Decimal(required=True, description='会员折扣金额')
     benefit = fields.Decimal(required=True, description='优惠金额')
+    points_deduct_amount =  fields.Decimal( description='积分抵扣金额')
+    points_used = fields.Int(description='积分的抵扣金额')
     postage = fields.Decimal(required=True, description='邮费')
     address = fields.Str(required=True, description='地址信息JSON字符串')
     goodsDetail = fields.Str(required=True, description='商品详情JSON字符串')

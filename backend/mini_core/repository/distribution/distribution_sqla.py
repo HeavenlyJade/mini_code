@@ -22,7 +22,6 @@ distribution_table = Table(
     Column('sn', String(50), comment='编号'),
     Column('real_name', String(50), comment='真实姓名'),
     Column('mobile', String(20), comment='手机号'),
-    Column("lv_id",Integer,comment="用户等级ID"),
     Column('identity', Integer, comment='身份,0超级管理员，1，普通管理员，2，公司成员，3普通用户'),
     Column('reason', Integer, comment='原因'),
     Column('wait_amount', Float, comment='已提现金额'),

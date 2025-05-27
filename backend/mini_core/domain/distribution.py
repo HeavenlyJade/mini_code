@@ -14,7 +14,6 @@ class Distribution(EntityInt):
     identity: int = field(default=None, metadata=dict(description='身份'))
     reason: int = field(default=None, metadata=dict(description='原因'))
     user_id: str = field(default=None, metadata=dict(description='用户ID'))
-    lv_id:int = field(default=None, metadata=dict(description='等级id'))
     wait_amount: float = field(default=None, metadata=dict(description='待提现金额'))
     total_amount: float = field(default=None, metadata=dict(description='总金额'))
     withdrawn_amount: float = field(default=None, metadata=dict(description='已提现金额'))

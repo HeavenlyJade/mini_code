@@ -10,8 +10,8 @@ from backend.mini_core.schema.shop_user import (
 
     ShopUserQueryArgSchema,
     ShopUserSchema,
+WXShopUserUpdateSchema,
 
-    ShopUserUpdateSchema,
 )
 from backend.mini_core.service import shop_user_service
 
@@ -58,7 +58,7 @@ class ShopUserByIDAPI(MethodView):
         """商城用户管理 查看用户详情"""
         return shop_user_service.get(user_id)
 
-    @blp.arguments(ShopUserUpdateSchema)
+    @blp.arguments(WXShopUserUpdateSchema)
     @blp.response(ShopUserSchema)
     def put(self, user: ShopUser, user_id: int):
         """商城用户管理 编辑用户"""

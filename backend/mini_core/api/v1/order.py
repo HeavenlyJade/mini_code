@@ -3,9 +3,7 @@ from flask import current_app
 
 from backend.mini_core.schema.order.order import (
     ShopOrderQueryArgSchema, ReShopOrderSchema, ReShopOrderListSchema,
-    OrderStatusUpdateArgSchema, PaymentStatusUpdateArgSchema,
-    DeliveryStatusUpdateArgSchema,
-    OrderCreateSchema, DateRangeQueryArgSchema,
+    OrderStatusUpdateArgSchema, PaymentStatusUpdateArgSchema,DateRangeQueryArgSchema,
     ReOrderStatsSchema, ReMonthlySalesSchema, ShippingInfoUpdateArgSchema
 )
 from backend.business.service.auth import auth_required
@@ -26,7 +24,6 @@ class ShopOrderAPI(MethodView):
         """查询订单列表"""
         return shop_order_service.get_order_list(args)
 
-
 @blp.route('/shop-order/<int:order_id>')
 class ShopOrderDetailAPI(MethodView):
     """订单详情API"""
@@ -43,10 +40,6 @@ class ShopOrderDetailAPI(MethodView):
         """更新指定ID的订单"""
         return shop_order_service.update(order_id, order_data)
 
-    @blp.response(ReShopOrderSchema)
-    def delete(self, order_id: int):
-        """删除指定ID的订单"""
-        return shop_order_service.delete(order_id)
 
 
 @blp.route('/shop-order/by-order-no/<string:order_no>')
@@ -91,18 +84,6 @@ class OrderStatsAPI(MethodView):
     def get(self):
         """获取订单统计信息"""
         return shop_order_service.get_order_stats()
-
-
-@blp.route('/shop-order/monthly-sales')
-class MonthlySalesAPI(MethodView):
-    """月度销售统计API"""
-    decorators = [auth_required()]
-
-    @blp.arguments(DateRangeQueryArgSchema, location='query')
-    @blp.response(ReMonthlySalesSchema)
-    def get(self, args: dict):
-        """获取月度销售统计"""
-        return shop_order_service.get_monthly_sales()
 
 
 @blp.route('/shop-order/payment-status')
