@@ -223,7 +223,7 @@ class ShopUserService(CRUDService[ShopUser]):
             raise ServiceBadRequest("微信用户标识(openid)不能为空")
 
         user = self.repo.get_by_openid(openid)
-
+        avatar = user_data.get('avatarurl')
         # 如果用户存在，更新必要的字段
         if user:
             user.last_login_time = dt.datetime.now()
@@ -235,7 +235,7 @@ class ShopUserService(CRUDService[ShopUser]):
                 username=user_data.get('username', f"wx_user_{openid[-8:]}"),  # 生成默认用户名
                 nickname=user_data.get('nickName', '微信用户'),
                 unionid=user_data.get('appid', ''),
-                avatar=user_data.get('avatar', ''),
+                avatar=avatar,
                 status=1,  # 默认启用状态
                 register_channel='微信小程序',
                 register_time=dt.datetime.now(),

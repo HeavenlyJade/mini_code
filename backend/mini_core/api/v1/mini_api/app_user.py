@@ -22,6 +22,7 @@ from backend.mini_core.service import shop_user_service
 from backend.mini_core.service.shop_app import wechat_auth_service
 from kit.exceptions import ServiceBadRequest
 from kit.util.blueprint import APIBlueprint
+from backend.business.service.auth import auth_required
 
 blp = APIBlueprint('wx_auth', 'wx_auth', url_prefix='/wx_auth')
 
@@ -29,6 +30,7 @@ blp = APIBlueprint('wx_auth', 'wx_auth', url_prefix='/wx_auth')
 @blp.route('/wechat_login')
 class WechatLoginAPI(MethodView):
     """微信登录API"""
+    # decorators = [auth_required()]
 
     @blp.arguments(WechatLoginSchema)
     @blp.response(ShopAppSchema)

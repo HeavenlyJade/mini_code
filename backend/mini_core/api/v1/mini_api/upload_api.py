@@ -18,7 +18,7 @@ blp = APIBlueprint('base_server', 'base_server', url_prefix='/')
 @blp.route('/upload_image')
 class FileUploadAPI(MethodView):
     """文件上传API"""
-
+    decorators = [auth_required()]
     @blp.response(UploadResponseSchema)
     def post(self):
         """处理文件上传请求"""
