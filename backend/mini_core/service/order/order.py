@@ -164,7 +164,6 @@ class ShopOrderService(CRUDService[ShopOrder]):
         dis_bac_amount = bac_amount * (discount_rate / 100)
         discount_amount = bac_amount-dis_bac_amount
         dis_bac_amount = dis_bac_amount - points_used
-        print("dis_bac_amount",dis_bac_amount,final_amount)
         if dis_bac_amount != final_amount:
             return dict(data=None, code=400, message=f"实际订单价格不一致")
         # 设置订单基础信息
@@ -219,6 +218,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
         order = self._repo.update_order_status(order_no, status)
         if not order:
             return dict(data=None, code=404, message="订单不存在")
+
         return dict(data=order, code=200)
 
 
@@ -284,6 +284,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
         order = self._repo.update_order_status(order_no, refund_status)
         if not order:
             return dict(data=None, code=404, message="订单不存在")
+        refund_points_result = self.refund_order_points({}, order_no,"订单退款")
 
         return dict(data=order, code=200)
 
@@ -311,18 +312,20 @@ class ShopOrderService(CRUDService[ShopOrder]):
         self._repo.update(order_id, order)
         return dict(data=order, code=200)
 
-    def cancel_order(self, order_id: int) -> Dict[str, Any]:
+    def cancel_order(self, args: dict) -> Dict[str, Any]:
         """取消订单"""
-        order = self._repo.get_by_id(order_id)
+        order_no = args['order_no']
+        order = self._repo.find(**{"order_no":order_no})
         if not order:
             return dict(data=None, code=404, message="订单不存在")
 
-        if order.status not in ['待支付', '已支付', '待发货']:
+        if order.status not in ['待支付']:
             return dict(data=None, code=400, message="当前订单状态不允许取消")
 
         order.status = '已取消'
         order.close_time = dt.datetime.now()
-
+        order_id = order.id
+        self.refund_order_points(order, order_no, "用户主动取消订单")
         self._repo.update(order_id, order)
         return dict(data=order, code=200)
 
@@ -485,3 +488,59 @@ class ShopOrderService(CRUDService[ShopOrder]):
             'operator': operator,
         })
         return dict(data=result, code=200, message="物流信息更新成功，物流跟踪已建立")
+
+    def refund_order_points(self,order_obj, order_no: str, reason: str = "订单取消/退款") -> Dict[str, Any]:
+        """
+        退还订单使用的积分给用户
+
+        参数:
+            order_no: 订单编号
+            reason: 退款原因
+
+        返回:
+            Dict[str, Any]: 包含退款结果的字典
+        """
+        from backend.mini_core.service import shop_user_service
+        from backend.mini_core.utils.redis_utils.log_queue import LogQueue
+        # 获取订单信息
+        if order_obj:
+            order =order_obj
+        else:
+            order = self._repo.find(order_no=order_no)
+            if not order:
+                return dict(data=None, code=404, message="订单不存在")
+
+        # 检查订单是否使用了积分
+        points_used = order.point_amount if order.point_amount else 0
+        if points_used <= 0:
+            return dict(data=None, code=400, message="该订单未使用积分，无需退还")
+        # 检查订单状态是否允许退款
+        if order.status not in ['已取消', '已退款', '退款中']:
+            return dict(data=None, code=400, message="订单状态不允许积分退款")
+        user = shop_user_service.find(user_id=order.user_id)
+        if not user:
+            return dict(data=None, code=404, message="用户不存在")
+        # 计算退还后的积分
+        original_points = user.points or 0
+        refund_points = int(points_used)
+        new_points = original_points + refund_points
+        # 更新用户积分
+        user.points = new_points
+        print(refund_points, original_points,new_points)
+
+        shop_user_service.repo.update(user.id, user)
+        # 记录积分退款日志
+        current_user = get_current_user()
+        operator = current_user.username if hasattr(current_user, 'username') else 'system'
+        # 添加订单日志]
+        operation_desc = f'订单取消/退款，退还积分 {refund_points} 分'
+        LogQueue.add_order_log(
+            order_no=order_no,
+            operation_type='积分退还',
+            operation_desc=f'订单取消/退款，退还积分 {refund_points} 分',
+            operator=operator,
+            old_value={'user_points': original_points},
+            new_value={'user_points': new_points},
+            remark=f'退款原因：{reason},{operation_desc}'
+        )
+

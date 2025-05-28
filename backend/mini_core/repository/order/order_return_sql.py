@@ -1,7 +1,7 @@
 from typing import Type, Tuple, List, Dict, Any, Union
 import datetime as dt
 
-from sqlalchemy import Column, String, Table, Integer, DateTime, Text, Enum, Boolean, Numeric, DECIMAL, BigInteger
+from sqlalchemy import Column, String, Table, Integer, DateTime, Text, JSON,Enum, Boolean, Numeric, DECIMAL, BigInteger
 from sqlalchemy import func, and_, or_, desc
 
 from backend.extensions import mapper_registry
@@ -19,7 +19,7 @@ order_return_table = Table(
     id_column(),
     Column('return_no', String(64), nullable=False, unique=True, comment='退货单号'),
     Column('order_no', String(64), nullable=False, comment='关联订单编号'),
-    Column('user_id', BigInteger, nullable=False, comment='用户ID'),
+    Column('user_id', String(64), nullable=False, comment='用户ID'),
     Column('return_type', String(32), nullable=False, comment='退货类型(退货退款/仅退款)'),
     Column('return_reason_id', Integer, comment='退货原因ID'),
     Column('return_reason', String(255), comment='退货原因描述'),
@@ -42,6 +42,8 @@ order_return_table = Table(
     Column('create_time', DateTime, default=dt.datetime.now),
     Column('update_time', DateTime, default=dt.datetime.now, onupdate=dt.datetime.now),
     Column('updater', String(64), comment='更新人'),
+    Column('refund_points', Integer, default=0, comment='退还积分数量'),
+    Column('calculation_detail', JSON, comment='退款计算明细(JSON格式)'),
 )
 
 # 订单退货商品明细表
@@ -63,6 +65,11 @@ order_return_detail_table = Table(
     Column('reason', String(255), comment='该商品退货原因'),
     Column('create_time', DateTime, default=dt.datetime.now),
     Column('update_time', DateTime, default=dt.datetime.now, onupdate=dt.datetime.now),
+    Column('allocated_discount', DECIMAL(10, 2), default=0, comment='该商品分摊的折扣金额'),
+    Column('allocated_points', DECIMAL(10, 2), default=0, comment='该商品分摊的积分金额'),
+    Column('proportion', DECIMAL(8, 4), default=0, comment='该商品在订单中的价格占比'),
+    Column('cash_refund_amount', DECIMAL(10, 2), default=0, comment='现金退款金额'),
+    Column('points_refund_amount', Integer, default=0, comment='积分退款数量'),
 )
 
 # 退货流程日志表

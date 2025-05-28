@@ -1,5 +1,5 @@
 from dataclasses import field
-from typing import Optional, List
+from typing import Optional, List,Dict,Any
 from decimal import Decimal
 from datetime import datetime
 from marshmallow_dataclass import dataclass
@@ -26,7 +26,7 @@ class OrderReturn(Entity):
             description='关联订单编号',
         ),
     )
-    user_id: int = field(
+    user_id: str = field(
         default=None,
         metadata=dict(
             description='用户ID',
@@ -152,6 +152,18 @@ class OrderReturn(Entity):
             description='更新人',
         ),
     )
+    refund_points: int = field(
+        default=0,
+        metadata=dict(
+            description='退还积分数量',
+        ),
+    )
+    calculation_detail: Optional[Dict[str, Any]] = field(
+        default=None,
+        metadata=dict(
+            description='退款计算明细(JSON格式)',
+        ),
+    )
 
 
 @dataclass
@@ -231,6 +243,36 @@ class OrderReturnDetail(Entity):
         default=None,
         metadata=dict(
             description='该商品退货原因',
+        ),
+    )
+    allocated_discount: Decimal = field(
+        default=Decimal('0'),
+        metadata=dict(
+            description='该商品分摊的折扣金额',
+        ),
+    )
+    allocated_points: Decimal = field(
+        default=Decimal('0'),
+        metadata=dict(
+            description='该商品分摊的积分金额',
+        ),
+    )
+    proportion: Decimal = field(
+        default=Decimal('0'),
+        metadata=dict(
+            description='该商品在订单中的价格占比',
+        ),
+    )
+    cash_refund_amount: Decimal = field(
+        default=Decimal('0'),
+        metadata=dict(
+            description='现金退款金额',
+        ),
+    )
+    points_refund_amount: int = field(
+        default=0,
+        metadata=dict(
+            description='积分退款数量',
         ),
     )
 
