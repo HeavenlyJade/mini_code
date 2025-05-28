@@ -21,8 +21,8 @@ class ShopOrderService(CRUDService[ShopOrder]):
         return self._repo
 
     def get_order_detail_msg(self, args: dict):
-        from flask_jwt_extended import get_jwt_identity
-        user_id = get_jwt_identity()
+        user = get_current_user()
+        user_id = str(user.user_id)
         return self._repo.get_order_msg(user_id=user_id, args=args)
 
     def get_order_list(self, args: dict) -> Dict[str, Any]:
