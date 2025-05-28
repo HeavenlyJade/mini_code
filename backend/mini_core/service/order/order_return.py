@@ -150,9 +150,9 @@ class OrderReturnService(CRUDService[OrderReturn]):
         order = order_result.get('data')
 
         # 验证是否已经存在该订单的退货单
-        # existing_return = self._repo.find(order_no=order_no)
-        # if existing_return:
-        #     return dict(code=400, message="该订单已有正在进行的退货申请，前往售后查看")
+        existing_return = self._repo.find(order_no=order_no)
+        if existing_return.status ==1:
+            return dict(code=400, message="已同意该订单退货申请，前联系客服处理")
 
         # 获取订单详情信息
         order_details = self.order_detail_service.get_order_details(order_no)
