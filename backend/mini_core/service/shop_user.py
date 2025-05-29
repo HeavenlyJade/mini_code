@@ -325,7 +325,7 @@ class ShopUserService(CRUDService[ShopUser]):
         dis_user_data = distribution_service.get({"sn": openid}).get("data")
         if not dis_user_data:
             share_user_id = user_data.get('share_user_id')
-            create_data = dict(sn=openid, total_amount=0, user_id=user.user_id)
+            create_data = dict(sn=openid, total_amount=0, user_id=user.user_id,lv_id=2)
             if share_user_id and share_user_id != user.user_id:
                 find_fa_data = self._repo.get_by_userid(share_user_id)
                 if find_fa_data:

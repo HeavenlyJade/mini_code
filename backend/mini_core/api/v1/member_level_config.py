@@ -46,12 +46,3 @@ class MemberLevelConfigDetailAPI(MethodView):
         """删除指定ID的会员等级配置"""
         return member_level_config_service.delete_level(level_id)
 
-
-@blp.route('/enabled')
-class EnabledMemberLevelConfigAPI(MethodView):
-    """启用的会员等级配置API"""
-
-    @blp.response(MemberLevelConfigListResponseSchema)
-    def get(self):
-        """获取所有启用的会员等级配置"""
-        return member_level_config_service.get_enabled_levels()

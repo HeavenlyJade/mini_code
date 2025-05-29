@@ -1,6 +1,6 @@
 from dataclasses import field
 from decimal import Decimal
-
+import datetime as dt
 from marshmallow_dataclass import dataclass
 
 from kit.domain.entity import EntityInt
@@ -17,12 +17,15 @@ class Distribution(EntityInt):
     wait_amount: float = field(default=None, metadata=dict(description='待提现金额'))
     total_amount: float = field(default=None, metadata=dict(description='总金额'))
     withdrawn_amount: float = field(default=None, metadata=dict(description='已提现金额'))
+    wait_deposit_amount:float = field(default=None, metadata=dict(description='等待客户收货确认的入账金额'))
     user_father_id: str = field(default=None, metadata=dict(description='上级ID'))
-    user_father_invite_code:str = field(default=None, metadata=dict(description='上级的父亲的邀请吗'))
+    user_father_invite_code:str = field(default=None, metadata=dict(description='上级的父亲的邀请码'))
     grade_id: int = field(default=None, metadata=dict(description='等级ID'))
     remark: str = field(default=None, metadata=dict(description='备注'))
     status: int = field(default=None, metadata=dict(description='状态 (0-未审核, 1-已审核)'))
-    audit_time: int = field(default=None, metadata=dict(description='审核时间'))
+    audit_time: dt.datetime  = field(default=None, metadata=dict(description='审核时间'))
+    lv_id: int = field(default=None, metadata=dict(description='用户的分销等级ID'))
+
 
 
 @dataclass

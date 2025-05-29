@@ -47,13 +47,12 @@ class DistributionService(CRUDService[Distribution]):
         dis_data = self._repo.find(user_id=user_id)
         user_data = shop_user_service.find(invite_code=user_father_invite_code)
         if not user_data:
-            return dict(data={}, code=400,message="上级邀请码的用户不存在")
+            return dict(data={}, code=400, message="上级邀请码的用户不存在")
         father_user_id = user_data.user_id
         dis_data.user_father_id = father_user_id
         dis_data.user_father_invite_code = user_father_invite_code
-        re_data = self._repo.update(dis_data.id,dis_data)
+        re_data = self._repo.update(dis_data.id, dis_data)
         return dict(data=asdict(re_data), code=200)
-
 
     def data_list(self, args: dict) -> Dict[str, Any]:
         """
@@ -94,17 +93,10 @@ class DistributionService(CRUDService[Distribution]):
 
         # 处理时间范围查询
         if "start_time" in args and "end_time" in args and args["start_time"] and args["end_time"]:
-            start_time = datetime_str_to_ts(args["start_time"])
-            end_time = datetime_str_to_ts(args["end_time"])
-            query_params["create_time"] = [start_time, end_time]
+            query_params["create_time"] = [args["start_time"], args["end_time"]]
 
         # 执行带有上级用户信息的查询
         data, total = self._repo.list_with_parent_info(**query_params)
-        for item in data:
-            if 'create_time' in item and item['create_time']:
-                item['create_time'] = timestamp_to_datetime(item['create_time'])
-            if 'update_time' in item and item['update_time']:
-                item['update_time'] = timestamp_to_datetime(item['update_time'])
         # 返回结果
         return {"data": data, "total": total, "code": 200}
 
@@ -213,7 +205,7 @@ class DistributionService(CRUDService[Distribution]):
         return dict(data=result, code=200)
 
     def create(self, distribution: Distribution) -> Dict[str, Any]:
-        result =self._repo.create(distribution)
+        result = self._repo.create(distribution)
         return dict(data=result, code=200)
 
     def delete(self, id: int) -> Dict[str, Any]:
@@ -229,9 +221,13 @@ class DistributionService(CRUDService[Distribution]):
         result = self._repo.update(distribution)
         return dict(data=result, code=200)
 
-    def get_distribution(self, ):
+    def get_distribution(self,dis_id: int ):
+        distribution_user_data = self._repo.get_by_id(dis_id)
+        return asdict(distribution_user_data)
+
+    def wx_get_distribution(self, ):
         from backend.mini_core.service import distribution_grade_service, distribution_config_service
-        from dataclasses import asdict
+
         current_user = get_current_user()
         current_user_openid = current_user.openid
         distribution_user_data = self._repo.find(sn=current_user_openid)
@@ -239,8 +235,8 @@ class DistributionService(CRUDService[Distribution]):
         grade_data = dis_data.get("data")
         config_data, _ = distribution_config_service.config_data_list()
         distribution_user_data = asdict(distribution_user_data)
-        config_data=[dict(content=i.content,title=i.title) for i in config_data ]
-        grade_data = [asdict(i) for  i in grade_data]
+        config_data = [dict(content=i.content, title=i.title) for i in config_data]
+        grade_data = [asdict(i) for i in grade_data]
         return dict(config_data=config_data, grade_data=grade_data, distribution_user_data=distribution_user_data)
 
 
@@ -277,9 +273,7 @@ class DistributionConfigService(CRUDService[DistributionConfig]):
         result = super().delete(id)
         return dict(data=result, code=200)
 
-    def get_value_by_key(self, key: str) -> str:
-        config = self._repo.find(key=key)
-        return config.value if config else ""
+
 
 
 class DistributionGradeService(CRUDService[DistributionGrade]):
@@ -292,7 +286,9 @@ class DistributionGradeService(CRUDService[DistributionGrade]):
     @property
     def repo(self) -> DistributionGradeSQLARepository:
         return self._repo
-
+    def find_all_dis_config(self, args: dict) -> Dict:
+        data = self._repo.find_all(**args)
+        return {item.id: item.name for item in data}
     def grader_data_list(self, args: dict):
         data, total = self._repo.list(**args)
         return dict(data=data, total=total, code=200)
@@ -407,7 +403,7 @@ class DistributionIncomeService(CRUDService[DistributionIncome]):
         # if end_date and start_date:
         #     start_date = datetime_str_to_ts(start_date)
         #     end_date = datetime_str_to_ts(end_date)
-        print("query_args",query_args)
+        print("query_args", query_args)
         data, total = self._repo.list(**query_args)
         from dataclasses import asdict
         re_data = []
@@ -511,7 +507,6 @@ class DistributionIncomeService(CRUDService[DistributionIncome]):
         result["total_income"] = total_income
         result["total_order_count"] = total_orders
         return result
-
 
     def update(self, id: int, income: DistributionIncome) -> Dict[str, Any]:
         result = self._repo.update(id, income)

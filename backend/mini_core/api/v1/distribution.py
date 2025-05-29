@@ -7,7 +7,7 @@ from backend.mini_core.schema.distribution import (
     ReDistributionGradeSchema, DistributionConfigSchema,
     DistributionGradeUpdateQueryArgSchema, DistributionIncomeQueryArgSchema,
     DistributionLogQueryArgSchema, ReDistributionGradeListSchema, DistributionGradeSchema, Distribution,
-    ReDistributionConfigDataSchema,ReDistributionConfigSchema,
+    ReDistributionConfigDataSchema, ReDistributionConfigSchema,
     DistributionGradeUpdate, DistributionIncome, DistributionLog
 )
 from backend.mini_core.service import (
@@ -30,12 +30,13 @@ class DistributionWXView(MethodView):
     def get(self, args: dict):
         """查询分销页面的数据"""
         income = distribution_income_service.get_income_statistics(args)
-        return dict(data=dict(income=income,), code=200)
+        return dict(data=dict(income=income, ), code=200)
 
 
 @blp.route('/distribution')
 class DistributionAPI(MethodView):
     """分销API"""
+    decorators = [auth_required()]
 
     @blp.arguments(DistributionQueryArgSchema, location='query')
     # @blp.response(ReDistributionSchemaList)
@@ -50,9 +51,25 @@ class DistributionAPI(MethodView):
         return distribution_service.update(distribution["user_id"], distribution)
 
 
+@blp.route('/distribution/<int:dis_id>')
+class DistributionUserAPI(MethodView):
+    """分销API"""
+    decorators = [auth_required()]
+
+    @blp.response()
+    def get(self, dis_id):
+        """查看分销信息"""
+        dis_user_data = distribution_service.get_distribution(dis_id)
+        income_dict = dict(user_id=dis_user_data["user_id"])
+        income = distribution_income_service.get_income_statistics(income_dict)
+        re_data = dict(data=dis_user_data, income=income, code=200)
+        return re_data
+
+
 @blp.route('/distribution-config')
 class DistributionConfigAPI(MethodView):
     """分销配置API"""
+    decorators = [auth_required()]
 
     @blp.arguments(DistributionConfigQueryArgSchema, location='query')
     @blp.response(ReDistributionConfigSchema)
@@ -64,24 +81,38 @@ class DistributionConfigAPI(MethodView):
 
     @blp.arguments(DistributionConfigSchema)
     @blp.response(ReDistributionConfigDataSchema)
-    def post(self,args):
+    def post(self, args):
         return distribution_config_service.create(args)
+
 
 @blp.route('/distribution-config/<int:data_id>')
 class DistributionGradePatchAPI(MethodView):
+    decorators = [auth_required()]
+
     @blp.arguments(DistributionConfigSchema)
     @blp.response(ReDistributionConfigDataSchema)
     def put(self, config, data_id):
         """更新分销配置"""
         return distribution_config_service.update(data_id, config)
+
     @blp.response(ReDistributionConfigDataSchema)
     def delete(self, data_id):
         return distribution_config_service.delete(data_id)
 
 
+@blp.route('/distribution-grade-list')
+class DistributionConfigAPI(MethodView):
+    decorators = [auth_required()]
+
+    @blp.response()
+    def get(self, ):
+        return distribution_grade_service.find_all_dis_config({})
+
+
 @blp.route('/distribution-grade')
 class DistributionGradeAPI(MethodView):
     """分销等级API"""
+    decorators = [auth_required()]
 
     @blp.arguments(DistributionGradeQueryArgSchema, location='query')
     @blp.response(ReDistributionGradeListSchema)
@@ -99,6 +130,7 @@ class DistributionGradeAPI(MethodView):
 @blp.route('/distribution-grade/<int:data_id>')
 class DistributionGradeAPI(MethodView):
     """ 分析修改和删除API"""
+    decorators = [auth_required()]
 
     @blp.arguments(DistributionGradeSchema)
     @blp.response(ReDistributionGradeSchema)
@@ -115,6 +147,7 @@ class DistributionGradeAPI(MethodView):
 @blp.route('/distribution-grade-update')
 class DistributionGradeUpdateAPI(MethodView):
     """分销等级更新API"""
+    decorators = [auth_required()]
 
     @blp.arguments(DistributionGradeUpdateQueryArgSchema, location='query')
     @blp.response(ReDistributionGradeSchema)
@@ -132,6 +165,7 @@ class DistributionGradeUpdateAPI(MethodView):
 @blp.route('/distribution_income')
 class DistributionIncomeAPI(MethodView):
     """分销收入API"""
+    decorators = [auth_required()]
 
     @blp.arguments(DistributionIncomeQueryArgSchema, location='query')
     @blp.response()
@@ -149,6 +183,7 @@ class DistributionIncomeAPI(MethodView):
 @blp.route('/distribution-log')
 class DistributionLogAPI(MethodView):
     """分销日志API"""
+    decorators = [auth_required()]
 
     @blp.arguments(DistributionLogQueryArgSchema, location='query')
     def get(self, args: dict):
@@ -163,6 +198,7 @@ class DistributionLogAPI(MethodView):
 
 @blp.route('/distribution_members')
 class DistributionMembersAPI(MethodView):
+    decorators = [auth_required()]
 
     @blp.arguments(DistributionQueryArgSchema, location="query")
     @blp.response()

@@ -139,4 +139,4 @@ class DistributionRulesAPI(MethodView):
     @blp.arguments(DistributionQueryArgSchema)
     @blp.response()
     def post(self, args: dict):
-        return distribution_service.get_distribution()
+        return distribution_service.wx_get_distribution()

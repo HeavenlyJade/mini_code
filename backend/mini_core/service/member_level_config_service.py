@@ -41,6 +41,10 @@ class MemberLevelConfigService(CRUDService[MemberLevelConfig]):
         data, total = self._repo.list(**args)
         return dict(data=data, total=total, code=200)
 
+    def find_all_levels(self) ->List[Dict]:
+        data = self.repo.find_all()
+        return [{i.id: i.name} for i in data]
+
     def get_enabled_levels(self) -> Dict[str, Any]:
         """
         获取所有启用的会员等级
@@ -53,20 +57,7 @@ class MemberLevelConfigService(CRUDService[MemberLevelConfig]):
 
     def find_level_data(self,args):
         return self._repo.find(**args)
-    def get_level_by_id(self, level_id: int) -> Dict[str, Any]:
-        """
-        根据ID获取等级配置
 
-        Args:
-            level_id: 等级ID
-
-        Returns:
-            Dict: 包含等级配置的字典
-        """
-        data = self._repo.get_by_id(level_id)
-        if not data:
-            return dict(data=None, code=404, message="等级配置不存在")
-        return dict(data=data, code=200)
 
     def create_level(self, level_data: Dict[str, Any]) -> Dict[str, Any]:
         """

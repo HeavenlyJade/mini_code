@@ -1,6 +1,7 @@
 from typing import Type, Tuple,List,Dict
-
+from sqlalchemy.orm import aliased
 from sqlalchemy import Column, String, Table, Integer, DECIMAL, Text,DateTime,Float
+from sqlalchemy import and_, or_, desc, asc, func
 from sqlalchemy import func
 
 from backend.extensions import mapper_registry
@@ -24,11 +25,13 @@ distribution_table = Table(
     Column('mobile', String(20), comment='手机号'),
     Column('identity', Integer, comment='身份,0超级管理员，1，普通管理员，2，公司成员，3普通用户'),
     Column('reason', Integer, comment='原因'),
-    Column('wait_amount', Float, comment='已提现金额'),
-    Column('total_amount', Float, comment='待提现金额'),
-    Column('withdrawn_amount', Float, comment='总金额'),
+    Column('wait_amount', Float, comment='待提现金额'),
+    Column('total_amount', Float, comment='总金额'),
+    Column('withdrawn_amount', Float, comment='已经提现金额'),
+    Column('wait_deposit_amount', Float, comment='等待客户收货确认的入账金额'),
     Column('user_id', String(50), comment='用户ID'),
     Column('user_father_id', String(50), comment='上级ID'),
+    Column('lv_id', Integer, comment='用户的分销等级ID'),
     Column('user_father_invite_code', String(10), comment='上级的父亲的编码'),
     Column('grade_id', Integer, comment='等级ID'),
     Column('remark', String(255), comment='备注'),
@@ -53,7 +56,6 @@ distribution_config_table = Table(
     Column('update_time', DateTime, comment='更新时间'),
     Column('delete_time', DateTime, comment='删除时间'),
 )
-
 # 分销等级表
 distribution_grade_table = Table(
     'la_distribution_grade',
@@ -363,9 +365,10 @@ class DistributionSQLARepository(SQLARepository):
             formatted_result.append(user_info)
 
         return formatted_result
+
     def list_with_parent_info(self, **kwargs) -> Tuple[List[Dict], int]:
         """
-        获取分销用户列表，并包含上级用户的名称信息
+        获取分销用户列表，并包含上级用户的名称信息（ORM版本）
 
         参数:
             与list方法相同的查询参数（页码、每页数量、过滤条件等）
@@ -373,93 +376,124 @@ class DistributionSQLARepository(SQLARepository):
         返回:
             包含上级用户名称的分销用户列表及总数
         """
-        # 构建基础SQL查询
-        base_sql = """
-            SELECT d.*, parent.real_name as parent_name
-            FROM la_distribution d
-            LEFT JOIN la_distribution parent ON d.user_father_id = parent.user_id
-            WHERE 1=1
-        """
+        # 创建父级分销用户的别名
+        ParentDistribution = aliased(Distribution)
 
-        # 构建WHERE条件
-        params = {}
-        where_clauses = []
+        # 构建基础查询
+        query = self.session.query(
+            Distribution,
+            ParentDistribution.real_name.label('parent_name')
+        ).outerjoin(
+            ParentDistribution,
+            Distribution.user_father_id == ParentDistribution.user_id
+        )
 
-        # 添加查询条件
-        if 'sn' in kwargs and kwargs['sn']:
-            where_clauses.append("d.sn = :sn")
-            params['sn'] = kwargs['sn']
-
-        if 'real_name' in kwargs and kwargs['real_name']:
-            where_clauses.append("d.real_name LIKE :real_name")
-            params['real_name'] = f"%{kwargs['real_name']}%"
-
-        if 'mobile' in kwargs and kwargs['mobile']:
-            where_clauses.append("d.mobile LIKE :mobile")
-            params['mobile'] = f"%{kwargs['mobile']}%"
-
-        if 'user_id' in kwargs and kwargs['user_id']:
-            where_clauses.append("d.user_id = :user_id")
-            params['user_id'] = kwargs['user_id']
-
-        if 'grade_id' in kwargs and kwargs['grade_id']:
-            where_clauses.append("d.grade_id = :grade_id")
-            params['grade_id'] = kwargs['grade_id']
-
-        if 'status' in kwargs and kwargs['status'] is not None:
-            where_clauses.append("d.status = :status")
-            params['status'] = kwargs['status']
-
-        # 处理时间范围查询
-        if 'create_time' in kwargs and isinstance(kwargs['create_time'], list) and len(kwargs['create_time']) == 2:
-            start_time, end_time = kwargs['create_time']
-            where_clauses.append("d.create_time BETWEEN :start_time AND :end_time")
-            params['start_time'] = start_time
-            params['end_time'] = end_time
-
-        # 拼接WHERE条件
-        if where_clauses:
-            base_sql += " AND " + " AND ".join(where_clauses)
-
-        # 添加排序
-        if 'ordering' in kwargs and kwargs['ordering']:
-            order_fields = []
-            for field in kwargs['ordering']:
-                is_desc = field.startswith('-')
-                field_name = field[1:] if is_desc else field
-                order_fields.append(f"d.{field_name} {'DESC' if is_desc else 'ASC'}")
-
-            if order_fields:
-                base_sql += " ORDER BY " + ", ".join(order_fields)
-        else:
-            # 默认排序
-            base_sql += " ORDER BY d.create_time DESC"
+        # 构建查询条件
+        conditions = self._build_query_conditions(**kwargs)
+        if conditions:
+            query = query.filter(and_(*conditions))
 
         # 计算总数
-        count_sql = f"""
-            SELECT COUNT(*) as total
-            FROM la_distribution d
-            WHERE {' AND '.join(where_clauses) if where_clauses else '1=1'}
-        """
         total = 0
-        if kwargs.get('need_total_count'):
-            total_row = self.session.execute(count_sql, params).fetchone()
-            total = total_row.total if total_row else 0
-
-        # 添加分页
-        if 'page' in kwargs and 'size' in kwargs:
-            page = int(kwargs['page'])
-            size = int(kwargs['size'])
-            base_sql += f" LIMIT {size} OFFSET {(page - 1) * size}"
-
-        # 执行查询
-        result = self.session.execute(base_sql, params).fetchall()
-
-        # 将结果转换为字典列表
-        result_list = [dict(row) for row in result]
-
-
+        need_total_count = kwargs.get('need_total_count')
+        if need_total_count:
+            total = self._count_with_parent_join(conditions, ParentDistribution)
+        # 应用排序和分页
+        query = self._apply_ordering(query, kwargs.get('ordering'))
+        query = self._apply_pagination(query, kwargs.get('page'), kwargs.get('size'))
+        # 执行查询并格式化结果
+        result = query.all()
+        result_list = self._format_result_with_parent(result)
         return result_list, total
+
+    def _build_query_conditions(self, **kwargs):
+        """构建查询条件"""
+        conditions = []
+
+        sn = kwargs.get('sn')
+        if sn:
+            conditions.append(Distribution.sn == sn)
+
+        real_name = kwargs.get('real_name')
+        if real_name:
+            conditions.append(Distribution.real_name.like(f"%{real_name}%"))
+
+        mobile = kwargs.get('mobile')
+        if mobile:
+            conditions.append(Distribution.mobile.like(f"%{mobile}%"))
+
+        user_id = kwargs.get('user_id')
+        if user_id:
+            conditions.append(Distribution.user_id == user_id)
+
+        grade_id = kwargs.get('grade_id')
+        if grade_id:
+            conditions.append(Distribution.grade_id == grade_id)
+
+        status = kwargs.get('status')
+        if status is not None:
+            conditions.append(Distribution.status == status)
+
+        # 处理时间范围查询
+        create_time = kwargs.get('create_time')
+        if create_time and isinstance(create_time, list) and len(create_time) == 2:
+            start_time, end_time = create_time
+            conditions.append(and_(
+                Distribution.create_time >= start_time,
+                Distribution.create_time <= end_time
+            ))
+
+        return conditions
+
+    def _count_with_parent_join(self, conditions, ParentDistribution):
+        """计算包含父级信息的总数"""
+        count_query = self.session.query(func.count(Distribution.id)).outerjoin(
+            ParentDistribution,
+            Distribution.user_father_id == ParentDistribution.user_id
+        )
+        if conditions:
+            count_query = count_query.filter(and_(*conditions))
+        return count_query.scalar() or 0
+
+    def _apply_ordering(self, query, ordering):
+        """应用排序"""
+        if ordering:
+            order_fields = []
+            for field in ordering:
+                is_desc = field.startswith('-')
+                field_name = field[1:] if is_desc else field
+
+                if hasattr(Distribution, field_name):
+                    column = getattr(Distribution, field_name)
+                    if is_desc:
+                        order_fields.append(desc(column))
+                    else:
+                        order_fields.append(asc(column))
+
+            if order_fields:
+                query = query.order_by(*order_fields)
+        else:
+            query = query.order_by(desc(Distribution.create_time))
+
+        return query
+
+    def _apply_pagination(self, query, page, size):
+        """应用分页"""
+        if page and size:
+            page = int(page)
+            size = int(size)
+            query = query.offset((page - 1) * size).limit(size)
+        return query
+
+    def _format_result_with_parent(self, result):
+        """格式化包含父级信息的结果"""
+        result_list = []
+        for distribution, parent_name in result:
+            from dataclasses import asdict
+            distribution_dict = asdict(distribution)
+            distribution_dict['parent_name'] = parent_name
+            result_list.append(distribution_dict)
+        return result_list
 class DistributionConfigSQLARepository(SQLARepository):
     @property
     def model(self) -> Type[DistributionConfig]:
