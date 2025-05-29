@@ -109,6 +109,9 @@ class DistributionIncomeSummarySchema(EntityIntSchema):
     settled_money = fields.Decimal(description='已结算金额')
     frozen_money = fields.Decimal(description='已冻结金额')
 
+class WXDistributionWxDataSchema(ArgSchema):
+    user_father_invite_code =fields.Str(description='上级的父亲的邀请码')
+
 
 # 响应 Schema
 class ReDistributionSchemaList(ArgSchema):
@@ -149,3 +152,4 @@ class ReDistributionWxDataSchema(EntitySchema):
     config_data =fields.List(fields.Nested(DistributionConfigSchema()))
     grade_data = fields.List(fields.Nested(DistributionGradeSchema()))
     distribution_user_data = fields.Nested(DistributionSchema())
+

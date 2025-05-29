@@ -29,6 +29,7 @@ distribution_table = Table(
     Column('withdrawn_amount', Float, comment='总金额'),
     Column('user_id', String(50), comment='用户ID'),
     Column('user_father_id', String(50), comment='上级ID'),
+    Column('user_father_invite_code', String(10), comment='上级的父亲的编码'),
     Column('grade_id', Integer, comment='等级ID'),
     Column('remark', String(255), comment='备注'),
     Column('status', Integer, comment='状态 (0-未审核, 1-已审核)'),

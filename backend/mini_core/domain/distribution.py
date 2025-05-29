@@ -18,6 +18,7 @@ class Distribution(EntityInt):
     total_amount: float = field(default=None, metadata=dict(description='总金额'))
     withdrawn_amount: float = field(default=None, metadata=dict(description='已提现金额'))
     user_father_id: str = field(default=None, metadata=dict(description='上级ID'))
+    user_father_invite_code:str = field(default=None, metadata=dict(description='上级的父亲的邀请吗'))
     grade_id: int = field(default=None, metadata=dict(description='等级ID'))
     remark: str = field(default=None, metadata=dict(description='备注'))
     status: int = field(default=None, metadata=dict(description='状态 (0-未审核, 1-已审核)'))

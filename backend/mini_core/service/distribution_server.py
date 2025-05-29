@@ -1,5 +1,5 @@
 from typing import Optional, Dict, Any
-
+from dataclasses import asdict
 from flask_jwt_extended import get_current_user
 
 from backend.mini_core.domain.distribution import (Distribution, DistributionConfig, DistributionGrade,
@@ -38,6 +38,22 @@ class DistributionService(CRUDService[Distribution]):
             data = convert_timestamps_to_datetime(data)
 
         return {"data": data, "code": 200}
+
+    def wx_find_update(self, args: dict) -> Dict[str, Any]:
+        from backend.mini_core.service import shop_user_service
+        user = get_current_user()
+        user_id = str(user.user_id)
+        user_father_invite_code = args["user_father_invite_code"]
+        dis_data = self._repo.find(user_id=user_id)
+        user_data = shop_user_service.find(invite_code=user_father_invite_code)
+        if not user_data:
+            return dict(data={}, code=400,message="上级邀请码的用户不存在")
+        father_user_id = user_data.user_id
+        dis_data.user_father_id = father_user_id
+        dis_data.user_father_invite_code = user_father_invite_code
+        re_data = self._repo.update(dis_data.id,dis_data)
+        return dict(data=asdict(re_data), code=200)
+
 
     def data_list(self, args: dict) -> Dict[str, Any]:
         """
@@ -104,11 +120,9 @@ class DistributionService(CRUDService[Distribution]):
         """
         # 获取数据
         user_id = args['user_id']
-        print("user_id", user_id)
 
         # 从数据库获取层级数据
         sql_data = self._repo.get_summary_tree(args)
-        print("sql_data", sql_data)
 
         # 转换为树状结构数据格式 (适合前端渲染)
         def convert_to_tree_format(data, parent_id, current_level=1):

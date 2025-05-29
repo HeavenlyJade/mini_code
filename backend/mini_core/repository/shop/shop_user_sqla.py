@@ -50,7 +50,7 @@ shop_user_table = Table(
     Column('create_time', DateTime, default=dt.datetime.now),
     Column('update_time', DateTime, default=dt.datetime.now, onupdate=dt.datetime.now),
     Column('updater', String(64), comment='更新人'),
-
+    Column('invite_code', String(10), comment='邀请码'),
 )
 
 # 商城用户地址表
@@ -94,6 +94,17 @@ class ShopUserSQLARepository(SQLARepository):
     def range_query_params(self) -> Tuple:
         return ('register_time', 'last_login_time', 'points', 'balance')
 
+    def find_by_invite_codes(self, invite_code_list: List[str]) -> List[str]:
+        """通过邀请码列表查询用户列表，只返回invite_code字段"""
+        if not invite_code_list:
+            return []
+
+        # 只查询invite_code字段
+        result = self.session.query(ShopUser.invite_code).filter(
+            ShopUser.invite_code.in_(invite_code_list)).all()
+        # 提取invite_code值并返回列表
+        return [row.invite_code for row in result if row.invite_code]
+
     def get_by_username(self, username: str) -> Optional[ShopUser]:
         """通过用户名获取用户"""
         return self.session.query(ShopUser).filter(ShopUser.username == username).first()
@@ -105,6 +116,9 @@ class ShopUserSQLARepository(SQLARepository):
     def get_by_openid(self, openid: str) -> Optional[ShopUser]:
         """通过微信openid获取用户"""
         return self.session.query(ShopUser).filter(ShopUser.openid == openid).first()
+
+    def get_by_userid(self,user_id: str):
+        return self.session.query(ShopUser).filter(ShopUser.user_id == user_id).first()
 
     def update_user_status(self, user_id: int, status: int) -> Optional[ShopUser]:
         """更新用户状态"""

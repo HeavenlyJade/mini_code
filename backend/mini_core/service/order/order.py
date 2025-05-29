@@ -161,9 +161,10 @@ class ShopOrderService(CRUDService[ShopOrder]):
         # 解析收货地址
         address_info = json.loads(order_data.get('address', '{}'))
 
-        dis_bac_amount = bac_amount * (discount_rate / 100)
-        discount_amount = bac_amount-dis_bac_amount
-        dis_bac_amount = dis_bac_amount - points_used
+        discount_bac_amount = bac_amount * (discount_rate / 100)  # 打折后的价格
+        discount_amount = bac_amount-discount_bac_amount   # 折扣后的价格
+        dis_bac_amount = discount_bac_amount - points_used  # 折扣价格前去使用的积分
+        print(dis_bac_amount,final_amount)
         if dis_bac_amount != final_amount:
             return dict(data=None, code=400, message=f"实际订单价格不一致")
         # 设置订单基础信息

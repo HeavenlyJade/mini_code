@@ -19,8 +19,6 @@ from kit.util.blueprint import APIBlueprint
 blp = APIBlueprint('shop', 'shop', url_prefix='/')
 
 
-
-
 @blp.route('/product-category')
 class ProductCategoryAPI(MethodView):
     """商品分类API"""
@@ -41,11 +39,7 @@ class ProductCategoryDetailAPI(MethodView):
         """获取指定ID的商品分类"""
         return shop_product_category_service.find_data({"id": category_id})
 
-    @blp.arguments(ProductCategorySchema)
-    @blp.response(ReProductCategorySchema)
-    def put(self, category, category_id: int):
-        """更新指定ID的商品分类"""
-        return shop_product_category_service.update(category_id, category)
+
 
     @blp.response(ReProductCategorySchema)
     def delete(self, category_id: int):

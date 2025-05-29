@@ -190,6 +190,12 @@ class ShopUser(Entity):
             description='更新人',
         ),
     )
+    invite_code: str = field(
+        default=None,
+        metadata=dict(
+            description='邀请吗',
+        ),
+    )
 
 
 @ma_dataclass

@@ -30,6 +30,82 @@ def _generate_user_id() -> str:
     return f"U{timestamp}{random_num}"
 
 
+import random
+from typing import List, Optional
+
+
+class InviteCodeGenerator:
+    """邀请码生成器"""
+
+    # 邀请码字符集 - 包含所有字符
+    CHARSET = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+    CODE_LENGTH = 6  # 邀请码长度
+    BATCH_SIZE = 10  # 批量生成数量
+    MAX_RETRY = 10  # 最大重试次数
+
+    @classmethod
+    def generate_invite_code(cls, openid: str = None) -> Optional[str]:
+        """
+        生成唯一邀请码（批量验证优化版）
+
+        Args:
+            openid: 用户openid，用于增加随机性
+
+        Returns:
+            str: 6位唯一邀请码，如果生成失败返回None
+        """
+        for attempt in range(cls.MAX_RETRY):
+            # 批量生成邀请码
+            batch_codes = cls._generate_batch_codes()
+
+            # 批量检查数据库中是否已存在
+            existing_codes = cls._check_codes_exist(batch_codes)
+
+            # 找出不存在的邀请码
+            available_codes = [code for code in batch_codes if code not in existing_codes]
+
+            # 如果有可用的邀请码，返回第一个
+            if available_codes:
+                return available_codes[0]
+
+        return None
+
+    @classmethod
+    def _generate_batch_codes(cls) -> List[str]:
+        """批量生成邀请码（5-7位随机长度）"""
+        codes = []
+        for _ in range(cls.BATCH_SIZE):
+            # 随机生成5-7位长度
+            code_length = random.randint(5, 7)
+            invite_code = ''.join(random.choices(cls.CHARSET, k=code_length))
+            codes.append(invite_code)
+        return codes
+
+    @classmethod
+    def _check_codes_exist(cls, invite_code_list: List[str]) -> List[str]:
+        """
+        检查邀请码列表是否已存在
+
+        Args:
+            invite_code_list: 待检查的邀请码列表
+
+        Returns:
+            List[str]: 已存在的邀请码列表
+        """
+        if not invite_code_list:
+            return []
+
+        try:
+            from backend.mini_core.service import shop_user_service
+            # 调用仓储方法查询数据库中已存在的邀请码
+            existing_codes = shop_user_service.repo.find_by_invite_codes(invite_code_list)
+            return existing_codes
+        except Exception as e:
+            print(f"检查邀请码存在性时出错: {str(e)}")
+            # 如果查询失败，为安全起见返回全部（表示都存在，需要重新生成）
+            return invite_code_list
+
+
 class ShopUserService(CRUDService[ShopUser]):
     def __init__(self, repo: ShopUserSQLARepository):
         super().__init__(repo)
@@ -242,13 +318,19 @@ class ShopUserService(CRUDService[ShopUser]):
                 register_time=dt.datetime.now(),
                 mini_program_name=user_data.get('appid', '')  # 存储appid到mini_program_name字段
             )
+            invite_code = InviteCodeGenerator.generate_invite_code(openid)
+            if invite_code:
+                new_user.invite_code = invite_code
             user = self.create(new_user)
         dis_user_data = distribution_service.get({"sn": openid}).get("data")
         if not dis_user_data:
             share_user_id = user_data.get('share_user_id')
             create_data = dict(sn=openid, total_amount=0, user_id=user.user_id)
-            if share_user_id != user.user_id:
-                create_data['user_father_id'] = share_user_id
+            if share_user_id and share_user_id != user.user_id:
+                find_fa_data = self._repo.get_by_userid(share_user_id)
+                if find_fa_data:
+                    create_data['user_father_id'] = share_user_id
+                    create_data["user_father_invite_code"] = find_fa_data.invite_code
             distribution_service.create(create_data)
         return user
 
