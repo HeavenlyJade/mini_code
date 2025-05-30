@@ -1,5 +1,4 @@
 from flask.views import MethodView
-from flask_jwt_extended import get_current_user
 
 from backend.business.service.auth import auth_required
 from backend.mini_core.schema.distribution import (
@@ -7,8 +6,8 @@ from backend.mini_core.schema.distribution import (
     ReDistributionGradeSchema, DistributionConfigSchema,
     DistributionGradeUpdateQueryArgSchema, DistributionIncomeQueryArgSchema,
     DistributionLogQueryArgSchema, ReDistributionGradeListSchema, DistributionGradeSchema, Distribution,
-    ReDistributionConfigDataSchema, ReDistributionConfigSchema,
-    DistributionGradeUpdate, DistributionIncome, DistributionLog
+    ReDistributionConfigDataSchema, ReDistributionConfigSchema, ReDistributionSchemaList,
+    DistributionGradeUpdate, DistributionIncome, DistributionLog, ReDistributionUserTeamSchema,
 )
 from backend.mini_core.service import (
     distribution_service, distribution_config_service,
@@ -31,6 +30,17 @@ class DistributionWXView(MethodView):
         """查询分销页面的数据"""
         income = distribution_income_service.get_income_statistics(args)
         return dict(data=dict(income=income, ), code=200)
+
+
+@blp.route('/distribution/<string:user_id>/orders')
+class DistributionUserView(MethodView):
+    decorators = [auth_required()]
+    @blp.arguments(DistributionQueryArgSchema, location='query')
+    @blp.response()
+    def get(self,args: dict, user_id: str):
+        """查询用户的分销页面的数据"""
+        args["user_id"] =user_id
+        return distribution_income_service.get(args)
 
 
 @blp.route('/distribution')
@@ -60,10 +70,18 @@ class DistributionUserAPI(MethodView):
     def get(self, dis_id):
         """查看分销信息"""
         dis_user_data = distribution_service.get_distribution(dis_id)
-        income_dict = dict(user_id=dis_user_data["user_id"])
-        income = distribution_income_service.get_income_statistics(income_dict)
-        re_data = dict(data=dis_user_data, income=income, code=200)
+        re_data = dict(data=dis_user_data, code=200)
         return re_data
+
+
+@blp.route('/distribution/team')
+class DistributionUserTeamAPI(MethodView):
+    @blp.arguments(ReDistributionUserTeamSchema, )
+    @blp.response(ReDistributionSchemaList)
+    def post(self, args: dict):
+        """查询用户的下一级分销节点"""
+        dis_user_data = distribution_service.get_user_team_data(args)
+        return dis_user_data
 
 
 @blp.route('/distribution-config')

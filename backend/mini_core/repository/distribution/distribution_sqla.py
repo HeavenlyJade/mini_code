@@ -96,12 +96,16 @@ distribution_income_table = Table(
     mapper_registry.metadata,
     id_column(),
     Column('user_id', String(255), comment='用户ID'),
+    Column('order_no', String(50), comment='订单编号'),
+
     Column('order_id', Integer, comment='订单ID'),
     Column('order_product_id', Integer, comment='产品订单ID'),
     Column('product_id', Integer, comment='产品ID'),
     Column('product_name', String(255), comment='产品名称'),
     Column('item_id', Integer, comment='商品ID'),
     Column('money', DECIMAL(10, 2), comment='金额'),
+    Column('distribution_amount', DECIMAL(10, 2), comment='分销金额'),
+
     Column('grade_id', Integer, comment='分销等级ID'),
     Column('level', Integer, comment='分销层级'),
     Column('ratio', DECIMAL(10, 2), comment='分销比例'),
@@ -149,7 +153,7 @@ class DistributionSQLARepository(SQLARepository):
 
     @property
     def query_params(self) -> Tuple:
-        return 'sn', 'real_name', 'mobile', 'user_id', 'grade_id', 'status'
+        return 'sn', 'real_name', 'mobile', 'user_id', 'grade_id', 'status',"user_father_id"
 
     def get_summary_tree(self, args):
         """

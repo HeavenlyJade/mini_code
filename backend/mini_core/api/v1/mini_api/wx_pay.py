@@ -3,7 +3,6 @@ from flask import request, jsonify
 import json
 
 from backend.mini_core.schema.shop_app.wx_pay import WxPay,WxPaySchema
-# from backend.mini_core.service.shop_app.wx_server import WechatPayService
 from backend.mini_core.service.shop_app.wx_server_new import WechatPayService
 
 from backend.business.service.auth import auth_required

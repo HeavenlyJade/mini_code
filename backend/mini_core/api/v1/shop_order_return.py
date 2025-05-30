@@ -25,13 +25,6 @@ class OrderReturnAPI(MethodView):
         """查询退货单列表"""
         return order_return_service.get_return_list(args)
 
-    # @blp.arguments(ReturnApplicationSchema)
-    # @blp.response(ReOrderReturnSchema)
-    # def post(self, application):
-    #     """创建退货申请"""
-    #     return order_return_service.create_return(application["return_info"], application["return_items"])
-    #
-
 @blp.route('/shop-order-return_detail')
 class OrderReturnDetailAPI(MethodView):
     """退货单详情API"""

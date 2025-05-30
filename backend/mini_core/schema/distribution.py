@@ -5,7 +5,7 @@ from webargs import fields
 from backend.mini_core.domain.distribution import (Distribution, DistributionConfig,
                                                    DistributionGrade, DistributionGradeUpdate,
                                                    DistributionIncome, DistributionLog)
-from kit.schema.base import EntitySchema, EntityIntSchema, ListResultSchema,ArgSchema
+from kit.schema.base import EntitySchema, EntityIntSchema, ListResultSchema, ArgSchema
 
 # 基本 Schema 类
 DistributionSchema = class_schema(Distribution, base_schema=EntitySchema)
@@ -24,7 +24,7 @@ class DistributionQueryArgSchema(EntityIntSchema):
     mobile = fields.Str(description='手机号')
     # user_id = fields.Str(description='用户ID')
     grade_id = fields.Int(description='等级ID')
-    status = fields.Int(description='状态',)
+    status = fields.Int(description='状态', )
 
 
 # 分销配置查询参数 Schema
@@ -78,6 +78,13 @@ class DistributionUserSchema(EntityIntSchema):
     grade_id = fields.Int(description='等级ID')
     grade_name = fields.Str(description='等级名称')
     status = fields.Int(description='状态')
+    lv_id = fields.Int(description='用户的分销等级id')
+
+
+class ReDistributionSchemaList(ArgSchema):
+    data = fields.List(fields.Nested(DistributionUserSchema()))
+    code = fields.Int(description='状态')
+    total = fields.Int(description='总数')
 
 
 # 分销等级详情 Schema
@@ -89,7 +96,7 @@ class DistributionGradeDetailSchema(EntityIntSchema):
     second_ratio = fields.Decimal(description='二级分拥比例')
     conditions = fields.Decimal(description="条件")
     update_relation = fields.Int(description='分销关系')
-    remark =fields.Str(description='等级描述')
+    remark = fields.Str(description='等级描述')
 
 
 class DistributionGradSchema(EntityIntSchema):
@@ -109,15 +116,17 @@ class DistributionIncomeSummarySchema(EntityIntSchema):
     settled_money = fields.Decimal(description='已结算金额')
     frozen_money = fields.Decimal(description='已冻结金额')
 
+
+class ReDistributionUserTeamSchema(EntityIntSchema):
+    user_father_id = fields.Str(description='用户上级的UUID',required=True)
+
+
 class WXDistributionWxDataSchema(ArgSchema):
-    user_father_invite_code =fields.Str(description='上级的父亲的邀请码')
+    user_father_invite_code = fields.Str(description='上级的父亲的邀请码')
 
 
 # 响应 Schema
-class ReDistributionSchemaList(ArgSchema):
-    data = fields.List(fields.Nested(DistributionUserSchema()))
-    code = fields.Int(description='状态')
-    total = fields.Int(description='总数')
+
 
 class ReDistributionSchema(EntityIntSchema):
     data = fields.Nested(DistributionUserSchema())
@@ -128,6 +137,7 @@ class ReDistributionConfigSchema(EntityIntSchema):
     data = fields.List(fields.Nested(DistributionConfigSchema()))
     # data = fields.Nested(DistributionConfigSchema())
     code = fields.Int(description='状态')
+
 
 class ReDistributionConfigDataSchema(EntityIntSchema):
     data = fields.Nested(DistributionConfigSchema())
@@ -143,13 +153,13 @@ class ReDistributionGradeListSchema(EntityIntSchema):
     data = fields.List(fields.Nested(DistributionGradeDetailSchema()))
     code = fields.Int(description='状态')
 
+
 class ReDistributionIncomeSchema(ListResultSchema):
     data = fields.List(fields.Nested(DistributionIncomeSchema()))
     code = fields.Int(description='状态')
 
 
 class ReDistributionWxDataSchema(EntitySchema):
-    config_data =fields.List(fields.Nested(DistributionConfigSchema()))
+    config_data = fields.List(fields.Nested(DistributionConfigSchema()))
     grade_data = fields.List(fields.Nested(DistributionGradeSchema()))
     distribution_user_data = fields.Nested(DistributionSchema())
-

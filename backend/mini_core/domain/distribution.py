@@ -61,11 +61,15 @@ class DistributionGradeUpdate(EntityInt):
 class DistributionIncome(EntityInt):
     user_id: str = field(default=None, metadata=dict(description='用户ID'))
     order_id: str = field(default=None, metadata=dict(description='订单ID'))
+    order_no: str = field(default=None, metadata=dict(description='订单编号'))
+
     order_product_id: str = field(default=None, metadata=dict(description='产品订单ID'))
     product_id: str = field(default=None, metadata=dict(description='产品ID'))
     product_name: str = field(default=None, metadata=dict(description='产品名称'))
     item_id: str = field(default=None, metadata=dict(description='商品ID'))
     money: float = field(default=None, metadata=dict(description='金额'))
+    distribution_amount: float = field(default=None, metadata=dict(description='分销的金额'))
+
     grade_id: int = field(default=None, metadata=dict(description='分销等级ID'))
     level: int = field(default=None, metadata=dict(description='分销层级'))
     ratio: float = field(default=None, metadata=dict(description='分销比例'))

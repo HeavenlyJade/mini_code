@@ -14,8 +14,6 @@ from kit.wechatpayv3 import WeChatPay, WeChatPayType
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-# 配置和初始化应用
-app = Flask(__name__)
 
 
 # 配置获取方式改为从Flask current_app中获取
@@ -47,7 +45,6 @@ def get_config():
     except FileNotFoundError:
         current_app.logger.error(f"找不到私钥文件：{config['PRIVATE_KEY_PATH']}")
         config['PRIVATE_KEY'] = None
-
     return config
 
 
@@ -476,3 +473,29 @@ class WechatPayService:
         except Exception as e:
             current_app.logger.error(f"关闭订单异常: {str(e)}")
             return {"error": f"关闭订单异常: {str(e)}", "code": 500}
+
+    @staticmethod
+    def wx_withdrawal(args):
+        wxpay = init_wechat_pay()
+        if not wxpay:
+            return {"error": "微信支付初始化失败", "code": 500}
+        out_bill_no = "OUTBATCH20250528221953297245"
+        batch_name = "测试转账"
+        transfer_remark ="测试转账"
+        transfer_amount = 1
+        total_num =1
+        transfer_detail_list=[
+            {"out_detail_no": "x23zy545Bd5436", "transfer_amount": 1, "transfer_remark": "测试转账",
+             "openid": "o-od-Km7eh_iuz-f8qUhjQ2OfJtGwM", "user_name": "张三"}]
+        transfer_scene_id ="1005"
+        openid="od-Km7eh_iuz-f8qUhjQ2OfJtGwM"
+        notify_url ="https://dwjc.mcorg.com/api/v1/wx_mini_app/shop_pay/wx_pay_notify"
+        user_name="肖飞"
+        user_recv_perception="佣金提现"
+        data =wxpay.mch_transfer_bills(out_bill_no=out_bill_no,transfer_scene_id=transfer_scene_id,
+                                       openid=openid,transfer_amount=transfer_amount,transfer_remark=transfer_remark,
+                                       user_name=user_name,user_recv_perception=user_recv_perception,
+                                       notify_url=notify_url
+
+                                       )
+        print(data)

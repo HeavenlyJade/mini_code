@@ -227,7 +227,6 @@ class DistributionService(CRUDService[Distribution]):
 
     def wx_get_distribution(self, ):
         from backend.mini_core.service import distribution_grade_service, distribution_config_service
-
         current_user = get_current_user()
         current_user_openid = current_user.openid
         distribution_user_data = self._repo.find(sn=current_user_openid)
@@ -239,6 +238,15 @@ class DistributionService(CRUDService[Distribution]):
         grade_data = [asdict(i) for i in grade_data]
         return dict(config_data=config_data, grade_data=grade_data, distribution_user_data=distribution_user_data)
 
+    def get_user_team_data(self,args):
+        data,total = self._repo.list(**args)
+        re_team =[]
+        for item in data:
+            real_name = item.real_name
+            real_name = real_name[0] + '*' * (len(real_name) - 2) + real_name[-1]
+            re_dic = dict(real_name=real_name,lv_id=item.lv_id,user_id=item.user_id)
+            re_team.append(re_dic)
+        return dict(data=re_team, total=total,code=200)
 
 class DistributionConfigService(CRUDService[DistributionConfig]):
     def __init__(self, repo: DistributionConfigSQLARepository):
@@ -387,6 +395,7 @@ class DistributionIncomeService(CRUDService[DistributionIncome]):
         return self._repo
 
     def get(self, args: dict) -> Dict[str, Any]:
+        print("args",args)
         user_id = args.get("user_id")
         order_id = args.get("order_id")
         status = args.get("status")
@@ -400,15 +409,12 @@ class DistributionIncomeService(CRUDService[DistributionIncome]):
             query_args["order_id"] = order_id
         if status is not None and int(status) != -1:
             query_args["status"] = status
-        # if end_date and start_date:
-        #     start_date = datetime_str_to_ts(start_date)
-        #     end_date = datetime_str_to_ts(end_date)
-        print("query_args", query_args)
+        query_args["need_total_count"] = args.get("need_total_count")
+        query_args["page"] = args.get("page")
+        query_args["size"] = args.get("size")
         data, total = self._repo.list(**query_args)
-        from dataclasses import asdict
         re_data = []
         for i in data:
-            i = convert_timestamps_to_datetime(i)
             re_data.append(asdict(i))
         return dict(data=re_data, code=200, total=total)
 
