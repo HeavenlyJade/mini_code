@@ -42,7 +42,6 @@ class WeChatPay():
         self._mchid = mchid
         self._appid = appid
         self._notify_url = notify_url
-        print("public_key_id",public_key_id)
         self._core = Core(mchid=self._mchid,
                           cert_serial_no=cert_serial_no,
                           private_key=private_key,

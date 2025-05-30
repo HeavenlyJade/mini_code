@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
+import base64
 import json
 import logging
 import os
-
 import time
 import uuid
-import base64
-from loguru import logger
-from flask import Flask, jsonify, request, current_app
-from flask_jwt_extended import get_current_user
-
-from kit.wechatpayv3 import WeChatPay, WeChatPayType
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from flask import current_app
+from flask_jwt_extended import get_current_user
+from loguru import logger
 
+from kit.wechatpayv3 import WeChatPay, WeChatPayType
 
 
 # 配置获取方式改为从Flask current_app中获取
@@ -24,6 +22,7 @@ def get_config():
         'MCHID': current_app.config.get('WECHAT_MULTIPLATFORM_MCHID'),
         # 商户API私钥路径
         'PRIVATE_KEY_PATH': os.path.join(os.getcwd(), "wxcert", "apiclient_key.pem"),
+        "PUBLIC_KEY_PATH": os.path.join(os.getcwd(), "wxcert", "pub_key.pem"),
         # 商户证书序列号
         'CERT_SERIAL_NO': current_app.config.get('WECHAT_MULTIPLATFORM_SERIAL'),
         # API v3密钥
@@ -34,7 +33,7 @@ def get_config():
         'NOTIFY_URL': current_app.config.get('WECHAT_PAY_NOTIFY_URL'),
         # 证书缓存目录
         'CERT_DIR': os.path.join(os.getcwd(), "wxcert"),
-        "MULTIPLATFORM_PAY":current_app.config.get('WECHAT_MULTIPLATFORM_PAY'),
+        "MULTIPLATFORM_PAY": current_app.config.get('WECHAT_MULTIPLATFORM_PAY'),
 
     }
 
@@ -45,13 +44,15 @@ def get_config():
     except FileNotFoundError:
         current_app.logger.error(f"找不到私钥文件：{config['PRIVATE_KEY_PATH']}")
         config['PRIVATE_KEY'] = None
+    with open(config['PUBLIC_KEY_PATH'], 'r') as f:
+        config['PUBLIC_KEY'] = f.read()
+
     return config
 
 
 def init_wechat_pay():
     """初始化微信支付客户端"""
     config = get_config()
-
 
     # 日志配置
     logging.basicConfig(
@@ -61,10 +62,10 @@ def init_wechat_pay():
         format='%(asctime)s - %(process)s - %(levelname)s: %(message)s'
     )
     logger = logging.getLogger("wechatpay")
-
     # 初始化微信支付客户端
+    print("config",config)
     wxpay = WeChatPay(
-        wechatpay_type=WeChatPayType.JSAPI,  # 默认为JSAPI，可在调用时覆盖
+        wechatpay_type=WeChatPayType.MINIPROG,  # 默认为JSAPI，可在调用时覆盖
         mchid=config['MCHID'],
         private_key=config['PRIVATE_KEY'],
         cert_serial_no=config['CERT_SERIAL_NO'],
@@ -72,6 +73,8 @@ def init_wechat_pay():
         appid=config['APPID'],
         notify_url=config['NOTIFY_URL'],
         cert_dir=config['CERT_DIR'],
+        public_key=config["PUBLIC_KEY"],
+        public_key_id = config["MULTIPLATFORM_PAY"],
         logger=logger,
         partner_mode=False,  # 直连商户模式
         timeout=(10, 30)  # 连接超时和读取超时
@@ -480,22 +483,24 @@ class WechatPayService:
         if not wxpay:
             return {"error": "微信支付初始化失败", "code": 500}
         out_bill_no = "OUTBATCH20250528221953297245"
-        batch_name = "测试转账"
-        transfer_remark ="测试转账"
-        transfer_amount = 1
-        total_num =1
-        transfer_detail_list=[
-            {"out_detail_no": "x23zy545Bd5436", "transfer_amount": 1, "transfer_remark": "测试转账",
-             "openid": "o-od-Km7eh_iuz-f8qUhjQ2OfJtGwM", "user_name": "张三"}]
-        transfer_scene_id ="1005"
-        openid="od-Km7eh_iuz-f8qUhjQ2OfJtGwM"
-        notify_url ="https://dwjc.mcorg.com/api/v1/wx_mini_app/shop_pay/wx_pay_notify"
-        user_name="肖飞"
-        user_recv_perception="佣金提现"
-        data =wxpay.mch_transfer_bills(out_bill_no=out_bill_no,transfer_scene_id=transfer_scene_id,
-                                       openid=openid,transfer_amount=transfer_amount,transfer_remark=transfer_remark,
-                                       user_name=user_name,user_recv_perception=user_recv_perception,
-                                       notify_url=notify_url
+        transfer_remark = "测试转账"
+        transfer_amount = 40
+        transfer_scene_id = "1005"
+        openid = "od-Km7eh_iuz-f8qUhjQ2OfJtGwM"
+        notify_url = "https://dwjc.mcorg.com/api/v1/wx_mini_app/shop_pay/wx_pay_notify"
+        user_name = "肖飞"
+        user_recv_perception = "劳务报酬"
+        transfer_scene_report_infos = [{
+    "info_type" :   "岗位类型",
+    "info_content" : "销售"
+},{
+    "info_type" : "报酬说明",
+    "info_content" : "测试的佣金费用"
+}]
+        data = wxpay.mch_transfer_bills(out_bill_no=out_bill_no, transfer_scene_id=transfer_scene_id,
+                                        openid=openid, transfer_amount=transfer_amount, transfer_remark=transfer_remark,
+                                        user_recv_perception=user_recv_perception, user_name=user_name,
+                                        notify_url=notify_url, transfer_scene_report_infos=transfer_scene_report_infos
 
-                                       )
+                                        )
         print(data)
