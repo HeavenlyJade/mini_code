@@ -92,25 +92,25 @@ class ShopOrder(Entity):
             description='商品数量',
         ),
     )
-    product_amount: Decimal = field(
+    product_amount: float = field(
         default=None,
         metadata=dict(
             description='商品金额',
         ),
     )
-    actual_amount: Decimal = field(
+    actual_amount: float = field(
         default=None,
         metadata=dict(
             description='实收金额',
         ),
     )
-    discount_amount: Decimal = field(
+    discount_amount: float = field(
         default=None,
         metadata=dict(
             description='优惠金额',
         ),
     )
-    freight_amount: Decimal = field(
+    freight_amount: float = field(
         default=None,
         metadata=dict(
             description='运费金额',

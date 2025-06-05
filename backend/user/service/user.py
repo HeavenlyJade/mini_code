@@ -59,7 +59,6 @@ class UserService(CRUDService[User]):
         users, total = self.repo.list(**args)
         items = list()
         for user in users:
-            print(user)
             # user.department = department
             item = self._get_user_detail(user)
             items.append(item)

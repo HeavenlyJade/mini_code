@@ -50,7 +50,7 @@ class OrderReturn(Entity):
             description='退货原因描述',
         ),
     )
-    return_amount: Decimal = field(
+    return_amount: float = field(
         default=None,
         metadata=dict(
             description='退款金额',
@@ -221,7 +221,7 @@ class OrderReturnDetail(Entity):
             description='商品规格',
         ),
     )
-    price: Decimal = field(
+    price: float = field(
         default=None,
         metadata=dict(
             description='商品单价',
@@ -233,7 +233,7 @@ class OrderReturnDetail(Entity):
             description='退货数量',
         ),
     )
-    subtotal: Decimal = field(
+    subtotal: float = field(
         default=None,
         metadata=dict(
             description='小计金额',
@@ -245,25 +245,25 @@ class OrderReturnDetail(Entity):
             description='该商品退货原因',
         ),
     )
-    allocated_discount: Decimal = field(
+    allocated_discount: float = field(
         default=Decimal('0'),
         metadata=dict(
             description='该商品分摊的折扣金额',
         ),
     )
-    allocated_points: Decimal = field(
+    allocated_points: float = field(
         default=Decimal('0'),
         metadata=dict(
             description='该商品分摊的积分金额',
         ),
     )
-    proportion: Decimal = field(
+    proportion: float = field(
         default=Decimal('0'),
         metadata=dict(
             description='该商品在订单中的价格占比',
         ),
     )
-    cash_refund_amount: Decimal = field(
+    cash_refund_amount: float = field(
         default=Decimal('0'),
         metadata=dict(
             description='现金退款金额',

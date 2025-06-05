@@ -40,8 +40,8 @@ class CartItemProductDetailSchema(Schema):
     cart_item = webargs_fields.Nested(ShopOrderCartSchema())
     product_name = webargs_fields.Str(description='商品名称')
     product_image = webargs_fields.Str(description='商品图片')
-    price = webargs_fields.Decimal(description='商品价格')
-    original_price = webargs_fields.Decimal(description='原价')
+    price = webargs_fields.Float(description='商品价格')
+    original_price = webargs_fields.Float(description='原价')
     stock = webargs_fields.Int(description='库存')
     spec_text = webargs_fields.Str(description='规格文本')
 
@@ -64,7 +64,7 @@ class CartItemWithProductListResponseSchema(ListResultSchema):
     code = webargs_fields.Int(description='状态码')
     total = webargs_fields.Int(description='总数')
     total_count = webargs_fields.Int(description='商品总数')
-    total_price = webargs_fields.Decimal(description='总价')
+    total_price = webargs_fields.Float(description='总价')
 
 
 

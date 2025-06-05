@@ -24,10 +24,6 @@ class CustomJSONEncoder(json.JSONEncoder):
             return obj.strftime('%Y-%m-%d %H:%M:%S')
         elif isinstance(obj, datetime.date):
             return obj.strftime('%Y-%m-%d')
-        # 移除这部分，因为可能导致循环导入或其他问题
-        # elif isinstance(obj, Distribution):
-        #     from dataclasses import asdict
-        #     return asdict(obj)
         return super().default(obj)
 def create_app() -> Flask:
     """创建Flask Application 实例"""
@@ -38,8 +34,9 @@ def create_app() -> Flask:
     register_api_blueprints(app)
     register_error_handlers(app)
     register_request_handlers(app)
-    app.json_encoder = CustomJSONEncoder
     CORS(app)
+    app.json_encoder = CustomJSONEncoder
+
     return app
 
 

@@ -2,14 +2,24 @@ import json
 from collections import defaultdict
 from enum import Enum, unique
 from pathlib import Path
-
+from decimal import Decimal
+import datetime
 from environs import Env
 
 from kit import filename
 
 env = Env()
 env.read_env(override=True)
-
+class CustomJSONEncoder(json.JSONEncoder):
+    """自定义JSON编码器，处理Decimal和datetime序列化"""
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        elif isinstance(obj, datetime.datetime):
+            return obj.strftime('%Y-%m-%d %H:%M:%S')
+        elif isinstance(obj, datetime.date):
+            return obj.strftime('%Y-%m-%d')
+        return super().default(obj)
 
 class Config:
     @unique
@@ -50,7 +60,7 @@ class Config:
         'https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js'
     )
     OPENAPI_SWAGGER_UI_PATH = '/swagger-ui'
-    OPENAPI_SWAGGER_UI_URL = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.11.1/'
+    OPENAPI_SWAGGER_UI_URL = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.22.0/'
     OPENAPI_RAPIDOC_PATH = '/rapidoc'
     OPENAPI_RAPIDOC_URL = (
         'https://cdn.jsdelivr.net/npm/rapidoc@9.3.2/dist/rapidoc-min.min.js'
@@ -99,6 +109,7 @@ class Config:
     WECHAT_MULTIPLATFORM_MCHID = env.str("WECHAT_MULTIPLATFORM_MCHID")
     WECHAT_MULTIPLATFORM_PAY = env.str("WECHAT_MULTIPLATFORM_PAY")
     WECHAT_PAY_NOTIFY_URL = env.str("WECHAT_PAY_NOTIFY_URL")
+    WECHAT_TRANSFER_NOTIFY_URL = env.str("WECHAT_TRANSFER_NOTIFY_URL")
     WECHAT_MULTIPLATFORM_SERIAL = env.str("WECHAT_MULTIPLATFORM_SERIAL")
     SF_CLIENT_CODE = env.str("SF_CLIENT_CODE")
     SF_CHECK_WORD =env.str("SF_CHECK_WORD")

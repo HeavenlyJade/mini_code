@@ -28,8 +28,8 @@ class OrderReturnQueryArgSchema(ListQueryArgSchema):
     audit_end_time = webargs_fields.DateTime(description='审核结束时间')
     complete_start_time = webargs_fields.DateTime(description='完成开始时间')
     complete_end_time = webargs_fields.DateTime(description='完成结束时间')
-    min_amount = webargs_fields.Decimal(description='最小退款金额')
-    max_amount = webargs_fields.Decimal(description='最大退款金额')
+    min_amount = webargs_fields.Float(description='最小退款金额')
+    max_amount = webargs_fields.Float(description='最大退款金额')
     keyword = webargs_fields.Str(description='关键词搜索')
 
 

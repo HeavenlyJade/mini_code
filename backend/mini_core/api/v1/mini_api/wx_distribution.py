@@ -31,19 +31,44 @@ class DistributionWXView(MethodView):
         income = distribution_income_service.get_summary_by_user(user_id=user_id)
         income_d_m_a = distribution_income_service.get_income_d_m_a_summary(user_id=user_id)
         distribution_data = distribution_service.get({"user_id": user_id})["data"]
+
         from dataclasses import asdict
+
+
         if distribution_data:
             distribution_data = asdict(distribution_data)
-            user_father_invite_code =distribution_data.get("user_father_invite_code")
+
+            # 计算总佣金：wait_deposit_amount + frozen_amount + wait_amount 三者的和
+            # 更安全的 null 值处理方式
+            def safe_float(value):
+                """安全地将值转换为 float，处理 None、空字符串等情况"""
+                if value is None or value == '' :
+                    return 0.0
+                try:
+                    return float(value)
+                except (ValueError, TypeError):
+                    return 0.0
+
+            wait_deposit_amount = safe_float(distribution_data.get("wait_deposit_amount"))
+            frozen_amount = safe_float(distribution_data.get("frozen_amount"))
+            wait_amount = safe_float(distribution_data.get("wait_amount"))
+
+            total_amount = wait_deposit_amount + frozen_amount + wait_amount
+            distribution_data["total_amount"] = round(float(total_amount), 2)
+
+            user_father_invite_code = distribution_data.get("user_father_invite_code")
             if user_father_invite_code:
                 shop_user_data = shop_user_service.find(invite_code=user_father_invite_code)
                 if shop_user_data:
                     distribution_data["father_name"] = shop_user_data.nickname
-
-        else:
-            distribution_data = {}
-        return dict(data=dict(income=income["data"], income_d_m_a=income_d_m_a["data"], distribution=distribution_data),
-                    code=200)
+        return dict(
+            data=dict(
+                income=income["data"],
+                income_d_m_a=income_d_m_a["data"],
+                distribution=distribution_data
+            ),
+            code=200
+        )
 
 @blp.route('/distribution')
 class DistributionAPI(MethodView):

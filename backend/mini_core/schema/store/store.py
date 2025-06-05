@@ -21,7 +21,7 @@ class ShopStoreQueryArgSchema(ListQueryArgSchema):
     min_service_fee_rate = webargs_fields.Float(description='最低服务费率')
     max_service_fee_rate = webargs_fields.Float(description='最高服务费率')
     min_delivery_price = webargs_fields.Float(description='最低配送价格')
-    max_delivery_price = webargs_fields.Decimal(description='最高配送价格')
+    max_delivery_price = webargs_fields.Float(description='最高配送价格')
 
 
 # 商店状态更新参数 Schema
@@ -111,7 +111,7 @@ class ReShopStoreStatsSchema(EntityIntSchema):
 
 # 附近商店响应 Schema
 class NearbyStoreSchema(ShopStoreSchema):
-    distance = webargs_fields.Decimal(description='距离（公里）')
+    distance = webargs_fields.Float(description='距离（公里）')
 
 
 class ReNearbyStoreListSchema(ListResultSchema):

@@ -20,8 +20,10 @@ from backend.mini_core.api.v1.shop_order_review import  blp as order_review_blp
 from backend.mini_core.api.v1.dashboard import blp as dashboard_api
 from backend.mini_core.api.v1.member_level_config import blp as member_level_config_blp
 from backend.mini_core.api.v1.wx_server import blp as wx_server_api
+from backend.mini_core.api.v1.distribution_withdrawal import blp as wx_distribution_withdrawal_api
 mini_core_v1_blp.register_blueprint(card_api)
 mini_core_v1_blp.register_blueprint(distribution_api)
+mini_core_v1_blp.register_blueprint(wx_distribution_withdrawal_api)
 mini_core_v1_blp.register_blueprint(shop_api)
 mini_core_v1_blp.register_blueprint(store_api)
 mini_core_v1_blp.register_blueprint(store_category_api)
@@ -59,6 +61,7 @@ from backend.mini_core.api.v1.mini_api.shop_return_reason import blp as wx_shop_
 from backend.mini_core.api.v1.mini_api.wx_card import blp as wx_card_api
 from backend.mini_core.api.v1.mini_api.upload_api import blp as upload_api
 from backend.mini_core.api.v1.mini_api.wx_member_level_config import blp as member_level_config_wx_api
+from backend.mini_core.api.v1.mini_api.wx_distribution_withdrawal import blp as distribution_withdrawal_wx_api
 
 mini_wx_app_v1_blp.register_blueprint(wx_shop_user_api)
 mini_wx_app_v1_blp.register_blueprint(upload_api)
@@ -69,6 +72,7 @@ mini_wx_app_v1_blp.register_blueprint(shop_api)
 mini_wx_app_v1_blp.register_blueprint(cart_api)
 mini_wx_app_v1_blp.register_blueprint(wx_shop_order_api)
 mini_wx_app_v1_blp.register_blueprint(wx_distribution_api)
+mini_wx_app_v1_blp.register_blueprint(distribution_withdrawal_wx_api)
 mini_wx_app_v1_blp.register_blueprint(app_store_api)
 mini_wx_app_v1_blp.register_blueprint(wx_pay_api)
 mini_wx_app_v1_blp.register_blueprint(app_order_logistics_api)

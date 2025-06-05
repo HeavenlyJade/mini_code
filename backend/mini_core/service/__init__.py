@@ -11,7 +11,7 @@ from backend.mini_core.repository import (log_sqla_repo, distribution_sqla_repo,
                                           shop_order_return_sqla_repo, shop_order_return_detail_sqla_repo,
                                           shop_order_return_log_sqla_repo,banner_sqla_repo,shop_order_cart_sqla_repo,
                                           shop_order_logistics_sqla_repo,
-                                          shop_order_review_repo,member_level_config_sqla_repo)
+                                          shop_order_review_repo,member_level_config_sqla_repo,distribution_withdrawal_sqla_repo)
 from .card_server import CardService
 from .distribution_server import (DistributionService, DistributionConfigService,
                                   DistributionGradeService, DistributionGradeUpdateService,
@@ -32,6 +32,7 @@ from .order.shop_order_logistics import ShopOrderLogisticsService
 from .order.order_review import OrderReviewService
 from .dashboard import DashboardService
 from .member_level_config_service import MemberLevelConfigService
+from .distribution_withdrawal import DistributionWithdrawalService
 # 个人卡牌
 card_service = CardService(log_sqla_repo)
 # 分销系统
@@ -41,6 +42,7 @@ distribution_grade_service = DistributionGradeService(distribution_grade_sqla_re
 distribution_grade_update_service = DistributionGradeUpdateService(distribution_grade_update_sqla_repo)
 distribution_income_service = DistributionIncomeService(distribution_income_sqla_repo)
 distribution_log_service = DistributionLogService(distribution_log_sqla_repo)
+distribution_withdrawal_service = DistributionWithdrawalService(distribution_withdrawal_sqla_repo)
 # 商品系统
 
 shop_product_service = ShopProductService(shop_product_sqla_repo)

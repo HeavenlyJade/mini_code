@@ -221,7 +221,7 @@ class DistributionService(CRUDService[Distribution]):
         result = self._repo.update(distribution)
         return dict(data=result, code=200)
 
-    def get_distribution(self,dis_id: int ):
+    def c(self,dis_id: int ):
         distribution_user_data = self._repo.get_by_id(dis_id)
         return asdict(distribution_user_data)
 

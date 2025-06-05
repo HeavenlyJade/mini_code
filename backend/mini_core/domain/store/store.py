@@ -109,13 +109,13 @@ class ShopStore(Entity):
             description='QQ',
         ),
     )
-    service_fee_rate: Decimal = field(
+    service_fee_rate: float = field(
         default=None,
         metadata=dict(
             description='服务费率',
         ),
     )
-    gst_tax_rate: Decimal = field(
+    gst_tax_rate: float = field(
         default=None,
         metadata=dict(
             description='GST消费税率',
@@ -151,13 +151,13 @@ class ShopStore(Entity):
             description='特色',
         ),
     )
-    latitude: Decimal = field(
+    latitude: float = field(
         default=None,
         metadata=dict(
             description='地理位置纬度',
         ),
     )
-    longitude: Decimal = field(
+    longitude: float = field(
         default=None,
         metadata=dict(
             description='地理位置经度',
@@ -193,13 +193,13 @@ class ShopStore(Entity):
             description='营业时间',
         ),
     )
-    delivery_price: Decimal = field(
+    delivery_price: float = field(
         default=None,
         metadata=dict(
             description='配送价格',
         ),
     )
-    min_order_amount: Decimal = field(
+    min_order_amount: float = field(
         default=None,
         metadata=dict(
             description='最小订单金额',

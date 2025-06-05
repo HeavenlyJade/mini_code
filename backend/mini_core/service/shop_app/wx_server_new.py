@@ -482,25 +482,32 @@ class WechatPayService:
         wxpay = init_wechat_pay()
         if not wxpay:
             return {"error": "微信支付初始化失败", "code": 500}
-        out_bill_no = "OUTBATCH20250528221953297245"
-        transfer_remark = "测试转账"
-        transfer_amount = 40
+        print("args",args)
+        user_name = args["username"]
+        openid = args["openid"]
+        transfer_amount = args["transfer_amount"]
+        out_bill_no = args["out_bill_no"]
+
         transfer_scene_id = "1005"
-        openid = "od-Km7eh_iuz-f8qUhjQ2OfJtGwM"
-        notify_url = "https://dwjc.mcorg.com/api/v1/wx_mini_app/shop_pay/wx_pay_notify"
-        user_name = "肖飞"
         user_recv_perception = "劳务报酬"
+        transfer_remark = "佣金转账"
+        notify_url =  current_app.config.get('WECHAT_TRANSFER_NOTIFY_URL')
         transfer_scene_report_infos = [{
-    "info_type" :   "岗位类型",
-    "info_content" : "销售"
-},{
-    "info_type" : "报酬说明",
-    "info_content" : "测试的佣金费用"
-}]
+                "info_type" :   "岗位类型",
+                "info_content" : "销售"
+            },{
+                "info_type" : "报酬说明",
+                "info_content" : "提现佣金"
+            }]
         data = wxpay.mch_transfer_bills(out_bill_no=out_bill_no, transfer_scene_id=transfer_scene_id,
                                         openid=openid, transfer_amount=transfer_amount, transfer_remark=transfer_remark,
                                         user_recv_perception=user_recv_perception, user_name=user_name,
                                         notify_url=notify_url, transfer_scene_report_infos=transfer_scene_report_infos
 
                                         )
-        print(data)
+        code= data[0]
+        response = data[1]
+        load_res = json.loads(response)
+        print("data",data)
+        print("load_res",code,load_res)
+        return code,load_res

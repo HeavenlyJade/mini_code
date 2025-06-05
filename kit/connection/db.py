@@ -35,7 +35,6 @@ class MySQL(DB):
         # 使用 fetchone() 方法获取单条数据.
         data = self.cursor.fetchone()
         # print("Data: %s " % data)
-        print(type(data))
         return data[0]
 
     def close(self):

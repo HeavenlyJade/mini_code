@@ -10,11 +10,11 @@ services:
 
 
     env_file:
-      - .env_jj
+      - .env
     environment:
       - TZ=Asia/Shanghai
     ports:
-      - "8006:5000"
+      - "8012:5000"
     restart: always
     command: gunicorn
       autoapp:app
@@ -28,8 +28,11 @@ services:
     image: mini_app_bac:latest
     volumes:
       - web-logs:/app/logs
+      - ${LOCAL_STORAGE_PATH}:${LOCAL_STORAGE_PATH}
+      - /var/www/images:/var/www/images  # 添加物理机目录挂载
+      - /opt/dev/apps/backend/mini_code:/app  # 挂载代码目录到容器的/app目录
     env_file:
-      - .env_jj
+      - .env
     environment:
       - TZ=Asia/Shanghai
       - PYTHONPATH=/app

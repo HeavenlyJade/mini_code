@@ -28,7 +28,7 @@ class ValidateShopOrderSettingSchema(Schema):
         validate=validate.Range(min=0, max=72),
         description='物流超时提醒时间(小时, 0-72, 0表示不提醒)'
     )
-    points_rate = webargs_fields.Decimal(
+    points_rate = webargs_fields.Float(
         validate=validate.Range(min=0),
         description='积分抵扣比例(1元等于多少积分, >=0)'
     )

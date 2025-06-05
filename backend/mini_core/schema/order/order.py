@@ -34,8 +34,8 @@ class ShopOrderQueryArgSchema(ListQueryArgSchema):
     payment_end_time = webargs_fields.DateTime(description='支付结束时间')
     ship_start_time = webargs_fields.DateTime(description='发货开始时间')
     ship_end_time = webargs_fields.DateTime(description='发货结束时间')
-    min_amount = webargs_fields.Decimal(description='最小金额')
-    max_amount = webargs_fields.Decimal(description='最大金额')
+    min_amount = webargs_fields.Float(description='最小金额')
+    max_amount = webargs_fields.Float(description='最大金额')
     keyword = webargs_fields.Str(description='关键词搜索')
 
 
@@ -78,8 +78,8 @@ class OrderCreateSchema(Schema):
     product_img = webargs_fields.Str(description='商品图片')
     product_spec = webargs_fields.Str(description='商品规格')
     quantity = webargs_fields.Int(required=True, description='商品数量')
-    unit_price = webargs_fields.Decimal(required=True, description='商品单价')
-    total_price = webargs_fields.Decimal(required=True, description='商品总价')
+    unit_price = webargs_fields.Float(required=True, description='商品单价')
+    total_price = webargs_fields.Float(required=True, description='商品总价')
     is_gift = webargs_fields.Bool(description='是否赠品')
     receiver_name = webargs_fields.Str(required=True, description='收货人姓名')
     receiver_phone = webargs_fields.Str(required=True, description='收货人电话')

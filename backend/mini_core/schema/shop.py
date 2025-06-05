@@ -27,8 +27,8 @@ class ShopProductQueryArgSchema(EntityIntSchema):
     status = webargs_fields.Str(description='状态')
     type = webargs_fields.Str(description='类型')
     is_recommended = webargs_fields.Bool(description='是否推荐')
-    price_min = webargs_fields.Decimal(description='最低价格')
-    price_max = webargs_fields.Decimal(description='最高价格')
+    price_min = webargs_fields.Float(description='最低价格')
+    price_max = webargs_fields.Float(description='最高价格')
     keyword = webargs_fields.Str(description='关键词')
 
 

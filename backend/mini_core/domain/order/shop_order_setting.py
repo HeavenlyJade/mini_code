@@ -37,7 +37,7 @@ class ShopOrderSetting(Entity):
             description='物流动态超时时未更新提醒(0代表不提醒)',
         ),
     )
-    points_rate: Decimal = field(
+    points_rate: float = field(
         default=None,
         metadata=dict(
             description='积分抵扣比例(1元等于多少积分)',

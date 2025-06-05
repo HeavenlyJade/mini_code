@@ -29,6 +29,7 @@ distribution_table = Table(
     Column('total_amount', Float, comment='总金额'),
     Column('withdrawn_amount', Float, comment='已经提现金额'),
     Column('wait_deposit_amount', Float, comment='等待客户收货确认的入账金额'),
+    Column('frozen_amount', Float, comment='冻结金额'),
     Column('user_id', String(50), comment='用户ID'),
     Column('user_father_id', String(50), comment='上级ID'),
     Column('lv_id', Integer, comment='用户的分销等级ID'),

@@ -22,6 +22,7 @@ from .order.shop_order_cart_sqla import ShopOrderCartSQLARepository
 from .order.shop_order_logistics_sqla import ShopOrderLogisticsSQLARepository
 from .order.order_review import OrderReviewSQLARepository
 from .shop.member_level_config import MemberLevelConfigSQLARepository
+from .distribution.withdrawal_application import DistributionWithdrawalSQLARepository
 
 
 # TODO replace this with DI
@@ -34,6 +35,7 @@ distribution_grade_sqla_repo = DistributionGradeSQLARepository(db.session)
 distribution_grade_update_sqla_repo = DistributionGradeUpdateSQLARepository(db.session)
 distribution_income_sqla_repo = DistributionIncomeSQLARepository(db.session)
 distribution_log_sqla_repo = DistributionLogSQLARepository(db.session)
+distribution_withdrawal_sqla_repo = DistributionWithdrawalSQLARepository(db.session)
 
 # 商城
 shop_product_sqla_repo = ShopProductSQLARepository(db.session)

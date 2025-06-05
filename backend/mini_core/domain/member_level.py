@@ -37,7 +37,7 @@ class MemberLevelConfig(Entity):
             description='升级条件类型：1-消费金额 2-消费次数 3-邀请人数 4-手动设置',
         ),
     )
-    upgrade_amount: Decimal = field(
+    upgrade_amount: float = field(
         default=None,
         metadata=dict(
             description='升级所需消费金额',
@@ -55,13 +55,13 @@ class MemberLevelConfig(Entity):
             description='升级所需邀请人数',
         ),
     )
-    discount_rate: Decimal = field(
+    discount_rate: float = field(
         default=None,
         metadata=dict(
             description='会员折扣率（如：95.00表示95折）',
         ),
     )
-    point_ratio: Decimal = field(
+    point_ratio: float = field(
         default=None,
         metadata=dict(
             description='积分倍率（如：1.5表示1.5倍积分）',

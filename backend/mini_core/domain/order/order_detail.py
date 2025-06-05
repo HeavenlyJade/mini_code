@@ -43,13 +43,13 @@ class OrderDetail(Entity):
             description='SKU编码',
         ),
     )
-    price: Decimal = field(
+    price: float = field(
         default=None,
         metadata=dict(
             description='原价格',
         ),
     )
-    actual_price: Decimal = field(
+    actual_price: float = field(
         default=None,
         metadata=dict(
             description='实际购买价格',
@@ -85,13 +85,13 @@ class OrderDetail(Entity):
             description='商品数量',
         ),
     )
-    unit_price: Decimal = field(
+    unit_price: float = field(
         default=None,
         metadata=dict(
             description='商品单价',
         ),
     )
-    total_price: Decimal = field(
+    total_price: float = field(
         default=None,
         metadata=dict(
             description='商品总价',
