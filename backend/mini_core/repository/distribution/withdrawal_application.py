@@ -102,7 +102,6 @@ class DistributionWithdrawalSQLARepository(SQLARepository):
             withdrawal = DistributionWithdrawal(
                 user_id=user_id,
                 user_name =user_name,
-                distribution_id=distribution.id,
                 withdrawal_no=withdrawal_no,
                 apply_amount=apply_amount,
                 withdrawal_type=withdrawal_data.get('withdrawal_type'),
@@ -169,11 +168,13 @@ class DistributionWithdrawalSQLARepository(SQLARepository):
         Returns:
             Dict: 包含审核结果的字典
         """
+        print("withdrawal,args_wi_data",withdrawal,args_wi_data)
         try:
             # 2. 更新提现申请状态
             status = args_wi_data["status"]
             withdrawal_id = withdrawal.id
-            reject_reason = args_wi_data["c"]
+            reject_reason = args_wi_data["reject_reason"]
+            withdrawal_user_id =args_wi_data["withdrawal_user_id"]
             withdrawal.status = status
             withdrawal.audit_time = dt.datetime.now()
             withdrawal.handler_id = args_wi_data["handler_id"]
@@ -184,7 +185,7 @@ class DistributionWithdrawalSQLARepository(SQLARepository):
                 # 3. 如果审核拒绝，退回金额到待提现
                 from backend.mini_core.repository.distribution.distribution_sqla import DistributionSQLARepository
                 distribution_repo = DistributionSQLARepository(self.session)
-                distribution = distribution_repo.get_by_id(withdrawal.distribution_id)
+                distribution = distribution_repo.find(user_id=withdrawal_user_id)
                 if distribution:
                     current_wait_amount = Decimal(str(distribution.wait_amount or 0))
                     distribution.wait_amount = current_wait_amount + withdrawal.apply_amount
@@ -217,6 +218,7 @@ class DistributionWithdrawalSQLARepository(SQLARepository):
                 'message': str(e)
             }
         except Exception as e:
+            print(e)
             self.session.rollback()
             return {
                 'code': 500,

@@ -39,4 +39,5 @@ class MyWithdrawalAPI(MethodView):
         withdrawal_data['user_id'] = str(current_user.user_id)
         withdrawal_data["openid"]  = current_user.openid
         withdrawal_data["user_name"] = current_user.username
-        return distribution_withdrawal_service.apply_withdrawal(withdrawal_data)
+        re_data = distribution_withdrawal_service.apply_withdrawal(withdrawal_data)
+        return re_data

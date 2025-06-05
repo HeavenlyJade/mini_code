@@ -190,10 +190,14 @@ class SQLARepository(GenericRepository[Entity]):
         if commit:
             self.session.commit()
 
-    def find(self, row_locked: bool = False, **kwargs) :
+    def find_with_lock(self, **kwargs) :
         query = self.session.query(self.model).filter_by(**kwargs)
-        if row_locked:
-            query = query.with_for_update()
+        return query.with_for_update().first()
+
+    def find(self, **kwargs) :
+        if not kwargs:
+            return None
+        query = self.session.query(self.model).filter_by(**kwargs)
         return query.first()
 
     def find_by_ids(self, ids: Sequence[int]) -> List[Entity]:

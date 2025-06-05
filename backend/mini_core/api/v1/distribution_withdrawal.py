@@ -7,7 +7,7 @@ from backend.mini_core.schema.distribution_withdrawal import (
     DistributionWithdrawalSchema,
     DistributionWithdrawalQueryArgSchema,
     DistributionWithdrawalListSchema,
-    DistributionWithdrawalUpdateSchema,
+    DistributionWithdrawalUpdateSchema,DistributionWithdrawalResponseSchema,
 
 )
 from backend.mini_core.service import distribution_withdrawal_service
@@ -51,7 +51,7 @@ class WithdrawalAuditAPI(MethodView):
     decorators = [auth_required()]
 
     @blp.arguments(DistributionWithdrawalUpdateSchema)
-    @blp.response(DistributionWithdrawalSchema)
+    @blp.response(DistributionWithdrawalResponseSchema)
     def put(self, audit_data: dict, withdrawal_id: int):
         """审核提现申请"""
         current_user = get_current_user()

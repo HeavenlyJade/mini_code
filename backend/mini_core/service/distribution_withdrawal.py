@@ -54,10 +54,11 @@ class DistributionWithdrawalService(CRUDService[DistributionWithdrawal]):
         withdrawal_no = withdrawal_data.withdrawal_no
         withdrawal_openid = user_data.openid
         withdrawal_user_name = user_data.username
+        withdrawal_user_id = user_data.user_id
         transfer_amount = int(float(withdrawal_data.apply_amount) * 100)
         transfer_data = dict(openid=withdrawal_openid, username=withdrawal_user_name, out_bill_no=withdrawal_no,
                              transfer_amount=transfer_amount)
-        args_wi_data = dict(status=status, handler_id=handler_id, handler_name=handler_name,
+        args_wi_data = dict(status=status, handler_id=handler_id, handler_name=handler_name,withdrawal_user_id=withdrawal_user_id,
                             withdrawal_id=withdrawal_no, reject_reason=reject_reason)
 
         if status == 1:
