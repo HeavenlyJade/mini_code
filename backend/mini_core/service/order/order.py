@@ -366,6 +366,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
         order.pay_method =trade_type
         order.payment_time = dt.datetime.now()
         data = self.create_distribution_income(order)
+        self.repo.session.commit()
         print("data",data)
         return dict(data=order, code=200, message="订单已成功变更为已支付状态")
 

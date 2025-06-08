@@ -212,7 +212,6 @@ class ShopOrderSQLARepository(SQLARepository):
                 distribution_amount = dis_order_data.distribution_amount
                 parent_user = distribution_service.get_by_user_id(user_id=dis_user_father_id)
                 if parent_user:
-
                     user_father_frozen_amount = parent_user.frozen_amount  # 冻结金额
                     user_father_wait_amount = parent_user.wait_amount
                     user_father_frozen_amount= user_father_frozen_amount if user_father_frozen_amount else 0
@@ -221,6 +220,7 @@ class ShopOrderSQLARepository(SQLARepository):
                     user_father_wait_amount = float(user_father_wait_amount) + float(distribution_amount)
                     parent_user.wait_amount = user_father_wait_amount
                     parent_user.frozen_amount = user_father_frozen_amount
+
                     self.session.add(parent_user)
                 self.session.add(dis_order_data)
             # 更新订单

@@ -65,6 +65,7 @@ class DistributionWithdrawalService(CRUDService[DistributionWithdrawal]):
             code, res = WechatPayService.wx_withdrawal(args=transfer_data)
             if code != 200:
                 message = res["message"]
+                print("message",message)
                 raise ServiceBadRequest(message)
             else:
                 transfer_bill_no = res["transfer_bill_no"]

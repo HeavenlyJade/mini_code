@@ -508,6 +508,4 @@ class WechatPayService:
         code= data[0]
         response = data[1]
         load_res = json.loads(response)
-        print("data",data)
-        print("load_res",code,load_res)
         return code,load_res
