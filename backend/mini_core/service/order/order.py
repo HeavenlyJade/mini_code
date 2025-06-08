@@ -367,7 +367,6 @@ class ShopOrderService(CRUDService[ShopOrder]):
         order.payment_time = dt.datetime.now()
         data = self.create_distribution_income(order)
         print("data",data)
-        self._repo.session.commit()
         return dict(data=order, code=200, message="订单已成功变更为已支付状态")
 
     def update_shipping_info(self, order_no: str, shipping_data: Dict[str, Any]) -> Dict[str, Any]:

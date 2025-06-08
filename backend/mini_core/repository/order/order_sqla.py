@@ -1,6 +1,6 @@
 from typing import Type, Tuple, List, Dict, Any
 import datetime as dt
-
+from kit.exceptions import ServiceBadRequest
 from sqlalchemy import Column, String, Table, Integer, DateTime, Text, Enum, Boolean, Numeric, DECIMAL, BigInteger
 from sqlalchemy import func
 
@@ -189,14 +189,13 @@ class ShopOrderSQLARepository(SQLARepository):
                                     user_update_data: Dict) -> Dict[str, Any]:
         """确认收货并奖励积分的数据库操作"""
         from backend.mini_core.repository import shop_user_sqla_repo
-        from backend.mini_core.domain.t_user import ShopUser
-
+        from backend.mini_core.service import distribution_service,distribution_income_service
         try:
             # 获取订单
             order = self.find(order_no=order_no)
             if not order:
                 return dict(data=None, code=404, message="订单不存在")
-
+            dis_order_data = distribution_income_service.repo.find(order_no=order_no)
             # 更新订单状态
             order.delivery_status = order_update_data['delivery_status']
             order.status = order_update_data['status']
@@ -207,7 +206,23 @@ class ShopOrderSQLARepository(SQLARepository):
             user = shop_user_sqla_repo.find(user_id=order.user_id)
             user.points = user_update_data['points']
             shop_user_sqla_repo.update(user.id, user,commit=False)
+            if dis_order_data:
+                dis_order_data.status = 0
+                dis_user_father_id = dis_order_data.user_father_id
+                distribution_amount = dis_order_data.distribution_amount
+                parent_user = distribution_service.get_by_user_id(user_id=dis_user_father_id)
+                if parent_user:
 
+                    user_father_frozen_amount = parent_user.frozen_amount  # 冻结金额
+                    user_father_wait_amount = parent_user.wait_amount
+                    user_father_frozen_amount= user_father_frozen_amount if user_father_frozen_amount else 0
+                    user_father_wait_amount = user_father_wait_amount if user_father_wait_amount else 0
+                    user_father_frozen_amount = float(user_father_frozen_amount)- float(distribution_amount)
+                    user_father_wait_amount = float(user_father_wait_amount) + float(distribution_amount)
+                    parent_user.wait_amount = user_father_wait_amount
+                    parent_user.frozen_amount = user_father_frozen_amount
+                    self.session.add(parent_user)
+                self.session.add(dis_order_data)
             # 更新订单
             self.update(commit=False,entity_id=order.id,entity= order)
 
@@ -226,8 +241,8 @@ class ShopOrderSQLARepository(SQLARepository):
 
         except Exception as e:
             # 回滚事务
-            self.session.rollback()
-            return dict(data=None, code=500, message=f"确认收货失败：{str(e)}")
+            raise ServiceBadRequest(f"确认收货失败：{str(e)}")
+
     def get_monthly_sales(self) -> List[Dict[str, Any]]:
         """获取按月统计的销售额"""
         query = """
