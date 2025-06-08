@@ -189,6 +189,7 @@ class DistributionIncomeAPI(MethodView):
     @blp.response()
     def get(self, args: dict):
         """查看分销收入"""
+
         return distribution_income_service.get(args)
 
     @blp.arguments(DistributionIncome)

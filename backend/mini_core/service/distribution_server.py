@@ -1,6 +1,8 @@
 from typing import Optional, Dict, Any
 from dataclasses import asdict
 from flask_jwt_extended import get_current_user
+import datetime as dt
+from backend.mini_core.domain.order.order import ShopOrder
 
 from backend.mini_core.domain.distribution import (Distribution, DistributionConfig, DistributionGrade,
                                                    DistributionGradeUpdate, DistributionIncome, DistributionLog)
@@ -221,7 +223,7 @@ class DistributionService(CRUDService[Distribution]):
         result = self._repo.update(distribution)
         return dict(data=result, code=200)
 
-    def c(self,dis_id: int ):
+    def c(self, dis_id: int):
         distribution_user_data = self._repo.get_by_id(dis_id)
         return asdict(distribution_user_data)
 
@@ -238,15 +240,16 @@ class DistributionService(CRUDService[Distribution]):
         grade_data = [asdict(i) for i in grade_data]
         return dict(config_data=config_data, grade_data=grade_data, distribution_user_data=distribution_user_data)
 
-    def get_user_team_data(self,args):
-        data,total = self._repo.list(**args)
-        re_team =[]
+    def get_user_team_data(self, args):
+        data, total = self._repo.list(**args)
+        re_team = []
         for item in data:
             real_name = item.real_name
             real_name = real_name[0] + '*' * (len(real_name) - 2) + real_name[-1]
-            re_dic = dict(real_name=real_name,lv_id=item.lv_id,user_id=item.user_id)
+            re_dic = dict(real_name=real_name, lv_id=item.lv_id, user_id=item.user_id)
             re_team.append(re_dic)
-        return dict(data=re_team, total=total,code=200)
+        return dict(data=re_team, total=total, code=200)
+
 
 class DistributionConfigService(CRUDService[DistributionConfig]):
     def __init__(self, repo: DistributionConfigSQLARepository):
@@ -282,8 +285,6 @@ class DistributionConfigService(CRUDService[DistributionConfig]):
         return dict(data=result, code=200)
 
 
-
-
 class DistributionGradeService(CRUDService[DistributionGrade]):
     def __init__(self, repo: DistributionGradeSQLARepository,
                  grade_update_repo: DistributionGradeUpdateSQLARepository):
@@ -294,9 +295,11 @@ class DistributionGradeService(CRUDService[DistributionGrade]):
     @property
     def repo(self) -> DistributionGradeSQLARepository:
         return self._repo
+
     def find_all_dis_config(self, args: dict) -> Dict:
         data = self._repo.find_all(**args)
         return {item.id: item.name for item in data}
+
     def grader_data_list(self, args: dict):
         data, total = self._repo.list(**args)
         return dict(data=data, total=total, code=200)
@@ -306,27 +309,7 @@ class DistributionGradeService(CRUDService[DistributionGrade]):
         data = self._repo.find(name=name)
         return dict(data=data, code=200)
 
-    def get_with_conditions(self, id: int) -> Dict[str, Any]:
-        grade = self._repo.get(id)
-        if not grade:
-            return dict(data=None, code=404, message="等级不存在")
-
-        conditions = self._grade_update_repo.list(grade_id=id)
-        result = {
-            "id": grade.id,
-            "name": grade.name,
-            "weight": grade.weight,
-            "self_ratio": grade.self_ratio,
-            "first_ratio": grade.first_ratio,
-            "second_ratio": grade.second_ratio,
-            "remark": grade.remark,
-            "update_relation": grade.update_relation,
-            "conditions": conditions
-        }
-        return dict(data=result, code=200)
-
     def update(self, id: int, grade: DistributionGrade) -> Dict[str, Any]:
-        print("grade", grade)
         result = self._repo.update(id, grade)
         return dict(data=result, code=200)
 
@@ -395,23 +378,25 @@ class DistributionIncomeService(CRUDService[DistributionIncome]):
         return self._repo
 
     def get(self, args: dict) -> Dict[str, Any]:
-        print("args",args)
-        user_id = args.get("user_id")
+        user_father_id = args.get("user_father_id")
         order_id = args.get("order_id")
         status = args.get("status")
         end_date = args.get("end_date")
         start_date = args.get("start_date")
-
         query_args = {}
-        if user_id:
-            query_args["user_id"] = user_id
+        if user_father_id:
+            query_args["user_father_id"] = user_father_id
         if order_id:
             query_args["order_id"] = order_id
         if status is not None and int(status) != -1:
             query_args["status"] = status
+        if end_date and start_date:
+            query_args["create_time"] =[start_date, end_date]
+
         query_args["need_total_count"] = args.get("need_total_count")
         query_args["page"] = args.get("page")
         query_args["size"] = args.get("size")
+        query_args["ordering"] =["-create_time"]
         data, total = self._repo.list(**query_args)
         re_data = []
         for i in data:

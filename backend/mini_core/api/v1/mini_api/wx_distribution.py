@@ -78,14 +78,6 @@ class DistributionAPI(MethodView):
     def get(self, args: dict):
         """查看分销信息"""
         return distribution_service.data_list(args)
-@blp.route('/distributionInviteCode')
-class DistributionInviteCodeAPI(MethodView):
-    decorators = [auth_required()]
-    @blp.arguments(WXDistributionWxDataSchema)
-    @blp.response()
-    def post(self, args: dict):
-        """修改用户的分销信息"""
-        return distribution_service.wx_find_update(args)
 
 @blp.route('/distribution-config')
 class DistributionConfigAPI(MethodView):
@@ -123,18 +115,21 @@ class DistributionGradeUpdateAPI(MethodView):
 @blp.route('/distribution_income')
 class DistributionIncomeAPI(MethodView):
     """分销收入API"""
-
+    decorators = [auth_required()]
     @blp.arguments(DistributionIncomeQueryArgSchema, location='query')
     @blp.response()
     def get(self, args: dict):
         """查看分销收入"""
+        user = get_current_user()
+        user_id = str(user.user_id)
+        args["user_father_id"] =user_id
         return distribution_income_service.get(args)
 
 
 @blp.route('/distribution-log')
 class DistributionLogAPI(MethodView):
     """分销日志API"""
-
+    decorators = [auth_required()]
     @blp.arguments(DistributionLogQueryArgSchema, location='query')
     def get(self, args: dict):
         """查看分销日志"""

@@ -43,6 +43,18 @@ class OrderStatusAPI(MethodView):
         """更新订单状态"""
         return shop_order_service.update_order_status(args["order_no"], args["status"])
 
+@blp.route('/confirm-receipt')
+class WXConfirmReceiptAPI(MethodView):
+    """确认收货API"""
+    decorators = [auth_required()]
+
+    @blp.arguments(OrderStatusUpdateArgSchema)
+    @blp.response(ReShopOrderSchema)
+    def post(self, args):
+        """确认收货"""
+        order_no = args["order_no"]
+        return shop_order_service.wx_confirm_receipt(order_no)
+
 
 @blp.route('/cancel/')
 class CancelOrderAPI(MethodView):

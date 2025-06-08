@@ -164,7 +164,6 @@ class ShopOrderService(CRUDService[ShopOrder]):
         discount_bac_amount = bac_amount * (discount_rate / 100)  # 打折后的价格
         discount_amount = bac_amount-discount_bac_amount   # 折扣后的价格
         dis_bac_amount = discount_bac_amount - points_used  # 折扣价格前去使用的积分
-        print(dis_bac_amount,final_amount)
         if dis_bac_amount != final_amount:
             return dict(data=None, code=400, message=f"实际订单价格不一致")
         # 设置订单基础信息
@@ -222,15 +221,6 @@ class ShopOrderService(CRUDService[ShopOrder]):
 
         return dict(data=order, code=200)
 
-
-    def wx_update_order_status(self, order_no: str, status: str) -> Dict[str, Any]:
-        """更新订单状态"""
-        order = self._repo.update_order_status(order_no, status)
-
-        if not order:
-            return dict(data=None, code=404, message="订单不存在")
-        return dict(data=order, code=200)
-
     def update_payment_status(self, order_id: int, payment_status: str, payment_no: str = None, trade_no: str = None) -> \
         Dict[str, Any]:
         """更新支付状态"""
@@ -252,34 +242,6 @@ class ShopOrderService(CRUDService[ShopOrder]):
         self._repo.update(order_id, order)
         return dict(data=order, code=200)
 
-    def update_delivery_status(self, order_id: int, delivery_status: str, express_company: str = None,
-                               express_no: str = None, delivery_platform: str = None) -> Dict[str, Any]:
-        """更新配送状态"""
-        order = self._repo.get_by_id(order_id)
-        if not order:
-            return dict(data=None, code=404, message="订单不存在")
-
-        order.delivery_status = delivery_status
-
-        if delivery_status == '已发货':
-            order.ship_time = dt.datetime.now()
-            order.status = '已发货'
-
-            # 更新物流信息
-            if express_company:
-                order.express_company = express_company
-            if express_no:
-                order.express_no = express_no
-            if delivery_platform:
-                order.delivery_platform = delivery_platform
-
-        elif delivery_status == '已签收':
-            order.confirm_time = dt.datetime.now()
-            order.status = '已完成'
-
-        self._repo.update(order_id, order)
-        return dict(data=order, code=200)
-
     def update_refund_status(self, order_no: str, refund_status: str) -> Dict[str, Any]:
         """更新退款状态"""
         order = self._repo.update_order_status(order_no, refund_status)
@@ -297,21 +259,68 @@ class ShopOrderService(CRUDService[ShopOrder]):
 
         return dict(data=order, code=200)
 
-    def confirm_receipt(self, order_id: int) -> Dict[str, Any]:
+    def wx_confirm_receipt(self, order_no: str) -> Dict[str, Any]:
         """确认收货"""
-        order = self._repo.get_by_id(order_id)
+        from backend.mini_core.service import shop_user_service
+        from backend.mini_core.utils.redis_utils.log_queue import LogQueue
+
+        current_user = get_current_user()
+        current_user_id = current_user.user_id
+        order: ShopOrder = self._repo.find(order_no=order_no)
         if not order:
             return dict(data=None, code=404, message="订单不存在")
 
         if order.delivery_status != '已发货':
             return dict(data=None, code=400, message="订单未发货，无法确认收货")
+        order_user_id = order.user_id
+        if order_user_id != current_user_id:
+            return dict(data=None, code=400, message="非当前用户不可修改订单")
 
-        order.delivery_status = '已签收'
-        order.status = '已完成'
-        order.confirm_time = dt.datetime.now()
+        operator = current_user.username
+        user = shop_user_service.find(user_id=order.user_id)
+        original_points = user.points or 0
+        actual_amount = order.actual_amount
+        points_reward = float(actual_amount)
+        new_points = original_points + points_reward
 
-        self._repo.update(order_id, order)
-        return dict(data=order, code=200)
+        # 准备更新数据
+        order_update_data = {
+            'delivery_status': '已签收',
+            'status': '已完成',
+            'confirm_time': dt.datetime.now(),
+            'updater': operator
+        }
+
+        user_update_data = {
+            'points': new_points
+        }
+
+        # 调用 repository 方法执行数据库操作
+        result = self._repo.confirm_receipt_with_points(
+            order_no, order_update_data, user_update_data
+        )
+
+        # 如果数据库操作成功，记录日志
+        if result.get('code') == 200:
+            LogQueue.add_order_log(
+                order_no=order_no,
+                operation_type='确认收货',
+                operation_desc=f'确认收货完成，获得积分奖励 {points_reward} 分',
+                operator=operator,
+                old_value={
+                    'order_status': order.status,
+                    'delivery_status': order.delivery_status,
+                    'user_points': original_points
+                },
+                new_value={
+                    'order_status': '已完成',
+                    'delivery_status': '已签收',
+                    'user_points': new_points
+                },
+                remark=f'支付金额：{actual_amount}元，获得积分：{points_reward}分'
+            )
+
+        return dict(data=order_update_data, code=200)
 
     def cancel_order(self, args: dict) -> Dict[str, Any]:
         """取消订单"""
@@ -333,6 +342,7 @@ class ShopOrderService(CRUDService[ShopOrder]):
     def change_order_to_paid(self, order_id: int) -> Dict[str, Any]:
         """将订单从待支付状态变更为已支付状态"""
         from backend.mini_core.service.shop_app.wx_server_new import WechatPayService
+        from backend.mini_core.service import  distribution_income_service
         order = self._repo.get_by_id(order_id)
         args_dict = dict(out_trade_no=order.order_no)
         result = WechatPayService.query_order(args_dict)
@@ -345,20 +355,19 @@ class ShopOrderService(CRUDService[ShopOrder]):
         current_user_id = current_user.user_id
         if not transaction_id and trade_state!="SUCCESS":
             return dict(data=None, code=400, message="微信查询的订单不是支付成功，请联系客服")
+        if not order or order=="待支付":
+            return dict(data=None, code=400, message="订单不存在或当前不是待支付")
+        if str(order.user_id) != str(current_user_id):
+            return dict(data=None, code=400, message="非当前用户不可变更订单")
 
-        if order and str(order.user_id) == str(current_user_id):
-            order_user_id = order.user_id
-            # if order.payment_status == '待支付':
-            order.payment_status = '已支付'
-            order.status = '待发货'
-            order.payment_no= transaction_id
-            order.pay_method =trade_type
-            order.payment_time = dt.datetime.now()
-            self._repo.session.commit()
-
-        if not order:
-            return dict(data=None, code=400, message="订单不存在或当前状态不允许变更为已支付")
-
+        order.payment_status = '已支付'
+        order.status = '待发货'
+        order.payment_no= transaction_id
+        order.pay_method =trade_type
+        order.payment_time = dt.datetime.now()
+        data = self.create_distribution_income(order)
+        print("data",data)
+        self._repo.session.commit()
         return dict(data=order, code=200, message="订单已成功变更为已支付状态")
 
     def update_shipping_info(self, order_no: str, shipping_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -545,3 +554,69 @@ class ShopOrderService(CRUDService[ShopOrder]):
             remark=f'退款原因：{reason},{operation_desc}'
         )
 
+    def create_distribution_income(self, order: ShopOrder) -> Dict[str, Any]:
+        """
+        创建分销收入记录
+
+        参数:
+            order: 订单对象
+
+        返回:
+            Dict[str, Any]: 包含处理结果的字典
+        """
+        from backend.mini_core.service import distribution_service, distribution_income_service,distribution_grade_service
+        from backend.mini_core.domain.distribution import DistributionIncome
+        # 获取当前下单用户信息
+        user_id = order.user_id
+        dis_user = distribution_service.get_by_user_id(user_id=user_id)
+        if not dis_user:
+            return dict(success=False, message="分销用户不存在", code=404)
+        # 检查是否有分销上级
+        user_father_id = dis_user.user_father_id
+        # 获取上级用户信息
+        parent_user = distribution_service.get_by_user_id(user_id=user_father_id)
+        if not parent_user:
+            return dict(success=False, message="上级用户不存在", code=404)
+        user_father_id = parent_user.user_id
+        # 获取上级用户的分销比率
+        lv_id = parent_user.lv_id
+        dis_grade_conf = distribution_grade_service.repo.get_by_id(lv_id)
+        distribution_rate = dis_grade_conf.first_ratio
+        if not distribution_rate or distribution_rate <= 0:
+            return dict(success=False, message="分销比率无效", code=400)
+        user_father_frozen_amount = parent_user.frozen_amount # 冻结金额
+        user_father_frozen_amount= user_father_frozen_amount if user_father_frozen_amount else 0
+        # 检查是否已经存在该订单的分销收入记录
+        existing_income = distribution_income_service.repo.find(
+            order_id=order.id,
+            user_id=parent_user.user_id
+        )
+        if existing_income:
+            return dict(success=False, message="分销收入记录已存在", code=400)
+
+        # 计算分销收入
+        order_amount = float(order.actual_amount)
+        distribution_income_amount = order_amount * (float(distribution_rate) / 100)
+        user_father_frozen_amount = user_father_frozen_amount + distribution_income_amount
+
+        # 创建分销收入对象
+        distribution_income = DistributionIncome(
+            user_id=str(user_id),  # 获得分销收入的上级用户ID
+            user_father_id = str(user_father_id),
+            dis_name = dis_grade_conf.name,
+            order_id=str(order.id),  # 订单ID
+            order_no=order.order_no,  # 订单编号
+            product_name=order.product_name,  # 产品名称
+            money=order_amount,  # 订单金额
+            distribution_amount=distribution_income_amount,  # 分销收入金额
+            ratio=float(distribution_rate),  # 分销比例
+            level=lv_id,  # 分销层级，默认1级
+            status=3,  # 状态：0待入帐
+            settlement_time=None,  # 结算时间，待结算时为空
+            create_time=dt.datetime.now()
+        )
+        parent_user.frozen_amount  = user_father_frozen_amount
+        self.repo.session.add(parent_user)
+        self.repo.session.add(distribution_income)
+        # 保存分销收入记录
+        return None

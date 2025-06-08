@@ -106,6 +106,8 @@ distribution_income_table = Table(
     Column('item_id', Integer, comment='商品ID'),
     Column('money', DECIMAL(10, 2), comment='金额'),
     Column('distribution_amount', DECIMAL(10, 2), comment='分销金额'),
+    Column('user_father_id', String(255), comment='用户ID'),
+    Column('dis_name', String(50), comment='产品名称'),
 
     Column('grade_id', Integer, comment='分销等级ID'),
     Column('level', Integer, comment='分销层级'),
@@ -535,7 +537,7 @@ class DistributionIncomeSQLARepository(SQLARepository):
         return DistributionIncome
     @property
     def query_params(self):
-        return 'user_id',"status","product_name"
+        return 'user_id',"status","product_name","user_father_id"
     @property
     def range_query_params(self):
         return "settlement_time", "create_time"

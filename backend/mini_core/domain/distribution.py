@@ -18,15 +18,14 @@ class Distribution(EntityInt):
     total_amount: float = field(default=None, metadata=dict(description='总金额'))
     withdrawn_amount: float = field(default=None, metadata=dict(description='已提现金额'))
     frozen_amount: float = field(default=None, metadata=dict(description='冻结金额'))
-    wait_deposit_amount:float = field(default=None, metadata=dict(description='等待客户收货确认的入账金额'))
+    wait_deposit_amount: float = field(default=None, metadata=dict(description='等待客户收货确认的入账金额'))
     user_father_id: str = field(default=None, metadata=dict(description='上级ID'))
-    user_father_invite_code:str = field(default=None, metadata=dict(description='上级的父亲的邀请码'))
+    user_father_invite_code: str = field(default=None, metadata=dict(description='上级的父亲的邀请码'))
     grade_id: int = field(default=None, metadata=dict(description='等级ID'))
     remark: str = field(default=None, metadata=dict(description='备注'))
     status: int = field(default=None, metadata=dict(description='状态 (0-未审核, 1-已审核)'))
-    audit_time: dt.datetime  = field(default=None, metadata=dict(description='审核时间'))
+    audit_time: dt.datetime = field(default=None, metadata=dict(description='审核时间'))
     lv_id: int = field(default=None, metadata=dict(description='用户的分销等级ID'))
-
 
 
 @dataclass
@@ -63,14 +62,14 @@ class DistributionIncome(EntityInt):
     user_id: str = field(default=None, metadata=dict(description='用户ID'))
     order_id: str = field(default=None, metadata=dict(description='订单ID'))
     order_no: str = field(default=None, metadata=dict(description='订单编号'))
-
     order_product_id: str = field(default=None, metadata=dict(description='产品订单ID'))
     product_id: str = field(default=None, metadata=dict(description='产品ID'))
     product_name: str = field(default=None, metadata=dict(description='产品名称'))
     item_id: str = field(default=None, metadata=dict(description='商品ID'))
     money: float = field(default=None, metadata=dict(description='金额'))
     distribution_amount: float = field(default=None, metadata=dict(description='分销的金额'))
-
+    user_father_id: str = field(default=None, metadata=dict(description='上级用户ID'))
+    dis_name: str = field(default=None, metadata=dict(description='分销等级名称'))
     grade_id: int = field(default=None, metadata=dict(description='分销等级ID'))
     level: int = field(default=None, metadata=dict(description='分销层级'))
     ratio: float = field(default=None, metadata=dict(description='分销比例'))

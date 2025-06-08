@@ -185,6 +185,49 @@ class ShopOrderSQLARepository(SQLARepository):
             self.session.commit()
         return order
 
+    def confirm_receipt_with_points(self, order_no: str, order_update_data: Dict,
+                                    user_update_data: Dict) -> Dict[str, Any]:
+        """确认收货并奖励积分的数据库操作"""
+        from backend.mini_core.repository import shop_user_sqla_repo
+        from backend.mini_core.domain.t_user import ShopUser
+
+        try:
+            # 获取订单
+            order = self.find(order_no=order_no)
+            if not order:
+                return dict(data=None, code=404, message="订单不存在")
+
+            # 更新订单状态
+            order.delivery_status = order_update_data['delivery_status']
+            order.status = order_update_data['status']
+            order.confirm_time = order_update_data['confirm_time']
+            order.updater = order_update_data['updater']
+
+            # 更新用户积分
+            user = shop_user_sqla_repo.find(user_id=order.user_id)
+            user.points = user_update_data['points']
+            shop_user_sqla_repo.update(user.id, user,commit=False)
+
+            # 更新订单
+            self.update(commit=False,entity_id=order.id,entity= order)
+
+            # 提交事务
+            self.session.commit()
+
+            return dict(
+                data={
+                    'order': order,
+                    'points_reward': user_update_data['points'] - (user.points - user_update_data['points']),
+                    'new_points': user_update_data['points']
+                },
+                code=200,
+                message="确认收货成功，积分已奖励"
+            )
+
+        except Exception as e:
+            # 回滚事务
+            self.session.rollback()
+            return dict(data=None, code=500, message=f"确认收货失败：{str(e)}")
     def get_monthly_sales(self) -> List[Dict[str, Any]]:
         """获取按月统计的销售额"""
         query = """
@@ -378,3 +421,19 @@ class ShopOrderSQLARepository(SQLARepository):
         """将订单从待支付变更为已支付状态"""
         order = self.get_by_id(order_id)
         return order
+
+    def get_and_complete_delivered_orders(self, fourteen_days_ago: dt.datetime):
+        """
+            查询并自动完成符合条件的已发货订单
+
+            参数:
+                fourteen_days_ago: 14天前的时间
+            """
+        query = self.session.query(ShopOrder).filter(
+            self.model.delivery_status == '已发货',
+            self.model.transaction_time >= fourteen_days_ago,
+            self.model.transaction_time <= dt.datetime.now(),
+            self.model.payment_no.isnot(None),
+            self.model.payment_no != ''
+        )
+        return query.all()

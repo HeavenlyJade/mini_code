@@ -127,15 +127,15 @@ class RefundStatusAPI(MethodView):
         return shop_order_service.update_refund_status(args["order_no"], args["status"])
 
 
-@blp.route('/shop-order/confirm-receipt/<int:order_id>')
-class ConfirmReceiptAPI(MethodView):
-    """确认收货API"""
-    decorators = [auth_required()]
-
-    @blp.response(ReShopOrderSchema)
-    def post(self, order_id: int):
-        """确认收货"""
-        return shop_order_service.confirm_receipt(order_id)
+# @blp.route('/shop-order/confirm-receipt/<int:order_id>')
+# class ConfirmReceiptAPI(MethodView):
+#     """确认收货API"""
+#     decorators = [auth_required()]
+#
+#     @blp.response(ReShopOrderSchema)
+#     def post(self, order_id: int):
+#         """确认收货"""
+#         return shop_order_service.confirm_receipt(order_id)
 
 
 # @blp.route('/shop-order/close/<int:order_id>')
