@@ -7,7 +7,7 @@ from backend.mini_core.schema.distribution import (
     DistributionGradeUpdateQueryArgSchema, DistributionIncomeQueryArgSchema,
     DistributionLogQueryArgSchema, ReDistributionGradeListSchema, DistributionGradeSchema, Distribution,
     ReDistributionConfigDataSchema, ReDistributionConfigSchema, ReDistributionSchemaList,
-    DistributionGradeUpdate, DistributionIncome, DistributionLog, ReDistributionUserTeamSchema,
+    DistributionGradeUpdate, DistributionIncome, DistributionLog, ReDistributionUserTeamSchema,DistributionSchema
 )
 from backend.mini_core.service import (
     distribution_service, distribution_config_service,
@@ -54,11 +54,11 @@ class DistributionAPI(MethodView):
         """查看分销信息"""
         return distribution_service.data_list(args)
 
-    @blp.arguments(Distribution)
+    @blp.arguments(DistributionSchema)
     @blp.response(ReDistributionSchema)
-    def post(self, distribution):
-        """新增分销信息"""
-        return distribution_service.update(distribution["user_id"], distribution)
+    def post(self, args):
+        """修改分销用户信息"""
+        return distribution_service.update(args.user_id, args)
 
 
 @blp.route('/distribution/<int:dis_id>')

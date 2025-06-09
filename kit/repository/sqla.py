@@ -197,8 +197,10 @@ class SQLARepository(GenericRepository[Entity]):
     def find(self, **kwargs) :
         if not kwargs:
             return None
+
         query = self.session.query(self.model).filter_by(**kwargs)
-        return query.first()
+        re_data = query.first()
+        return re_data
 
     def find_by_ids(self, ids: Sequence[int]) -> List[Entity]:
         query = self.session.query(self.model).filter(self.model.id.in_(ids))

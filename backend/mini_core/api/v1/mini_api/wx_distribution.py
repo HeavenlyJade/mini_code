@@ -152,7 +152,7 @@ class DistributionMembersAPI(MethodView):
         return income
 
 
-@blp.route('/wx_distribution_data')
+@blp.route('/distribution_data')
 class DistributionRulesAPI(MethodView):
     decorators = [auth_required()]
 
