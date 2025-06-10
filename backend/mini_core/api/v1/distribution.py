@@ -54,11 +54,7 @@ class DistributionAPI(MethodView):
         """查看分销信息"""
         return distribution_service.data_list(args)
 
-    @blp.arguments(DistributionSchema)
-    @blp.response(ReDistributionSchema)
-    def post(self, args):
-        """修改分销用户信息"""
-        return distribution_service.update(args.user_id, args)
+
 
 
 @blp.route('/distribution/<int:dis_id>')
@@ -73,6 +69,11 @@ class DistributionUserAPI(MethodView):
         re_data = dict(data=dis_user_data, code=200)
         return re_data
 
+    @blp.arguments(DistributionSchema)
+    @blp.response(ReDistributionSchema)
+    def post(self, args,dis_id):
+        """修改分销用户信息"""
+        return distribution_service.update(dis_id, args)
 
 @blp.route('/distribution/team')
 class DistributionUserTeamAPI(MethodView):

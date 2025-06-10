@@ -203,20 +203,8 @@ class DistributionService(CRUDService[Distribution]):
         return self._repo.find(user_id=user_id)
 
     def update(self, user_id, distribution: Distribution) -> Dict[str, Any]:
-        user_data = self.get_by_user_id(user_id)
-        if not user_data:
-            return dict(message="用户不存在", code=400)
-
-        has_updates = False
-        for field, value in distribution.__dict__.items():
-            if value is not None:
-                setattr(user_data, field, value)
-                has_updates = True
-        if has_updates:
-            result = self.repo.update(user_data.id, user_data)
-            return dict(data=result, code=200)
-        else:
-            return dict(message="无需更新的数据", code=400)
+        result = self._repo.update(user_id, distribution)
+        return dict(data=result, code=200)
 
     def create(self, distribution: Distribution) -> Dict[str, Any]:
         result = self._repo.create(distribution)
