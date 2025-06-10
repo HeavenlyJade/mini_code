@@ -56,7 +56,10 @@ class DistributionWXView(MethodView):
             if user_father_invite_code:
                 shop_user_data = shop_user_service.find(invite_code=user_father_invite_code)
                 if shop_user_data:
-                    distribution_data["father_name"] = shop_user_data.nickname
+                    nickname = shop_user_data.nickname
+                    if nickname:
+                        nickname = nickname[0] + "*" * (len(nickname) - 1)
+                    distribution_data["father_name"] = "无"
 
             grade_data = distribution_grade_service.repo.get_by_id(distribution_data["lv_id"])
             distribution_data["grade_id"] = grade_data.weight
