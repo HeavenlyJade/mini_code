@@ -1,5 +1,3 @@
-
-
 from flask.views import MethodView
 from flask import request, current_app
 from datetime import datetime

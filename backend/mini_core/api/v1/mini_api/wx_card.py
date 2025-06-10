@@ -1,8 +1,7 @@
 from flask.views import MethodView
-from flask import request
 
 from backend.mini_core.schema.card import (
-    Card, CardQueryArgSchema, ReCardSchema, CardUserSchema, ReCardSchemaList,CardSchema
+     CardQueryArgSchema, ReCardSchema,
 )
 from backend.mini_core.service import card_service
 from kit.util.blueprint import APIBlueprint

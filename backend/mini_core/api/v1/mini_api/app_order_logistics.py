@@ -3,9 +3,8 @@ from flask.views import MethodView
 from backend.mini_core.schema.order.shop_order_logistics import (
     LogisticsQuerySchema, LogisticsDetailResponseSchema,
 )
-from backend.mini_core.schema.order.order import ( ReShopOrderSchema,OrderStatusUpdateArgSchema)
 from backend.mini_core.service import shop_order_logistics_service
-from backend.mini_core.service import shop_order_service
+
 
 from backend.business.service.auth import auth_required
 from kit.util.blueprint import APIBlueprint

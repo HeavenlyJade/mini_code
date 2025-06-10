@@ -3,13 +3,10 @@ from flask.views import MethodView
 from backend.mini_core.schema.order.order import (ReShopOrderSchema, OrderStatusUpdateArgSchema,
                                                   WXShopOrderQueryArgSchema, MiniOrderCreateSchema)
 
-from backend.mini_core.schema.order.order_return import (
-    OrderReturnQueryArgSchema, ReOrderReturnSchema, ReOrderReturnListSchema,AuditReturnSchema,
-    ReturnApplicationSchema)
+from backend.mini_core.schema.order.order_return import (ReturnApplicationSchema)
 from backend.business.service.auth import auth_required
 from backend.mini_core.service import shop_order_service, order_return_service
 from kit.util.blueprint import APIBlueprint
-from flask_jwt_extended import get_current_user
 
 blp = APIBlueprint('wx_shop_order', 'wx_shop_order', url_prefix='/shop-order')
 

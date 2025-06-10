@@ -300,6 +300,7 @@ class ShopUserService(CRUDService[ShopUser]):
 
         user = self.repo.get_by_openid(openid)
         avatar = user_data.get('avatarurl')
+        nickName = user_data.get('nickName', '微信用户')
         # 如果用户存在，更新必要的字段
         if user:
             user.last_login_time = dt.datetime.now()
@@ -309,7 +310,7 @@ class ShopUserService(CRUDService[ShopUser]):
                 openid=openid,
                 user_id=_generate_user_id(),  # 生成用户ID
                 username=user_data.get('username', f"wx_user_{openid[-8:]}"),  # 生成默认用户名
-                nickname=user_data.get('nickName', '微信用户'),
+                nickname=nickName,
                 unionid=user_data.get('appid', ''),
                 avatar=avatar,
                 member_level="LV0",
@@ -325,7 +326,7 @@ class ShopUserService(CRUDService[ShopUser]):
         dis_user_data = distribution_service.get({"sn": openid}).get("data")
         if not dis_user_data:
             share_user_id = user_data.get('share_user_id')
-            create_data = dict(sn=openid, total_amount=0, user_id=user.user_id,lv_id=2)
+            create_data = dict(sn=openid, total_amount=0, user_id=user.user_id,lv_id=2,real_name=nickName)
             if share_user_id and share_user_id != user.user_id:
                 find_fa_data = self._repo.get_by_userid(share_user_id)
                 if find_fa_data:

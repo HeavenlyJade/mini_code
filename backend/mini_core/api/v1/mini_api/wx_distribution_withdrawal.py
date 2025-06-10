@@ -1,17 +1,14 @@
 from flask.views import MethodView
 from flask_jwt_extended import jwt_required, get_current_user
 
-from backend.business.service.auth import auth_required
-from backend.mini_core.domain.distributionWithdrawal import DistributionWithdrawal
 from backend.mini_core.schema.distribution_withdrawal import (
-    DistributionWithdrawalSchema,
+
     DistributionWithdrawalQueryArgSchema,
     DistributionWithdrawalCreateSchema,
-    DistributionWithdrawalUpdateSchema,DistributionWithdrawalDetailResponseSchema,
+    DistributionWithdrawalDetailResponseSchema,
     DistributionWithdrawalListSchema
 )
 from backend.mini_core.service import distribution_withdrawal_service
-from kit.schema.base import RespSchema
 from kit.util.blueprint import APIBlueprint
 
 blp = APIBlueprint('distribution_withdrawal', 'distribution_withdrawal', url_prefix='/distribution_withdrawal')

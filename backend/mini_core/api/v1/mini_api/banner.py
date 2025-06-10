@@ -1,15 +1,12 @@
 # backend/business/api/v1/banner.py
 from flask.views import MethodView
-from flask_jwt_extended import jwt_required
 
-from backend.mini_core.domain.banner import Banner
 from backend.mini_core.schema.banner import (
     BannerCreateSchema,
     BannerListSchema,
     BannerQueryArgSchema,
     BannerSchema,
-    BannerStatusSchema,
-    BannerUpdateSchema,
+
 )
 from backend.mini_core.service import banner_service
 from backend.business.service.auth import auth_required

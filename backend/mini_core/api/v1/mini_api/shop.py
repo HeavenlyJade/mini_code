@@ -1,16 +1,10 @@
 from flask.views import MethodView
-from typing import List
-
 from backend.mini_core.schema.shop import (
     ProductCategoryQueryArgSchema, ReProductCategorySchema, ReProductCategoryListSchema,
     ShopProductQueryArgSchema, ReShopProductSchema, ReShopProductListSchema,
-    ShopProductStockUpdateArgSchema, ShopProductStatusUpdateArgSchema,
-    ReShopProductStockUpdateSchema, ReProductCategoryTreeSchema,ProductCategorySchema,ShopProductSchema,
-    ProductCategoryBatchDeleteSchema
+
 )
-from kit.schema.base import  FieldQuerySchema
-from backend.mini_core.domain.shop import ShopProduct, ShopProductCategory
-from backend.business.service.auth import auth_required
+
 from backend.mini_core.service import (
     shop_product_service, shop_product_category_service
 )

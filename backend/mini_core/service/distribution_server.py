@@ -257,7 +257,8 @@ class DistributionService(CRUDService[Distribution]):
         re_team = []
         for item in data:
             real_name = item.real_name
-            real_name = real_name[0] + '*' * (len(real_name) - 2) + real_name[-1]
+            if real_name:
+                real_name = real_name[0] + '*' * (len(real_name) - 2) + real_name[-1]
             re_dic = dict(real_name=real_name, lv_id=item.lv_id, user_id=item.user_id)
             re_team.append(re_dic)
         return dict(data=re_team, total=total, code=200)
