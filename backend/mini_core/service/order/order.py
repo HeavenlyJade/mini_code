@@ -102,6 +102,8 @@ class ShopOrderService(CRUDService[ShopOrder]):
         user_points = user.points
         member_level = user.member_level
         member_level_config = member_level_config_service.find_level_data({"level_code": member_level})
+        if not user_points:
+            user_points = 0
         remaining_points = user_points - points_used
         if remaining_points< 0:
             return dict(data=None, code=400, message="实际积分数量不足")

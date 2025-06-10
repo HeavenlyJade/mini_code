@@ -33,8 +33,6 @@ class ProductCategoryDetailAPI(MethodView):
         """获取指定ID的商品分类"""
         return shop_product_category_service.find_data({"id": category_id})
 
-
-
     @blp.response(ReProductCategorySchema)
     def delete(self, category_id: int):
         """删除指定ID的商品分类"""

@@ -125,13 +125,13 @@ class ShopUser(Entity):
         ),
     )
     points: int = field(
-        default=None,
+        default=0,
         metadata=dict(
             description='积分',
         ),
     )
     balance: float = field(
-        default=None,
+        default=0,
         metadata=dict(
             description='账户余额',
         ),

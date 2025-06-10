@@ -317,6 +317,7 @@ class ShopUserService(CRUDService[ShopUser]):
                 status=1,  # 默认启用状态
                 register_channel='微信小程序',
                 register_time=dt.datetime.now(),
+                points=0,
                 mini_program_name=user_data.get('appid', '')  # 存储appid到mini_program_name字段
             )
             invite_code = InviteCodeGenerator.generate_invite_code(openid)
