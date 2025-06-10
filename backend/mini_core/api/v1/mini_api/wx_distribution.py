@@ -31,13 +31,9 @@ class DistributionWXView(MethodView):
         income = distribution_income_service.get_summary_by_user(user_id=user_id)
         income_d_m_a = distribution_income_service.get_income_d_m_a_summary(user_id=user_id)
         distribution_data = distribution_service.get({"user_id": user_id})["data"]
-
         from dataclasses import asdict
-
-
         if distribution_data:
             distribution_data = asdict(distribution_data)
-
             # 计算总佣金：wait_deposit_amount + frozen_amount + wait_amount 三者的和
             # 更安全的 null 值处理方式
             def safe_float(value):
@@ -61,6 +57,9 @@ class DistributionWXView(MethodView):
                 shop_user_data = shop_user_service.find(invite_code=user_father_invite_code)
                 if shop_user_data:
                     distribution_data["father_name"] = shop_user_data.nickname
+
+            grade_data = distribution_grade_service.repo.get_by_id(distribution_data["lv_id"])
+            distribution_data["grade_id"] = grade_data.weight
         return dict(
             data=dict(
                 income=income["data"],
