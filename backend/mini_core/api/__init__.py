@@ -21,6 +21,8 @@ from backend.mini_core.api.v1.dashboard import blp as dashboard_api
 from backend.mini_core.api.v1.member_level_config import blp as member_level_config_blp
 from backend.mini_core.api.v1.wx_server import blp as wx_server_api
 from backend.mini_core.api.v1.distribution_withdrawal import blp as wx_distribution_withdrawal_api
+from backend.mini_core.api.v1.psd_processor import blp as psd_processor_api
+
 mini_core_v1_blp.register_blueprint(card_api)
 mini_core_v1_blp.register_blueprint(distribution_api)
 mini_core_v1_blp.register_blueprint(wx_distribution_withdrawal_api)
@@ -43,6 +45,7 @@ mini_core_v1_blp.register_blueprint(order_review_blp)
 mini_core_v1_blp.register_blueprint(dashboard_api)
 mini_core_v1_blp.register_blueprint(member_level_config_blp)
 mini_core_v1_blp.register_blueprint(wx_server_api)
+mini_core_v1_blp.register_blueprint(psd_processor_api)
 
 
 
