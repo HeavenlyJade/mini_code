@@ -34,6 +34,7 @@ class TextAttributes:
 class FontManager:
     """字体管理类"""
     FALLBACK_FONTS = [
+        '洪亮毛笔隶书简体.ttf',
         'simkai.ttf',      # 楷体
         'simhei.ttf',      # 黑体
         'simsun.ttc',      # 宋体
@@ -241,7 +242,7 @@ def create_text_image_with_psd_attributes(psd, layer, new_text,i,file_name_color
         y = (layer.size[1] - text_height) // 2
         # 打印字体名称,用于调试字体加载问题
         # 绘制文本
-        draw.text((x,y), new_text, font=font, fill=text_attrs['color'])
+        draw.text((x,-35), new_text, font=font, fill=text_attrs['color'])
         # draw.text((x,y), new_text, font=font, fill=(255,0,0,100))
         bg=Image.new('RGBA',psd.size,(0,0,0,0))
         img.save(f"tmp{i}.png")
@@ -296,8 +297,11 @@ class PSDProcessAPI(MethodView):
         # 从请求参数中获取PSD文件路径和新文本
         psd_path = args.get('psd_path', 'jinjiang2.psd')
         new_text = args.get('new_text', '茅台')
-        new_text = new_text[::-1]
-        new_text=new_text+""+new_text
+        # 将第一个字重复4次，第二个字重复4次
+        if len(new_text) >= 2:
+            first_char = new_text[0] * 2  # 第一个字重复4次
+            second_char = new_text[1] * 2  # 第二个字重复4次
+            new_text =  second_char + first_char + second_char + first_char
         # 验证PSD文件是否存在
         if not Path(psd_path).exists():
             return {
@@ -314,28 +318,59 @@ class PSDProcessAPI(MethodView):
             {'file_name': 'bg0.png', 'color': (255, 0, 0, 0)},
             {'file_name': 'bg1.png', 'color': (0, 255, 0, 0)},
             {'file_name': 'bg2.png', 'color': (0, 0, 255, 0)},
-            {'file_name': 'bg3.png', 'color': (255, 255, 255, 0)}
+            {'file_name': 'bg3.png', 'color': (255, 255, 255, 0)},
+            {'file_name': 'bg4.png', 'color': (255, 0, 0, 0)},
+            {'file_name': 'bg5.png', 'color': (0, 255, 0, 0)},
+            {'file_name': 'bg6.png', 'color': (0, 0, 255, 0)},
+            {'file_name': 'bg7.png', 'color': (255, 255, 255, 0)}
         ]
 
         for index,layer in enumerate(psd):
-            if layer.kind == "type":
-                create_text_image_with_psd_attributes(psd,layer, new_text[i],i,file_name_color)
+            # if layer.kind == "type":
+            #     create_text_image_with_psd_attributes(psd,layer, new_text[i],i,file_name_color)
+            #     layers_to_remove.append(layer)
+            #     i=i+1
+            # else:
+            #     print(layer.kind,layer.name,index)
+            if layer.is_group():
+                # 递归遍历子图层
+                for sublayer in layer:
+                    if sublayer.kind == 'type':
+                        text = sublayer.engine_dict['Editor']['Text'].value
+                        fontset = sublayer.resource_dict['FontSet']
+                        runlength = sublayer.engine_dict['StyleRun']['RunLengthArray']
+                        rundata = sublayer.engine_dict['StyleRun']['RunArray']
+                        # 获取颜色信息
+                        color_info = parse_color_info(rundata)
+                        # 获取字体大小
+                        font_size = parse_font_size(rundata)
+                        # # 获取文本位置和变换信息
+                        transform = sublayer.transform
+                        # position = (sublayer.left, sublayer.top)
+                        # new_layer=create_text_pixel_layer(psd,font_info, "酒", layer.size, position)
+                        # text1="酱酱酱酱酱酱酱酱"
+                        create_text_image_with_psd_attributes(psd,sublayer, new_text[i],i,file_name_color)
+
+                        i=i+1
+                    else:
+                        print(layer.kind,layer.name,index)
                 layers_to_remove.append(layer)
-                i=i+1
-            else:
-                print(layer.kind,layer.name,index)
-        #删除即将覆盖的图层
+            # print("layer.kind",layer.kind)
+        else:
+            print("layer.kind---",layer.kind)
+#删除即将覆盖的
         for layer1 in layers_to_remove:
-            psd.remove(layer1)
+            print("layer.kind", layer1.kind)
+            layer1.clear()
         psd.composite().save("background.png")
-        bj=Image.open("background.png")
+        bj1=Image.open("background.png")
         for item in file_name_color:
             image_obj = Image.open(item['file_name'])
-            x = Image.new('RGBA', bj.size, item['color'])
-            out0 = Image.composite(x, bj, image_obj)
-            bj=out0
-        save_path=f"{random.randint(100000,999999)}.png"
-        bj.save(save_path)
+            x = Image.new('RGBA', bj1.size, item['color'])
+            out0 = Image.composite(x, bj1, image_obj)
+            bj1=out0
+        save_path="finish.png"
+        bj1.save(save_path)
         file_bak=Image.open(save_path)
         filename = save_file(file_bak)
         file_url = get_file_url(filename)
